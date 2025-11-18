@@ -1,0 +1,18 @@
+{
+  "name": "Grout",
+  "version": "v1.0.0",
+  "type": "TOOL",
+  "description": "A RomM client for NextUI and muOS",
+  "author": "K-Wall",
+  "repo_url": "https://github.com/rommapp/grout",
+  "release_filename": "Grout.pak.zip",
+  "changelog": {
+    "v1.0.0": "Initial release of Grout!"
+  },
+  "screenshots": [
+  ],
+  "platforms": [
+    "tg5040"
+  ],
+  "launch": "launch.sh"
+}

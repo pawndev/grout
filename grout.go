@@ -48,11 +48,13 @@ func init() {
 		utils.SaveConfig(config)
 	}
 
+	state.SetConfig(config)
+
 	if config.LogLevel != "" {
 		gaba.SetRawLogLevel(config.LogLevel)
 	}
 
-	if len(config.DirectoryMappings) == 0 {
+	if config.DirectoryMappings == nil || len(config.DirectoryMappings) == 0 {
 		pms := ui.InitPlatformMappingScreen(config.Hosts[0], true)
 		mappings, code, err := pms.Draw()
 		if err != nil {
@@ -80,18 +82,17 @@ func main() {
 	defer cleanup()
 
 	logger := gaba.GetLogger()
-	appState := state.GetAppState()
 
 	logger.Debug("Starting Grout")
 
 	var screen models.Screen
 
-	quitOnBack := len(appState.Config.Hosts) == 1
+	quitOnBack := len(state.GetAppState().Config.Hosts) == 1
 
 	if quitOnBack {
-		screen = ui.InitPlatformSelection(appState.Config.Hosts[0], quitOnBack)
+		screen = ui.InitPlatformSelection(state.GetAppState().Config.Hosts[0], quitOnBack)
 	} else {
-		screen = ui.InitMainMenu(appState.Config.Hosts)
+		screen = ui.InitMainMenu(state.GetAppState().Config.Hosts)
 	}
 
 	for {
@@ -110,10 +111,10 @@ func main() {
 			}
 		case ui.Screens.Settings:
 			if code != 404 {
-				if len(appState.Config.Hosts) == 1 {
-					screen = ui.InitPlatformSelection(appState.Config.Hosts[0], quitOnBack)
+				if len(state.GetAppState().Config.Hosts) == 1 {
+					screen = ui.InitPlatformSelection(state.GetAppState().Config.Hosts[0], quitOnBack)
 				} else {
-					screen = ui.InitMainMenu(appState.Config.Hosts)
+					screen = ui.InitMainMenu(state.GetAppState().Config.Hosts)
 				}
 			}
 		case ui.Screens.PlatformSelection:
@@ -126,13 +127,13 @@ func main() {
 				if quitOnBack {
 					os.Exit(0)
 				}
-				screen = ui.InitMainMenu(appState.Config.Hosts)
+				screen = ui.InitMainMenu(state.GetAppState().Config.Hosts)
 			case 4:
 				screen = ui.InitSettingsScreen()
 			case 404:
-				screen = ui.InitMainMenu(appState.Config.Hosts)
+				screen = ui.InitMainMenu(state.GetAppState().Config.Hosts)
 			case -1:
-				screen = ui.InitMainMenu(appState.Config.Hosts)
+				screen = ui.InitMainMenu(state.GetAppState().Config.Hosts)
 			}
 		case ui.Screens.GameList:
 			gl := screen.(ui.GameList)
@@ -180,19 +181,19 @@ func main() {
 					if filepath.Ext(game.Filename) == ".zip" {
 						isBinCue := utils.HasBinCue(ds.Platform, game)
 
-						if isMultiDisc && appState.Config.GroupMultiDisc {
+						if isMultiDisc && state.GetAppState().Config.GroupMultiDisc {
 							utils.GroupMultiDisk(ds.Platform, game)
-						} else if appState.Config.GroupBinCue && isBinCue {
+						} else if state.GetAppState().Config.GroupBinCue && isBinCue {
 							utils.GroupBinCue(ds.Platform, game)
-						} else if appState.Config.UnzipDownloads {
+						} else if state.GetAppState().Config.UnzipDownloads {
 							utils.UnzipGame(ds.Platform, game)
 						}
-					} else if appState.Config.GroupMultiDisc && isMultiDisc {
+					} else if state.GetAppState().Config.GroupMultiDisc && isMultiDisc {
 						utils.GroupMultiDisk(ds.Platform, game)
 					}
 				}
 
-				if appState.Config.DownloadArt {
+				if state.GetAppState().Config.DownloadArt {
 					seenBaseNames := make(map[string]bool)
 
 					// Create a pruned list for art downloads that only includes one instance of each multi-disk game

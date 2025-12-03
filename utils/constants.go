@@ -103,7 +103,7 @@ var muOSPlatforms = map[string][]string{
 	"wolfenstein-3d":                     {},
 }
 
-var NextUIPlatforms = map[string][]string{
+var nextUIPlatforms = map[string][]string{
 	"CPC":    {"acpc"},
 	"PUAE":   {"amiga"},
 	"FBN":    {"arcade"},

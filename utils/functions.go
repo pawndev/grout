@@ -201,8 +201,19 @@ func GetMappedPlatforms(host models.Host, mappings map[string]models.DirectoryMa
 	return platforms
 }
 
-func RomMSlugToMuOS(slug string) string {
-	if value, ok := muOSPlatforms[slug]; ok {
+func RomMSlugToCFW(slug string) string {
+
+	var cfwPlatformMap map[string][]string
+
+	switch GetCFW() {
+	case models.MUOS:
+		cfwPlatformMap = muOSPlatforms
+	case models.NEXTUI:
+		cfwPlatformMap = nextUIPlatforms
+
+	}
+
+	if value, ok := cfwPlatformMap[slug]; ok {
 		return strings.ToLower(value[0])
 	} else {
 		return strings.ToLower(slug)

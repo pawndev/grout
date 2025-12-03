@@ -30,6 +30,17 @@ func (s SettingsScreen) Draw() (settings interface{}, exitCode int, e error) {
 	items := []gabagool.ItemWithOptions{
 		{
 			Item: gabagool.MenuItem{
+				Text: "Directory Mappings",
+			},
+			Options: []gabagool.Option{
+				{
+					Type: gabagool.OptionTypeClickable,
+				},
+			},
+			SelectedOption: 0,
+		},
+		{
+			Item: gabagool.MenuItem{
 				Text: "Download Art",
 			},
 			Options: []gabagool.Option{
@@ -228,6 +239,20 @@ func (s SettingsScreen) Draw() (settings interface{}, exitCode int, e error) {
 
 		for _, option := range newSettingOptions {
 			switch option.Item.Text {
+			case "Directory Mappings":
+				pms := InitPlatformMappingScreen(appState.Config.Hosts[0], false)
+				mappings, code, err := pms.Draw()
+				if err != nil {
+					return
+				}
+
+				if code == 0 {
+					appState.Config.DirectoryMappings = mappings.(map[string]models.DirectoryMapping)
+					appState.Config.Hosts[0].Platforms = utils.GetMappedPlatforms(appState.Config.Hosts[0], appState.Config.DirectoryMappings)
+					utils.SaveConfig(appState.Config)
+					state.SetConfig(appState.Config)
+				}
+				return result, 404, nil
 			case "Download Art":
 				appState.Config.DownloadArt = option.SelectedOption == 0
 			case "API Timeout":

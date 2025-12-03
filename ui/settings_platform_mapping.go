@@ -61,8 +61,15 @@ func (p PlatformMappingScreen) Draw() (interface{}, int, error) {
 		options := []gaba.Option{unmapped}
 
 		rdi := slices.IndexFunc(fb.Items, func(item shared.Item) bool {
-			return platform.Slug == filepath.Base(item.Path)
+			return utils.RomMSlugToCFW(platform.Slug) == filepath.Base(item.Path)
 		})
+
+		if rdi == -1 {
+			options = append(options, gaba.Option{
+				DisplayName: fmt.Sprintf("Create '%s'", utils.RomMSlugToCFW(platform.Slug)),
+				Value:       utils.RomMSlugToCFW(platform.Slug),
+			})
+		}
 
 		for _, romDirectory := range fb.Items {
 			options = append(options, gaba.Option{
@@ -71,19 +78,16 @@ func (p PlatformMappingScreen) Draw() (interface{}, int, error) {
 			})
 		}
 
-		if rdi == -1 {
-			options = append(options, gaba.Option{
-				DisplayName: fmt.Sprintf("Create '%s'", utils.RomMSlugToMuOS(platform.Slug)),
-				Value:       utils.RomMSlugToMuOS(platform.Slug),
-			})
-		}
-
 		selectedIndex := rdi
 
-		if selectedIndex == -1 {
-			selectedIndex = len(options) - 1
+		_, exists := config.DirectoryMappings[platform.Slug]
+
+		if !exists {
+			selectedIndex = 0
+		} else if selectedIndex != -1 {
+			selectedIndex = rdi + 1
 		} else {
-			selectedIndex = selectedIndex + 1
+			selectedIndex = 1
 		}
 
 		mappingOptions = append(mappingOptions, gaba.ItemWithOptions{

@@ -7,7 +7,7 @@
   <img src=".github/resources/logotipo.png" height="45px" width="auto" alt="romm grout logotype">
     <h3 style="font-size: 25px;">
 
-A Download Client for [NextUI](https://nextui.loveretro.games) and [muOS](https://muos.dev)
+A RomM Client for [NextUI](https://nextui.loveretro.games) and [muOS](https://muos.dev)
 </h3>
 
 <br>

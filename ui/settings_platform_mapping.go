@@ -15,12 +15,14 @@ import (
 
 type PlatformMappingScreen struct {
 	Host           models.Host
+	AutoSelect     bool
 	HideBackButton bool
 }
 
-func InitPlatformMappingScreen(host models.Host, hideBackButton bool) PlatformMappingScreen {
+func InitPlatformMappingScreen(host models.Host, autoSelect bool, hideBackButton bool) PlatformMappingScreen {
 	return PlatformMappingScreen{
 		Host:           host,
+		AutoSelect:     autoSelect,
 		HideBackButton: hideBackButton,
 	}
 }
@@ -59,32 +61,64 @@ func (p PlatformMappingScreen) Draw() (interface{}, int, error) {
 		options := []gaba.Option{unmapped}
 
 		rdi := slices.IndexFunc(fb.Items, func(item models.Item) bool {
-			return utils.RomMSlugToCFW(platform.Slug) == filepath.Base(item.Path)
+			gaba.GetLogger().Error(fmt.Sprintf("%s | %s", utils.RomMSlugToCFW(platform.Slug), utils.RomFolderBase(item)))
+			switch utils.GetCFW() {
+			case models.NEXTUI:
+				return utils.ParseTag(utils.RomMSlugToCFW(platform.Slug)) == utils.RomFolderBase(item)
+			case models.MUOS:
+				return utils.RomMSlugToCFW(platform.Slug) == utils.RomFolderBase(item)
+			default:
+				return utils.RomMSlugToCFW(platform.Slug) == utils.RomFolderBase(item)
+			}
 		})
 
+		canCreate := false
+
 		if rdi == -1 {
-			options = append(options, gaba.Option{
-				DisplayName: fmt.Sprintf("Create '%s'", utils.RomMSlugToCFW(platform.Slug)),
-				Value:       utils.RomMSlugToCFW(platform.Slug),
-			})
+			dn := utils.RomMSlugToCFW(platform.Slug)
+
+			if utils.GetCFW() == models.NEXTUI {
+				dn = utils.ParseTag(dn)
+			}
+
+			if dn != "" {
+				options = append(options, gaba.Option{
+					DisplayName: fmt.Sprintf("Create '%s'", dn),
+					Value:       utils.RomMSlugToCFW(platform.Slug),
+				})
+
+				canCreate = true
+			}
 		}
+
+		selectedIndex := 0
 
 		for _, romDirectory := range fb.Items {
+			dn := filepath.Base(romDirectory.Path)
+
+			if utils.GetCFW() == models.NEXTUI {
+				dn = utils.ParseTag(dn)
+			}
+
 			options = append(options, gaba.Option{
-				DisplayName: fmt.Sprintf("/%s", filepath.Base(romDirectory.Path)),
+				DisplayName: fmt.Sprintf("/%s", dn),
 				Value:       filepath.Base(romDirectory.Path),
 			})
+
+			switch utils.GetCFW() {
+			case models.NEXTUI:
+				if utils.ParseTag(utils.RomMSlugToCFW(platform.Slug)) == utils.RomFolderBase(romDirectory) {
+					selectedIndex = len(options) - 1
+				}
+			case models.MUOS:
+				if utils.RomMSlugToCFW(platform.Slug) == utils.RomFolderBase(romDirectory) {
+					selectedIndex = len(options) - 1
+				}
+			}
+
 		}
 
-		selectedIndex := rdi
-
-		_, exists := config.DirectoryMappings[platform.Slug]
-
-		if !exists {
-			selectedIndex = 0
-		} else if selectedIndex != -1 {
-			selectedIndex = rdi + 1
-		} else {
+		if selectedIndex == 0 && len(options) > 1 && (len(fb.Items) == 0 || (canCreate && p.AutoSelect)) {
 			selectedIndex = 1
 		}
 

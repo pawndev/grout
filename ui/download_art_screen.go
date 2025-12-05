@@ -60,7 +60,7 @@ func (a DownloadArtScreen) Draw() (value interface{}, exitCode int, e error) {
 	}
 
 	for _, artPath := range artPaths {
-		result, err := gabagool.ConfirmationMessage("Use This Art?",
+		result, err := gabagool.ConfirmationMessage("Keep This Art?",
 			[]gabagool.FooterHelpItem{
 				{ButtonName: "B", HelpText: "No"},
 				{ButtonName: "A", HelpText: "Yes"},
@@ -69,7 +69,7 @@ func (a DownloadArtScreen) Draw() (value interface{}, exitCode int, e error) {
 				ImagePath: artPath,
 			})
 
-		if err != nil || result.Confirmed {
+		if err != nil || !result.Confirmed {
 			utils.DeleteFile(artPath)
 		}
 	}

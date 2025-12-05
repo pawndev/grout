@@ -1,7 +1,14 @@
 github.com/UncleJunVIP/certifiable v1.0.0 h1:g8SMZrGW74qLvli9j0CYO5BvpVcGhqxfvAUnTeSjyfc=
 github.com/UncleJunVIP/certifiable v1.0.0/go.mod h1:paPhCSE8DKzYvBcFcr5NVAYJmmvADq8e5fvkvs95np4=
+github.com/UncleJunVIP/gabagool v0.2.1/go.mod h1:P015j8yPDVV1Bf+vlYuxrvspB8nVr+8m5Hzu144WQWc=
 github.com/UncleJunVIP/gabagool/v2 v2.0.0 h1:d8x9sBC6Ql3Lwo062PC8Lx/nOfMmA4tyS0P+OII79vw=
 github.com/UncleJunVIP/gabagool/v2 v2.0.0/go.mod h1:FgQc2sMVQLBA/A6nE1nfcluMJp9Rn+rP9qWQ1k8UJsA=
+github.com/UncleJunVIP/gabagool/v2 v2.0.1 h1:t9MivQwbg6AdZ185HGi8wwTuDm9Is/9tMHZ8119Epk8=
+github.com/UncleJunVIP/gabagool/v2 v2.0.1/go.mod h1:FgQc2sMVQLBA/A6nE1nfcluMJp9Rn+rP9qWQ1k8UJsA=
+github.com/UncleJunVIP/gabagool/v2 v2.0.2 h1:fVuiAYEYmGKdYpjMyLvaLJKKwKBX9I4QzvI0ID8aMMg=
+github.com/UncleJunVIP/gabagool/v2 v2.0.2/go.mod h1:FgQc2sMVQLBA/A6nE1nfcluMJp9Rn+rP9qWQ1k8UJsA=
+github.com/UncleJunVIP/gabagool/v2 v2.0.3 h1:SsP6n4mC714+HBpHH7kRtQX1BZgbh6Vo5ZdYvNBxA5A=
+github.com/UncleJunVIP/gabagool/v2 v2.0.3/go.mod h1:FgQc2sMVQLBA/A6nE1nfcluMJp9Rn+rP9qWQ1k8UJsA=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=

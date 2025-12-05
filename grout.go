@@ -5,6 +5,7 @@ import (
 	"grout/state"
 	"grout/ui"
 	"grout/utils"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,6 +23,8 @@ func init() {
 		IsNextUI:             utils.GetCFW() == models.NEXTUI,
 		LogFilename:          "grout.log",
 	})
+
+	gaba.SetLogLevel(slog.LevelDebug)
 
 	if !utils.IsConnectedToInternet() {
 		_, err := gaba.ConfirmationMessage("No Internet Connection!\nMake sure you are connected to Wi-Fi.", []gaba.FooterHelpItem{
@@ -42,6 +45,7 @@ func init() {
 
 	config, err := utils.LoadConfig()
 	if err != nil {
+		gaba.GetLogger().Debug("No RomM Host Configured")
 		config = ui.HandleLogin(models.Host{})
 		utils.SaveConfig(config)
 	}
@@ -53,7 +57,7 @@ func init() {
 	}
 
 	if config.DirectoryMappings == nil || len(config.DirectoryMappings) == 0 {
-		pms := ui.InitPlatformMappingScreen(config.Hosts[0], true)
+		pms := ui.InitPlatformMappingScreen(config.Hosts[0], true, true)
 		mappings, code, err := pms.Draw()
 		if err != nil {
 			return

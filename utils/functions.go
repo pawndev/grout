@@ -199,7 +199,6 @@ func GetMappedPlatforms(host models.Host, mappings map[string]models.DirectoryMa
 }
 
 func RomMSlugToCFW(slug string) string {
-
 	var cfwPlatformMap map[string][]string
 
 	switch GetCFW() {
@@ -207,13 +206,23 @@ func RomMSlugToCFW(slug string) string {
 		cfwPlatformMap = muOSPlatforms
 	case models.NEXTUI:
 		cfwPlatformMap = nextUIPlatforms
-
 	}
 
 	if value, ok := cfwPlatformMap[slug]; ok {
-		return strings.ToLower(value[0])
+		return value[0]
 	} else {
 		return strings.ToLower(slug)
+	}
+}
+
+func RomFolderBase(item models.Item) string {
+	switch GetCFW() {
+	case models.MUOS:
+		return filepath.Base(item.Path)
+	case models.NEXTUI:
+		return item.Tag
+	default:
+		return filepath.Base(item.Path)
 	}
 }
 
@@ -600,6 +609,28 @@ func FindArt(platform models.Platform, game models.Item) string {
 	}
 
 	return LastSavedArtPath
+}
+
+func ParseTag(input string) string {
+	cleaned := filepath.Clean(input)
+
+	tags := TagRegex.FindAllStringSubmatch(cleaned, -1)
+
+	var foundTags []string
+	foundTag := ""
+
+	if len(tags) > 0 {
+		for _, tagPair := range tags {
+			foundTags = append(foundTags, tagPair[0])
+		}
+
+		foundTag = strings.Join(foundTags, " ")
+	}
+
+	foundTag = strings.ReplaceAll(foundTag, "(", "")
+	foundTag = strings.ReplaceAll(foundTag, ")", "")
+
+	return foundTag
 }
 
 func ItemNameCleaner(filename string, stripTag bool) (string, string) {

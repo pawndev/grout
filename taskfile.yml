@@ -1,14 +1,6 @@
 version: '3'
 
 tasks:
-  all:
-    cmds:
-      - task: build
-      - task: extract
-      - task: package-next
-      - task: package-muos
-    silent: true
-
   build:
     cmds:
       - rm -rf build
@@ -46,11 +38,20 @@ tasks:
       - cp -R fonts build/muOS/Grout/resources
     silent: true
 
-  adb:
+  adb-next:
     cmds:
       - adb shell rm -rf /mnt/SDCARD/Tools/tg5040/Grout.pak || true
       - adb push build/Grout.pak /mnt/SDCARD/Tools/tg5040
       - adb push config.json /mnt/SDCARD/Tools/tg5040/Grout.pak
+      - say Finished deploying Grout!
+    silent: true
+
+  adb-muos:
+    cmds:
+      - adb shell rm -rf /mnt/sdcard/MUOS/application/Grout || true
+      - adb push build/muOS/Grout /mnt/sdcard/MUOS/application
+      - adb push config.json /mnt/sdcard/MUOS/application/Grout
+      - adb push .github/resources/input_mappings/muOS/anbernic_mapping.json /mnt/sdcard/MUOS/application/Grout/input_mapping.json
       - say Finished deploying Grout!
     silent: true
 

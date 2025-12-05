@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/UncleJunVIP/certifiable v1.0.0
-	github.com/UncleJunVIP/gabagool/v2 v2.0.0
+	github.com/UncleJunVIP/gabagool/v2 v2.0.3
 	github.com/spf13/viper v1.21.0
 	go.uber.org/atomic v1.11.0
 	gopkg.in/yaml.v3 v3.0.1

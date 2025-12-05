@@ -216,6 +216,11 @@ func (s SettingsScreen) Draw() (settings interface{}, exitCode int, e error) {
 		},
 	}
 
+	if utils.GetCFW() == models.MUOS {
+		// TODO temp remove art download option
+		items = append(items[:2], items[3:]...)
+	}
+
 	result, err := gabagool.OptionsList(
 		"Grout Settings",
 		gabagool.OptionListSettings{FooterHelpItems: []gabagool.FooterHelpItem{
@@ -230,7 +235,7 @@ func (s SettingsScreen) Draw() (settings interface{}, exitCode int, e error) {
 		fmt.Println("Error showing options list:", err)
 		return
 	} else if result.Selected == 0 {
-		pms := InitPlatformMappingScreen(appState.Config.Hosts[0], false)
+		pms := InitPlatformMappingScreen(appState.Config.Hosts[0], false, false)
 		mappings, code, err := pms.Draw()
 		if err != nil {
 			return

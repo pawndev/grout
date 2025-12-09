@@ -2,7 +2,6 @@ package ui
 
 import (
 	"errors"
-	"grout/models"
 	"grout/romm"
 	"grout/utils"
 
@@ -10,7 +9,7 @@ import (
 )
 
 type CollectionSelectionInput struct {
-	Host                 models.Host
+	Host                 romm.Host
 	LastSelectedIndex    int
 	LastSelectedPosition int
 }

@@ -2,7 +2,7 @@ package ui
 
 import (
 	"fmt"
-	"grout/models"
+	"grout/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -14,12 +14,12 @@ import (
 )
 
 type LoginInput struct {
-	ExistingHost models.Host
+	ExistingHost romm.Host
 }
 
 type LoginOutput struct {
-	Host   models.Host
-	Config *models.Config
+	Host   romm.Host
+	Config *utils.Config
 }
 
 type LoginScreen struct{}
@@ -136,7 +136,7 @@ func (s *LoginScreen) Draw(input LoginInput) (ScreenResult[LoginOutput], error) 
 
 	loginSettings := res.Items
 
-	newHost := models.Host{
+	newHost := romm.Host{
 		RootURI: fmt.Sprintf("%s%s", loginSettings[0].Value(), loginSettings[1].Value()),
 		Port: func(s string) int {
 			if n, err := strconv.Atoi(s); err == nil {
@@ -151,7 +151,7 @@ func (s *LoginScreen) Draw(input LoginInput) (ScreenResult[LoginOutput], error) 
 	return Success(LoginOutput{Host: newHost}), nil
 }
 
-func LoginFlow(existingHost models.Host) (*models.Config, error) {
+func LoginFlow(existingHost romm.Host) (*utils.Config, error) {
 	screen := NewLoginScreen()
 
 	for {
@@ -195,8 +195,8 @@ func LoginFlow(existingHost models.Host) (*models.Config, error) {
 		}
 
 		// Success
-		config := &models.Config{
-			Hosts: []models.Host{host},
+		config := &utils.Config{
+			Hosts: []romm.Host{host},
 		}
 		return config, nil
 	}
@@ -207,7 +207,7 @@ type loginAttemptResult struct {
 	BadCredentials bool
 }
 
-func attemptLogin(host models.Host) loginAttemptResult {
+func attemptLogin(host romm.Host) loginAttemptResult {
 	rc := romm.NewClient(host.URL(), romm.WithTimeout(time.Second*15))
 
 	result, _ := gabagool.ProcessMessage("Logging in...", gabagool.ProcessMessageOptions{}, func() (interface{}, error) {

@@ -1,0 +1,78 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., v1.2.0)'
+        required: true
+        type: string
+      changelog:
+        description: 'Changelog message for this release'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update pak.json files
+        run: |
+          # Check current version
+          CURRENT_VERSION=$(jq -r '.version' pak.json)
+
+          if [ "$CURRENT_VERSION" != "${{ inputs.version }}" ]; then
+            echo "Updating pak.json from $CURRENT_VERSION to ${{ inputs.version }}"
+
+            # Update root pak.json
+            jq --arg version "${{ inputs.version }}" \
+               --arg changelog "${{ inputs.changelog }}" \
+               '.version = $version | .changelog[$version] = $changelog' \
+               pak.json > pak.json.tmp && mv pak.json.tmp pak.json
+
+            # Update build pak.json (will be copied during build)
+            mkdir -p build/Grout.pak
+            jq --arg version "${{ inputs.version }}" \
+               --arg changelog "${{ inputs.changelog }}" \
+               '.version = $version | .changelog[$version] = $changelog' \
+               pak.json > build/Grout.pak/pak.json
+          else
+            echo "Version is already ${{ inputs.version }}, skipping pak.json update"
+          fi
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Package
+        run: task build extract package-next package-muos
+
+      - name: Create NextUI distribution
+        run: |
+          cd build
+          zip -r Grout.pak.zip Grout.pak
+
+      - name: Create muOS distribution
+        run: |
+          cd build/muOS
+          zip -r Grout.muxapp Grout
+          mv Grout.muxapp ../Grout.muxapp
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}
+          body: ${{ inputs.changelog }}
+          files: |
+            build/Grout.pak.zip
+            build/Grout.muxapp
+          draft: false
+          prerelease: false

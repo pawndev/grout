@@ -18,6 +18,8 @@ A RomM Client for [NextUI](https://nextui.loveretro.games) and [muOS](https://mu
 [![downloads-badge-img]][downloads-badge]
 [![discord-badge-img]][discord-badge]
 
+<img src=".github/resources/webp/preview.webp" alt="collection flow" width="800px" height="auto">
+
 </div>
 
 ## How do I setup Grout?

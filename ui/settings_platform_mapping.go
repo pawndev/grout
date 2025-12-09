@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"grout/constants"
-	"grout/models"
 	"grout/utils"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -18,7 +18,7 @@ import (
 
 // PlatformMappingInput contains data needed to render the platform mapping screen
 type PlatformMappingInput struct {
-	Host           models.Host
+	Host           romm.Host
 	ApiTimeout     time.Duration
 	CFW            constants.CFW
 	RomDirectory   string // Base ROM directory path
@@ -28,7 +28,7 @@ type PlatformMappingInput struct {
 
 // PlatformMappingOutput contains the result of the platform mapping screen
 type PlatformMappingOutput struct {
-	Mappings map[string]models.DirectoryMapping
+	Mappings map[string]utils.DirectoryMapping
 }
 
 // PlatformMappingScreen displays platform to directory mapping configuration
@@ -40,7 +40,7 @@ func NewPlatformMappingScreen() *PlatformMappingScreen {
 
 func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (ScreenResult[PlatformMappingOutput], error) {
 	logger := gaba.GetLogger()
-	output := PlatformMappingOutput{Mappings: make(map[string]models.DirectoryMapping)}
+	output := PlatformMappingOutput{Mappings: make(map[string]utils.DirectoryMapping)}
 
 	// Fetch RomM platforms
 	rommPlatforms, err := s.fetchPlatforms(input)
@@ -87,6 +87,12 @@ func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (ScreenResult[P
 
 	// Build mappings from result
 	output.Mappings = s.buildMappingsFromResult(result.Items)
+
+	// Create directories for any "Create" options selected
+	if err := s.createDirectories(output.Mappings, input.RomDirectory, romDirectories); err != nil {
+		logger.Error("Error creating directories", "error", err)
+		return WithCode(output, gaba.ExitCodeError), err
+	}
 
 	return Success(output), nil
 }
@@ -231,8 +237,8 @@ func (s *PlatformMappingScreen) getCreateDisplayName(slug string, cfw constants.
 	return displayName
 }
 
-func (s *PlatformMappingScreen) buildMappingsFromResult(items []gaba.ItemWithOptions) map[string]models.DirectoryMapping {
-	mappings := make(map[string]models.DirectoryMapping)
+func (s *PlatformMappingScreen) buildMappingsFromResult(items []gaba.ItemWithOptions) map[string]utils.DirectoryMapping {
+	mappings := make(map[string]utils.DirectoryMapping)
 
 	for _, item := range items {
 		rommSlug := item.Item.Metadata.(string)
@@ -243,11 +249,46 @@ func (s *PlatformMappingScreen) buildMappingsFromResult(items []gaba.ItemWithOpt
 			continue
 		}
 
-		mappings[rommSlug] = models.DirectoryMapping{
+		mappings[rommSlug] = utils.DirectoryMapping{
 			RomMSlug:     rommSlug,
 			RelativePath: relativePath,
 		}
 	}
 
 	return mappings
+}
+
+func (s *PlatformMappingScreen) createDirectories(
+	mappings map[string]utils.DirectoryMapping,
+	romDirectory string,
+	existingDirs []os.DirEntry,
+) error {
+	logger := gaba.GetLogger()
+
+	// Build a map of existing directory names for quick lookup
+	existingDirMap := make(map[string]bool)
+	for _, dir := range existingDirs {
+		existingDirMap[dir.Name()] = true
+	}
+
+	// Check each mapping and create directories for new ones
+	for _, mapping := range mappings {
+		// Skip if the directory already exists
+		if existingDirMap[mapping.RelativePath] {
+			continue
+		}
+
+		// Create the directory
+		fullPath := filepath.Join(romDirectory, mapping.RelativePath)
+		logger.Debug("Creating new ROM directory", "path", fullPath)
+
+		if err := os.MkdirAll(fullPath, 0755); err != nil {
+			logger.Error("Failed to create directory", "path", fullPath, "error", err)
+			return fmt.Errorf("failed to create directory %s: %w", fullPath, err)
+		}
+
+		logger.Info("Created ROM directory", "path", fullPath)
+	}
+
+	return nil
 }

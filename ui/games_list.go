@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"grout/constants"
-	"grout/models"
 	"grout/romm"
 	"grout/utils"
 	"slices"
@@ -22,8 +21,8 @@ const (
 )
 
 type GameListInput struct {
-	Config               *models.Config
-	Host                 models.Host
+	Config               *utils.Config
+	Host                 romm.Host
 	Platform             romm.Platform
 	Collection           romm.Collection
 	Games                []romm.Rom
@@ -263,7 +262,7 @@ func (s *GameListScreen) showFilteredOutMessage(collectionName string) {
 	)
 }
 
-func fetchList(config *models.Config, host models.Host, queryID int, fetchType FetchType) ([]romm.Rom, error) {
+func fetchList(config *utils.Config, host romm.Host, queryID int, fetchType FetchType) ([]romm.Rom, error) {
 	logger := gaba.GetLogger()
 
 	rc := romm.NewClient(host.URL(),

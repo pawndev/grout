@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"grout/models"
 	"grout/romm"
 	"grout/utils"
 	"io"
@@ -19,8 +18,8 @@ import (
 )
 
 type GameDetailsInput struct {
-	Config   *models.Config
-	Host     models.Host
+	Config   *utils.Config
+	Host     romm.Host
 	Platform romm.Platform
 	Game     romm.Rom
 }
@@ -48,7 +47,7 @@ func (s *GameDetailsScreen) Draw(input GameDetailsInput) (ScreenResult[GameDetai
 
 	options := gaba.DefaultInfoScreenOptions()
 	options.Sections = sections
-	options.ShowThemeBackground = true
+	options.ShowThemeBackground = false
 	options.ShowScrollbar = true
 
 	result, err := gaba.DetailScreen(input.Game.Name, options, []gaba.FooterHelpItem{
@@ -91,6 +90,7 @@ func (s *GameDetailsScreen) buildSections(input GameDetailsInput) []gaba.Section
 
 			err := os.WriteFile(tempImagePath, coverImageData, 0644)
 			if err == nil {
+				utils.ProcessArtImage(tempImagePath)
 				sections = append(sections, gaba.NewImageSection("", tempImagePath, 640, 480, constants.TextAlignCenter))
 			} else {
 				logger.Warn("Failed to write cover image", "error", err)
@@ -197,7 +197,7 @@ func (s *GameDetailsScreen) buildSections(input GameDetailsInput) []gaba.Section
 	return sections
 }
 
-func (s *GameDetailsScreen) fetchCoverImage(host models.Host, game romm.Rom) []byte {
+func (s *GameDetailsScreen) fetchCoverImage(host romm.Host, game romm.Rom) []byte {
 	var coverPath string
 	if game.PathCoverLarge != "" {
 		coverPath = game.PathCoverLarge
@@ -211,7 +211,7 @@ func (s *GameDetailsScreen) fetchCoverImage(host models.Host, game romm.Rom) []b
 	return s.fetchImageFromURL(host, coverURL)
 }
 
-func (s *GameDetailsScreen) fetchImageFromURL(host models.Host, imageURL string) []byte {
+func (s *GameDetailsScreen) fetchImageFromURL(host romm.Host, imageURL string) []byte {
 	logger := gaba.GetLogger()
 
 	imageURL = strings.ReplaceAll(imageURL, " ", "%20")

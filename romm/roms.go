@@ -3,7 +3,6 @@ package romm
 import (
 	"bytes"
 	"fmt"
-	"grout/models"
 	"io"
 	"mime/multipart"
 	"net/url"
@@ -68,7 +67,7 @@ type Rom struct {
 	Siblings            []any        `json:"siblings,omitempty"`
 }
 
-func (r Rom) GetGamePage(host models.Host) string {
+func (r Rom) GetGamePage(host Host) string {
 	u, _ := url.JoinPath(host.URL(), "rom", strconv.Itoa(r.ID))
 	return u
 }

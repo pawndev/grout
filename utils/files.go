@@ -138,7 +138,7 @@ func OrganizeMultiFileRomForMuOS(extractDir, romDirectory, gameName string) erro
 	updatedM3U := strings.Join(lines, "\n")
 
 	// Write the updated .m3u file to the platform directory
-	m3uDestPath := filepath.Join(romDirectory, filepath.Base(m3uFile))
+	m3uDestPath := filepath.Join(romDirectory, gameName+".m3u")
 	if err := os.WriteFile(m3uDestPath, []byte(updatedM3U), 0644); err != nil {
 		return fmt.Errorf("failed to write updated .m3u file: %w", err)
 	}

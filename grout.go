@@ -2,7 +2,6 @@ package main
 
 import (
 	"grout/constants"
-	"grout/models"
 	"grout/ui"
 	"grout/utils"
 	"log/slog"
@@ -56,7 +55,7 @@ type (
 	CachedCollectionGames []romm.Rom
 )
 
-func setup() *models.Config {
+func setup() *utils.Config {
 	cfw := utils.GetCFW()
 
 	gaba.Init(gaba.Options{
@@ -81,7 +80,7 @@ func setup() *models.Config {
 	config, err := utils.LoadConfig()
 	if err != nil {
 		gaba.GetLogger().Debug("No RomM Host Configured")
-		loginConfig, loginErr := ui.LoginFlow(models.Host{})
+		loginConfig, loginErr := ui.LoginFlow(romm.Host{})
 		if loginErr != nil {
 			utils.LogStandardFatal("Login failed", loginErr)
 		}
@@ -123,6 +122,8 @@ func main() {
 
 	config := setup()
 
+	time.Sleep(time.Second * 5)
+
 	logger := gaba.GetLogger()
 	logger.Debug("Starting Grout")
 
@@ -138,7 +139,7 @@ func main() {
 	}
 }
 
-func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platform, quitOnBack bool, showCollections bool) *gaba.FSM {
+func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform, quitOnBack bool, showCollections bool) *gaba.FSM {
 	fsm := gaba.NewFSM()
 
 	gaba.Set(fsm.Context(), config)
@@ -193,7 +194,7 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 		Exit(gaba.ExitCodeQuit)
 
 	gaba.AddState(fsm, CollectionList, func(ctx *gaba.Context) (ui.CollectionSelectionOutput, gaba.ExitCode) {
-		host, _ := gaba.Get[models.Host](ctx)
+		host, _ := gaba.Get[romm.Host](ctx)
 		colPos, _ := gaba.Get[CollectionListPosition](ctx)
 
 		screen := ui.NewCollectionSelectionScreen()
@@ -226,8 +227,8 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 		On(gaba.ExitCodeBack, PlatformSelection)
 
 	gaba.AddState(fsm, CollectionPlatformSelection, func(ctx *gaba.Context) (ui.CollectionPlatformSelectionOutput, gaba.ExitCode) {
-		config, _ := gaba.Get[*models.Config](ctx)
-		host, _ := gaba.Get[models.Host](ctx)
+		config, _ := gaba.Get[*utils.Config](ctx)
+		host, _ := gaba.Get[romm.Host](ctx)
 		collection, _ := gaba.Get[ui.CollectionSelectionOutput](ctx)
 		pos, _ := gaba.Get[CollectionPlatformListPosition](ctx)
 		cachedGames, _ := gaba.Get[CachedCollectionGames](ctx)
@@ -274,8 +275,8 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 		On(gaba.ExitCodeBack, CollectionList)
 
 	gaba.AddState(fsm, GameList, func(ctx *gaba.Context) (ui.GameListOutput, gaba.ExitCode) {
-		config, _ := gaba.Get[*models.Config](ctx)
-		host, _ := gaba.Get[models.Host](ctx)
+		config, _ := gaba.Get[*utils.Config](ctx)
+		host, _ := gaba.Get[romm.Host](ctx)
 		platform, _ := gaba.Get[ui.PlatformSelectionOutput](ctx)
 		collection, _ := gaba.Get[ui.CollectionSelectionOutput](ctx)
 		collectionPlatform, _ := gaba.Get[ui.CollectionPlatformSelectionOutput](ctx)
@@ -341,8 +342,8 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 		On(constants.ExitCodeNoResults, Search)
 
 	gaba.AddState(fsm, GameDetails, func(ctx *gaba.Context) (ui.GameDetailsOutput, gaba.ExitCode) {
-		config, _ := gaba.Get[*models.Config](ctx)
-		host, _ := gaba.Get[models.Host](ctx)
+		config, _ := gaba.Get[*utils.Config](ctx)
+		host, _ := gaba.Get[romm.Host](ctx)
 		gameListOutput, _ := gaba.Get[ui.GameListOutput](ctx)
 
 		if !config.ShowGameDetails || len(gameListOutput.SelectedGames) != 1 {
@@ -370,8 +371,8 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 	}).
 		OnWithHook(gaba.ExitCodeSuccess, GameList, func(ctx *gaba.Context) error {
 			detailsOutput, _ := gaba.Get[ui.GameDetailsOutput](ctx)
-			config, _ := gaba.Get[*models.Config](ctx)
-			host, _ := gaba.Get[models.Host](ctx)
+			config, _ := gaba.Get[*utils.Config](ctx)
+			host, _ := gaba.Get[romm.Host](ctx)
 			gameListOutput, _ := gaba.Get[ui.GameListOutput](ctx)
 			filter, _ := gaba.Get[SearchFilterString](ctx)
 
@@ -416,9 +417,9 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 		})
 
 	gaba.AddState(fsm, Settings, func(ctx *gaba.Context) (ui.SettingsOutput, gaba.ExitCode) {
-		config, _ := gaba.Get[*models.Config](ctx)
+		config, _ := gaba.Get[*utils.Config](ctx)
 		cfw, _ := gaba.Get[constants.CFW](ctx)
-		host, _ := gaba.Get[models.Host](ctx)
+		host, _ := gaba.Get[romm.Host](ctx)
 
 		screen := ui.NewSettingsScreen()
 		result, err := screen.Draw(ui.SettingsInput{
@@ -443,8 +444,8 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 		On(gaba.ExitCodeBack, PlatformSelection)
 
 	gaba.AddState(fsm, SettingsPlatformMapping, func(ctx *gaba.Context) (ui.PlatformMappingOutput, gaba.ExitCode) {
-		host, _ := gaba.Get[models.Host](ctx)
-		config, _ := gaba.Get[*models.Config](ctx)
+		host, _ := gaba.Get[romm.Host](ctx)
+		config, _ := gaba.Get[*utils.Config](ctx)
 		cfw, _ := gaba.Get[constants.CFW](ctx)
 
 		screen := ui.NewPlatformMappingScreen()
@@ -465,8 +466,8 @@ func buildFSM(config *models.Config, cfw constants.CFW, platforms []romm.Platfor
 	}).
 		OnWithHook(gaba.ExitCodeSuccess, Settings, func(ctx *gaba.Context) error {
 			output, _ := gaba.Get[ui.PlatformMappingOutput](ctx)
-			config, _ := gaba.Get[*models.Config](ctx)
-			host, _ := gaba.Get[models.Host](ctx)
+			config, _ := gaba.Get[*utils.Config](ctx)
+			host, _ := gaba.Get[romm.Host](ctx)
 
 			config.DirectoryMappings = output.Mappings
 			utils.SaveConfig(config)

@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"grout/constants"
-	"grout/models"
 	"grout/utils"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -23,8 +22,8 @@ import (
 )
 
 type DownloadInput struct {
-	Config        models.Config
-	Host          models.Host
+	Config        utils.Config
+	Host          romm.Host
 	Platform      romm.Platform
 	SelectedGames []romm.Rom
 	AllGames      []romm.Rom
@@ -50,7 +49,7 @@ func NewDownloadScreen() *DownloadScreen {
 	return &DownloadScreen{}
 }
 
-func (s *DownloadScreen) Execute(config models.Config, host models.Host, platform romm.Platform, selectedGames []romm.Rom, allGames []romm.Rom, searchFilter string) DownloadOutput {
+func (s *DownloadScreen) Execute(config utils.Config, host romm.Host, platform romm.Platform, selectedGames []romm.Rom, allGames []romm.Rom, searchFilter string) DownloadOutput {
 	result, err := s.Draw(DownloadInput{
 		Config:        config,
 		Host:          host,
@@ -156,17 +155,17 @@ func (s *DownloadScreen) Draw(input DownloadInput) (ScreenResult[DownloadOutput]
 		// Extract the multi-file ROM with a progress message
 		tmpZipPath := filepath.Join(utils.TempDir(), fmt.Sprintf("grout_multirom_%d.zip", g.ID))
 		romDirectory := utils.GetPlatformRomDirectory(input.Config, gamePlatform)
-		extractDir := filepath.Join(romDirectory, g.Name)
+		extractDir := filepath.Join(romDirectory, g.DisplayName)
 
 		_, err := gaba.ProcessMessage(
-			fmt.Sprintf("Extracting %s...", g.Name),
+			fmt.Sprintf("Extracting %s...", g.DisplayName),
 			gaba.ProcessMessageOptions{ShowThemeBackground: true},
 			func() (interface{}, error) {
-				logger.Debug("Extracting multi-file ROM", "game", g.Name, "dest", extractDir)
+				logger.Debug("Extracting multi-file ROM", "game", g.DisplayName, "dest", extractDir)
 
 				// Extract the zip directly from disk (low memory usage)
 				if err := utils.Unzip(tmpZipPath, extractDir); err != nil {
-					logger.Error("Failed to extract multi-file ROM", "game", g.Name, "error", err)
+					logger.Error("Failed to extract multi-file ROM", "game", g.DisplayName, "error", err)
 					// Clean up the temp zip file even on error
 					os.Remove(tmpZipPath)
 					return nil, err
@@ -174,8 +173,8 @@ func (s *DownloadScreen) Draw(input DownloadInput) (ScreenResult[DownloadOutput]
 
 				// muOS requires special folder structure for multi-file ROMs
 				if utils.GetCFW() == constants.MuOS {
-					if err := utils.OrganizeMultiFileRomForMuOS(extractDir, romDirectory, g.Name); err != nil {
-						logger.Error("Failed to organize multi-file ROM for muOS", "game", g.Name, "error", err)
+					if err := utils.OrganizeMultiFileRomForMuOS(extractDir, romDirectory, g.DisplayName); err != nil {
+						logger.Error("Failed to organize multi-file ROM for muOS", "game", g.DisplayName, "error", err)
 						// Clean up on error
 						os.Remove(tmpZipPath)
 						os.RemoveAll(extractDir)
@@ -281,7 +280,7 @@ func (s *DownloadScreen) Draw(input DownloadInput) (ScreenResult[DownloadOutput]
 	return Success(output), nil
 }
 
-func (s *DownloadScreen) buildDownloads(config models.Config, host models.Host, platform romm.Platform, games []romm.Rom) ([]gaba.Download, []artDownload) {
+func (s *DownloadScreen) buildDownloads(config utils.Config, host romm.Host, platform romm.Platform, games []romm.Rom) ([]gaba.Download, []artDownload) {
 	downloads := make([]gaba.Download, 0, len(games))
 	artDownloads := make([]artDownload, 0, len(games))
 
@@ -307,7 +306,7 @@ func (s *DownloadScreen) buildDownloads(config models.Config, host models.Host, 
 			// The zip will be extracted to a folder named after the game
 			tmpDir := utils.TempDir()
 			downloadLocation = filepath.Join(tmpDir, fmt.Sprintf("grout_multirom_%d.zip", g.ID))
-			sourceURL, _ = url.JoinPath(host.URL(), "/api/roms/", strconv.Itoa(g.ID), "content", g.Name)
+			sourceURL, _ = url.JoinPath(host.URL(), "/api/roms/", strconv.Itoa(g.ID), "content", g.ListName)
 		} else {
 			downloadLocation = filepath.Join(romDirectory, g.Files[0].FileName)
 			sourceURL, _ = url.JoinPath(host.URL(), "/api/roms/", strconv.Itoa(g.ID), "content", g.Files[0].FileName)

@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"grout/constants"
-	"grout/models"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,7 +52,7 @@ func GetMuOSInfoDirectory() string {
 	return filepath.Join(constants.MuOSSD1, "MuOS", "info")
 }
 
-func GetPlatformRomDirectory(config models.Config, platform romm.Platform) string {
+func GetPlatformRomDirectory(config Config, platform romm.Platform) string {
 	rp := config.DirectoryMappings[platform.Slug].RelativePath
 
 	if rp == "" {
@@ -99,7 +98,7 @@ func RomFolderBase(path string) string {
 // GetArtDirectory returns the directory where box art should be saved for a given platform
 // For NextUI: {rom_directory}/.media
 // For muOS: {MUOS_INFO_DIR or /mnt/mmc/MuOS/info}/catalogue/{System}/box
-func GetArtDirectory(config models.Config, platform romm.Platform) string {
+func GetArtDirectory(config Config, platform romm.Platform) string {
 	switch GetCFW() {
 	case constants.NextUI:
 		romDir := GetPlatformRomDirectory(config, platform)

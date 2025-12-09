@@ -3,20 +3,21 @@ package ui
 import (
 	"errors"
 	"grout/constants"
-	"grout/models"
+	"grout/romm"
+	"grout/utils"
 	"time"
 
 	gaba "github.com/UncleJunVIP/gabagool/v2/pkg/gabagool"
 )
 
 type SettingsInput struct {
-	Config *models.Config
+	Config *utils.Config
 	CFW    constants.CFW
-	Host   models.Host
+	Host   romm.Host
 }
 
 type SettingsOutput struct {
-	Config              *models.Config
+	Config              *utils.Config
 	EditMappingsClicked bool
 }
 
@@ -94,7 +95,7 @@ func (s *SettingsScreen) Draw(input SettingsInput) (ScreenResult[SettingsOutput]
 	return Success(output), nil
 }
 
-func (s *SettingsScreen) buildMenuItems(config *models.Config) []gaba.ItemWithOptions {
+func (s *SettingsScreen) buildMenuItems(config *utils.Config) []gaba.ItemWithOptions {
 	return []gaba.ItemWithOptions{
 		{
 			Item:    gaba.MenuItem{Text: "Edit Directory Mappings"},
@@ -179,7 +180,7 @@ func (s *SettingsScreen) findDownloadTimeoutIndex(timeout time.Duration) int {
 	return 0
 }
 
-func (s *SettingsScreen) applySettings(config *models.Config, items []gaba.ItemWithOptions, cfw constants.CFW) {
+func (s *SettingsScreen) applySettings(config *utils.Config, items []gaba.ItemWithOptions, cfw constants.CFW) {
 	// Adjust index offset based on whether MuOS removed the art option
 	offset := 0
 	if cfw == constants.MuOS {

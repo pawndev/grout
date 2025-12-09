@@ -2,12 +2,11 @@ package utils
 
 import (
 	"fmt"
-	"grout/models"
 
 	"grout/romm"
 )
 
-func GetMappedPlatforms(host models.Host, mappings map[string]models.DirectoryMapping) []romm.Platform {
+func GetMappedPlatforms(host romm.Host, mappings map[string]DirectoryMapping) []romm.Platform {
 	c := GetRommClient(host)
 
 	rommPlatforms, err := c.GetPlatforms()

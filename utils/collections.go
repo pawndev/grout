@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"grout/models"
+	"grout/romm"
 )
 
-func ShowCollections(host models.Host) bool {
+func ShowCollections(host romm.Host) bool {
 	rc := GetRommClient(host)
 	col, err := rc.GetCollections()
 

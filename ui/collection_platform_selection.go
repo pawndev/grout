@@ -3,7 +3,6 @@ package ui
 import (
 	"errors"
 	"fmt"
-	"grout/models"
 	"grout/romm"
 	"grout/utils"
 	"slices"
@@ -14,8 +13,8 @@ import (
 )
 
 type CollectionPlatformSelectionInput struct {
-	Config               *models.Config
-	Host                 models.Host
+	Config               *utils.Config
+	Host                 romm.Host
 	Collection           romm.Collection
 	CachedGames          []romm.Rom
 	LastSelectedIndex    int
@@ -139,6 +138,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 
 	title := fmt.Sprintf("%s - Platforms", input.Collection.Name)
 	options := gaba.DefaultListOptions(title, menuItems)
+	options.SmallTitle = true
 	options.FooterHelpItems = footerItems
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)

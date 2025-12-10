@@ -45,8 +45,9 @@ func GetMuOSInfoDirectory() string {
 		return os.Getenv("MUOS_INFO_DIR")
 	}
 
-	if _, err := os.Stat(constants.MuOSSD2); err == nil {
-		return filepath.Join(constants.MuOSSD2, "MuOS", "info")
+	sd2InfoDir := filepath.Join(constants.MuOSSD2, "MuOS", "info")
+	if _, err := os.Stat(sd2InfoDir); err == nil {
+		return sd2InfoDir
 	}
 
 	return filepath.Join(constants.MuOSSD1, "MuOS", "info")

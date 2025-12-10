@@ -22,12 +22,6 @@ A RomM Client for [NextUI](https://nextui.loveretro.games) and [muOS](https://mu
 
 </div>
 
-## Overview
-
-Grout is a RomM Client for [NextUI](https://nextui.loveretro.games) and [muOS](https://muos.dev).
-
-It allows you to connect to a RomM instance, browse the library, and download ROMs with Box Art right on your device.
-
 ## Features
 
 - Download ROM Files

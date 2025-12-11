@@ -4,9 +4,10 @@ type CFW string
 
 const (
 	NextUI CFW = "NextUI"
+	MinUI  CFW = "MinUI"
+
 	MuOS   CFW = "muOS"
 	Knulli CFW = "Knulli"
-	MinUI  CFW = "MinUI"
 )
 
 const MuOSSD1 = "/mnt/mmc"
@@ -110,8 +111,6 @@ var NextUIPlatforms = map[string][]string{
 	"x1":                                 {},
 	"zxs":                                {},
 }
-
-// ... existing code ...
 
 var MuOSPlatforms = map[string][]string{
 	"3do":                                {"3do", "The 3DO Company - 3DO"},

@@ -25,13 +25,13 @@ type Platform struct {
 
 func (c *Client) GetPlatforms() ([]Platform, error) {
 	var platforms []Platform
-	err := c.doRequest("GET", "/api/platforms", nil, &platforms)
+	err := c.doRequest("GET", EndpointPlatforms, nil, nil, &platforms)
 	return platforms, err
 }
 
 func (c *Client) GetPlatform(id int) (*Platform, error) {
 	var platform Platform
-	path := fmt.Sprintf("/api/platforms/%d", id)
-	err := c.doRequest("GET", path, nil, &platform)
+	path := fmt.Sprintf(EndpointPlatformByID, id)
+	err := c.doRequest("GET", path, nil, nil, &platform)
 	return &platform, err
 }

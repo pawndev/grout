@@ -40,6 +40,10 @@ func GetRomDirectory() string {
 	return ""
 }
 
+func GetSaveDirectory() string {
+
+}
+
 func GetMuOSInfoDirectory() string {
 	if os.Getenv("MUOS_INFO_DIR") != "" {
 		return os.Getenv("MUOS_INFO_DIR")
@@ -96,9 +100,6 @@ func RomFolderBase(path string) string {
 	}
 }
 
-// GetArtDirectory returns the directory where box art should be saved for a given platform
-// For NextUI: {rom_directory}/.media
-// For muOS: {MUOS_INFO_DIR or /mnt/mmc/MuOS/info}/catalogue/{System}/box
 func GetArtDirectory(config Config, platform romm.Platform) string {
 	switch GetCFW() {
 	case constants.NextUI:

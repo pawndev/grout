@@ -147,8 +147,8 @@ func (c *Client) GetRoms(opts *GetRomsOptions) (*PaginatedRoms, error) {
 	}
 
 	var result PaginatedRoms
-	path := "/api/roms" + buildQueryString(params)
-	err := c.doRequest("GET", path, nil, &result)
+	path := EndpointRoms + buildQueryString(params)
+	err := c.doRequest("GET", path, nil, nil, &result)
 
 	return &result, err
 }
@@ -173,30 +173,30 @@ func (c *Client) AddRom(platformID int, file io.Reader, filename string) error {
 
 	writer.Close()
 
-	return c.doMultipartRequest("POST", "/api/roms", &body, writer.FormDataContentType(), nil)
+	return c.doMultipartRequest("POST", EndpointRoms, &body, writer.FormDataContentType(), nil)
 }
 
 func (c *Client) GetRom(id int) (*Rom, error) {
 	var rom Rom
-	path := fmt.Sprintf("/api/roms/%d", id)
-	err := c.doRequest("GET", path, nil, &rom)
+	path := fmt.Sprintf(EndpointRomByID, id)
+	err := c.doRequest("GET", path, nil, nil, &rom)
 	return &rom, err
 }
 
 func (c *Client) GetRomContent(id int, fileName string) ([]byte, error) {
-	path := fmt.Sprintf("/api/roms/%d/content/%s", id, fileName)
+	path := fmt.Sprintf(EndpointRomContent, id, fileName)
 	return c.doRequestRaw("GET", path, nil)
 }
 
 func (c *Client) GetRomFile(id int) (*RomFile, error) {
 	var romFile RomFile
-	path := fmt.Sprintf("/api/romsfiles/%d", id)
-	err := c.doRequest("GET", path, nil, &romFile)
+	path := fmt.Sprintf(EndpointRomFileByID, id)
+	err := c.doRequest("GET", path, nil, nil, &romFile)
 	return &romFile, err
 }
 
 func (c *Client) GetRomFileContent(id int, fileName string) ([]byte, error) {
-	path := fmt.Sprintf("/api/romsfiles/%d/content/%s", id, fileName)
+	path := fmt.Sprintf(EndpointRomFileContent, id, fileName)
 	return c.doRequestRaw("GET", path, nil)
 }
 
@@ -215,7 +215,7 @@ func (c *Client) DownloadRoms(romIDs []int) ([]byte, error) {
 		params["rom_ids"] = ids
 	}
 
-	path := "/api/roms/download" + buildQueryString(params)
+	path := EndpointRomsDownload + buildQueryString(params)
 	return c.doRequestRaw("GET", path, nil)
 }
 

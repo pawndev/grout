@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/sonh/qs"
 )
 
 type Client struct {
@@ -16,6 +18,10 @@ type Client struct {
 	httpClient *http.Client
 	username   string
 	password   string
+}
+
+type QueryParam interface {
+	Valid() bool
 }
 
 type ClientOption func(*Client)
@@ -48,7 +54,7 @@ func NewClient(baseURL string, opts ...ClientOption) *Client {
 	return c
 }
 
-func (c *Client) doRequest(method, path string, body interface{}, result interface{}) error {
+func (c *Client) doRequest(method string, path string, queryParams QueryParam, body interface{}, result interface{}) error {
 	var reqBody io.Reader
 	if body != nil {
 		jsonData, err := json.Marshal(body)
@@ -59,9 +65,17 @@ func (c *Client) doRequest(method, path string, body interface{}, result interfa
 	}
 
 	u := c.baseURL + path
+
 	req, err := http.NewRequest(method, u, reqBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if queryParams.Valid() {
+		values, err := qs.NewEncoder().Values(queryParams)
+		if err == nil {
+			req.URL.RawQuery = values.Encode()
+		}
 	}
 
 	if body != nil {

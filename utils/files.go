@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bufio"
 	"fmt"
+	"grout/constants"
 	"io"
 	"os"
 	"path/filepath"
@@ -151,8 +152,6 @@ func extractFile(file *zip.File, destPath string, buffer []byte, totalBytes uint
 	return bufWriter.Flush()
 }
 
-// OrganizeMultiFileRomForMuOS reorganizes extracted multi-file ROM contents for muOS
-// muOS expects: .m3u file in platform dir, disc files in _{gameName}/ subdirectory
 func OrganizeMultiFileRomForMuOS(extractDir, romDirectory, gameName string) error {
 	logger := gaba.GetLogger()
 
@@ -219,4 +218,8 @@ func OrganizeMultiFileRomForMuOS(extractDir, romDirectory, gameName string) erro
 	logger.Debug("Renamed directory for muOS", "from", extractDir, "to", underscoreDir)
 
 	return nil
+}
+
+func FindSaveFiles(cfw constants.CFW) []os.FileInfo {
+
 }

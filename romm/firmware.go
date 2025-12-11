@@ -28,7 +28,7 @@ func (c *Client) GetFirmware(platformID *int) ([]Firmware, error) {
 	}
 
 	var firmware []Firmware
-	path := "/api/firmware" + buildQueryString(params)
-	err := c.doRequest("GET", path, nil, &firmware)
+	path := EndpointFirmware + buildQueryString(params)
+	err := c.doRequest("GET", path, nil, nil, &firmware)
 	return firmware, err
 }

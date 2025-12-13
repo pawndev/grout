@@ -1,27 +1,27 @@
 package romm
 
 const (
-	EndpointLogin = "/api/login"
+	endpointLogin = "/api/login"
 
-	EndpointPlatforms    = "/api/platforms"
-	EndpointPlatformByID = "/api/platforms/%d"
+	endpointPlatforms    = "/api/platforms"
+	endpointPlatformByID = "/api/platforms/%d"
 
-	EndpointRoms         = "/api/roms"
-	EndpointRomByID      = "/api/roms/%d"
-	EndpointRomContent   = "/api/roms/%d/content/%s"
-	EndpointRomsDownload = "/api/roms/download"
+	endpointRoms         = "/api/roms"
+	endpointRomByID      = "/api/roms/%d"
+	endpointRomContent   = "/api/roms/%d/content/%s"
+	endpointRomsDownload = "/api/roms/download"
 
-	EndpointRomFileByID    = "/api/romsfiles/%d"
-	EndpointRomFileContent = "/api/romsfiles/%d/content/%s"
+	endpointRomFileByID    = "/api/romsfiles/%d"
+	endpointRomFileContent = "/api/romsfiles/%d/content/%s"
 
-	EndpointCollections           = "/api/collections"
-	EndpointCollectionByID        = "/api/collections/%d"
-	EndpointSmartCollections      = "/api/collections/smart"
-	EndpointSmartCollectionByID   = "/api/collections/smart/%d"
-	EndpointVirtualCollections    = "/api/collections/virtual"
-	EndpointVirtualCollectionByID = "/api/collections/virtual/%d"
+	endpointCollections           = "/api/collections"
+	endpointCollectionByID        = "/api/collections/%d"
+	endpointSmartCollections      = "/api/collections/smart"
+	endpointSmartCollectionByID   = "/api/collections/smart/%d"
+	endpointVirtualCollections    = "/api/collections/virtual"
+	endpointVirtualCollectionByID = "/api/collections/virtual/%d"
 
-	EndpointFirmware = "/api/firmware"
+	endpointFirmware = "/api/firmware"
 
-	EndpointSaves = "/api/saves"
+	endpointSaves = "/api/saves"
 )

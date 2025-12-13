@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Client) Login(username, password string) error {
-	req, err := http.NewRequest("POST", c.baseURL+EndpointLogin, nil)
+	req, err := http.NewRequest("POST", c.baseURL+endpointLogin, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create login request: %w", err)
 	}

@@ -6,9 +6,8 @@
   <br />
   <img src=".github/resources/logotipo.png" height="45px" width="auto" alt="romm grout logotype">
     <h3 style="font-size: 25px;">
-
-A RomM Client for [NextUI](https://nextui.loveretro.games) and [muOS](https://muos.dev)
-</h3>
+A RomM Client for <a href="https://nextui.loveretro.games">NextUI</a> and <a href="https://muos.dev">muOS</a>
+    </h3>
 
 <br>
 
@@ -28,8 +27,37 @@ A RomM Client for [NextUI](https://nextui.loveretro.games) and [muOS](https://mu
 - Download Box Art
 - Multi-file games with automatic M3U file creation
 - Select multiple games at once
+- Save Sync
 - Optional Game Details Screen
 - Optional Unzipping
+
+### Save Sync
+
+Save Sync allows you to store game saves on your RomM instance and use them across your devices.
+
+How does Save Sync work?
+
+**Downloading**
+
+Grout will scan your local ROM and save directories on your device.
+
+If a game on your device currently has no save file and the active RomM user has a save file for that game, Grout will
+pull down that save file to your device.
+
+If a game on your device currently has a save file and the remote save file is newer, Grout will do the following:
+
+- Backup your current save file into a hidden `.backup` folder that is created within your saves directory.
+    - This backup will have a timestamp appended to the filename.
+- Download the save file from RomM and assign the proper filename to it such that it is recognized by your CFW.
+
+**Save Sync Notes**
+
+- Grout uploads and downloads saves associated with the active RomM user setup in Grout
+    - If you have a shared user on your RomM instance that you use for Grout, be sure to be cautious with this feature.
+
+- Grout **does not** sync save states.
+    - If you use save states with auto-loading enabled, please be aware you will need to reset your emulator in order to
+      load a downloaded save file.
 
 ## Installation
 

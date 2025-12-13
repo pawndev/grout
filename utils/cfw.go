@@ -34,25 +34,25 @@ func GetRomDirectory() string {
 	case constants.MuOS:
 		return constants.MuOSRomsFolderUnion
 	case constants.NextUI:
-		return filepath.Join(GetNextUIBasePath(), "Roms")
+		return filepath.Join(getNextUIBasePath(), "Roms")
 	}
 
 	return ""
 }
 
-func GetSaveDirectory() string {
+func getSaveDirectory() string {
 	switch GetCFW() {
 	case constants.MuOS:
-		return filepath.Join(GetMuOSBasePath(), "MUOS", "save", "file")
+		return filepath.Join(getMuOSBasePath(), "MUOS", "save", "file")
 
 	case constants.NextUI:
-		return filepath.Join(GetNextUIBasePath(), "Saves")
+		return filepath.Join(getNextUIBasePath(), "Saves")
 	}
 
 	return ""
 }
 
-func GetMuOSBasePath() string {
+func getMuOSBasePath() string {
 	if os.Getenv("MUOS_BASE_PATH") != "" {
 		return os.Getenv("MUOS_BASE_PATH")
 	}
@@ -66,7 +66,7 @@ func GetMuOSBasePath() string {
 	return constants.MuOSSD1
 }
 
-func GetNextUIBasePath() string {
+func getNextUIBasePath() string {
 	if os.Getenv("NEXTUI_BASE_PATH") != "" {
 		return os.Getenv("NEXTUI_BASE_PATH")
 	}
@@ -74,8 +74,8 @@ func GetNextUIBasePath() string {
 	return "/mnt/SDCARD"
 }
 
-func GetMuOSInfoDirectory() string {
-	return filepath.Join(GetMuOSBasePath(), "info")
+func getMuOSInfoDirectory() string {
+	return filepath.Join(getMuOSBasePath(), "info")
 }
 
 func GetPlatformRomDirectory(config Config, platform romm.Platform) string {
@@ -130,7 +130,7 @@ func GetArtDirectory(config Config, platform romm.Platform) string {
 		if !exists {
 			systemName = platform.Name
 		}
-		muosInfoDir := GetMuOSInfoDirectory()
+		muosInfoDir := getMuOSInfoDirectory()
 		return filepath.Join(muosInfoDir, "catalogue", systemName, "box")
 	default:
 		return ""

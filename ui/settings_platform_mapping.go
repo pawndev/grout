@@ -42,13 +42,13 @@ func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (ScreenResult[P
 	rommPlatforms, err := s.fetchPlatforms(input)
 	if err != nil {
 		logger.Error("Error fetching RomM Platforms", "error", err)
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
 	romDirectories, err := s.getRomDirectories(input.RomDirectory)
 	if err != nil {
 		logger.Error("Error fetching ROM directories", "error", err)
-		return WithCode(output, gaba.ExitCodeBack), err
+		return withCode(output, gaba.ExitCodeBack), err
 	}
 
 	mappingOptions := s.buildMappingOptions(rommPlatforms, romDirectories, input)
@@ -72,19 +72,19 @@ func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (ScreenResult[P
 
 	if err != nil {
 		if errors.Is(err, gaba.ErrCancelled) {
-			return Back(PlatformMappingOutput{}), nil
+			return back(PlatformMappingOutput{}), nil
 		}
-		return WithCode(PlatformMappingOutput{}, gaba.ExitCodeError), err
+		return withCode(PlatformMappingOutput{}, gaba.ExitCodeError), err
 	}
 
 	output.Mappings = s.buildMappingsFromResult(result.Items)
 
 	if err := s.createDirectories(output.Mappings, input.RomDirectory, romDirectories); err != nil {
 		logger.Error("Error creating directories", "error", err)
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
-	return Success(output), nil
+	return success(output), nil
 }
 
 func (s *PlatformMappingScreen) fetchPlatforms(input PlatformMappingInput) ([]romm.Platform, error) {
@@ -174,7 +174,7 @@ func (s *PlatformMappingScreen) buildPlatformOptions(
 	for _, romDir := range romDirectories {
 		dirName := romDir.Name()
 
-		if s.isValidDirectoryForPlatform(platform.Slug, dirName, input.CFW, cfwDirectories) {
+		if s.isValidDirectoryForPlatform(dirName, input.CFW, cfwDirectories) {
 			displayName := dirName
 			if input.CFW == constants.NextUI {
 				displayName = utils.ParseTag(dirName)
@@ -256,7 +256,7 @@ func (s *PlatformMappingScreen) directoriesMatch(dir1, dir2 string, cfw constant
 	return dir1 == dir2
 }
 
-func (s *PlatformMappingScreen) isValidDirectoryForPlatform(slug, dirName string, cfw constants.CFW, cfwDirectories []string) bool {
+func (s *PlatformMappingScreen) isValidDirectoryForPlatform(dirName string, cfw constants.CFW, cfwDirectories []string) bool {
 	for _, cfwDir := range cfwDirectories {
 		if s.directoriesMatch(cfwDir, dirName, cfw) {
 			return true

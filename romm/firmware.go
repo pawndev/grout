@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Firmware struct {
+type firmware struct {
 	ID          int       `json:"id"`
 	PlatformID  int       `json:"platform_id"`
 	FileName    string    `json:"file_name"`
@@ -20,15 +20,15 @@ type Firmware struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-func (c *Client) GetFirmware(platformID *int) ([]Firmware, error) {
+func (c *Client) getFirmware(platformID *int) ([]firmware, error) {
 	params := map[string]string{}
 
 	if platformID != nil {
 		params["platform_id"] = strconv.Itoa(*platformID)
 	}
 
-	var firmware []Firmware
-	path := EndpointFirmware + buildQueryString(params)
+	var firmware []firmware
+	path := endpointFirmware + buildQueryString(params)
 	err := c.doRequest("GET", path, nil, nil, &firmware)
 	return firmware, err
 }

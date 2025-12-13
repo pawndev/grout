@@ -38,7 +38,7 @@ func TempDir() string {
 	return filepath.Join(wd, ".tmp")
 }
 
-func CopyFile(src, dest string) error {
+func copyFile(src, dest string) error {
 	sourceFile, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %w", err)

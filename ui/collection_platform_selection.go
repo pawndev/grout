@@ -70,7 +70,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 		)
 
 		if err != nil || loadErr != nil {
-			return WithCode(output, gaba.ExitCodeError), err
+			return withCode(output, gaba.ExitCodeError), err
 		}
 	}
 
@@ -96,7 +96,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 				return nil, nil
 			},
 		)
-		return WithCode(output, gaba.ExitCodeBack), nil
+		return withCode(output, gaba.ExitCodeBack), nil
 	}
 
 	platforms := make([]romm.Platform, 0, len(platformMap))
@@ -141,9 +141,9 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 	sel, err := gaba.List(options)
 	if err != nil {
 		if errors.Is(err, gaba.ErrCancelled) {
-			return Back(output), nil
+			return back(output), nil
 		}
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
 	switch sel.Action {
@@ -154,8 +154,9 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 		output.AllGames = allGames
 		output.LastSelectedIndex = sel.Selected[0]
 		output.LastSelectedPosition = sel.VisiblePosition
-		return Success(output), nil
-	}
+		return success(output), nil
 
-	return WithCode(output, gaba.ExitCodeBack), nil
+	default:
+		return withCode(output, gaba.ExitCodeBack), nil
+	}
 }

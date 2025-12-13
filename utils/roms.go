@@ -1,11 +1,8 @@
 package utils
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"grout/constants"
 	"grout/romm"
-	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -15,7 +12,7 @@ import (
 	gaba "github.com/UncleJunVIP/gabagool/v2/pkg/gabagool"
 )
 
-type LocalRomFile struct {
+type localRomFile struct {
 	RomID        int
 	RomName      string
 	Slug         string
@@ -24,10 +21,10 @@ type LocalRomFile struct {
 	SHA1         string
 	LastModified time.Time
 	RemoteSaves  []romm.Save
-	SaveFile     *LocalSave
+	SaveFile     *localSave
 }
 
-func (lrf LocalRomFile) SyncAction() SyncAction {
+func (lrf localRomFile) syncAction() syncAction {
 	if lrf.SaveFile == nil && len(lrf.RemoteSaves) == 0 {
 		return Skip
 	}
@@ -39,7 +36,7 @@ func (lrf LocalRomFile) SyncAction() SyncAction {
 	}
 
 	logger := gaba.GetLogger()
-	lastRemote := lrf.LastRemoteSave()
+	lastRemote := lrf.lastRemoteSave()
 
 	localTime := lrf.SaveFile.LastModified
 	remoteTime := lastRemote.UpdatedAt
@@ -64,7 +61,7 @@ func (lrf LocalRomFile) SyncAction() SyncAction {
 	}
 }
 
-func (lrf LocalRomFile) LastRemoteSave() romm.Save {
+func (lrf localRomFile) lastRemoteSave() romm.Save {
 	if len(lrf.RemoteSaves) == 0 {
 		return romm.Save{}
 	}
@@ -76,9 +73,9 @@ func (lrf LocalRomFile) LastRemoteSave() romm.Save {
 	return lrf.RemoteSaves[0]
 }
 
-func ScanAllRoms() map[string][]LocalRomFile {
+func scanAllRoms() map[string][]localRomFile {
 	logger := gaba.GetLogger()
-	result := make(map[string][]LocalRomFile)
+	result := make(map[string][]localRomFile)
 	cfw := GetCFW()
 
 	var platformMap map[string][]string
@@ -112,9 +109,9 @@ func ScanAllRoms() map[string][]LocalRomFile {
 	return result
 }
 
-func scanNextUIRoms(baseRomDir string, platformMap map[string][]string, config *Config) map[string][]LocalRomFile {
+func scanNextUIRoms(baseRomDir string, platformMap map[string][]string, config *Config) map[string][]localRomFile {
 	logger := gaba.GetLogger()
-	result := make(map[string][]LocalRomFile)
+	result := make(map[string][]localRomFile)
 
 	entries, err := os.ReadDir(baseRomDir)
 	if err != nil {
@@ -156,8 +153,8 @@ func scanNextUIRoms(baseRomDir string, platformMap map[string][]string, config *
 
 			if matched {
 				romDir := filepath.Join(baseRomDir, dirName)
-				saveFiles := FindSaveFiles(slug)
-				saveFileMap := make(map[string]*LocalSave)
+				saveFiles := findSaveFiles(slug)
+				saveFileMap := make(map[string]*localSave)
 				for i := range saveFiles {
 					baseName := strings.TrimSuffix(filepath.Base(saveFiles[i].Path), filepath.Ext(saveFiles[i].Path))
 					saveFileMap[baseName] = &saveFiles[i]
@@ -175,9 +172,9 @@ func scanNextUIRoms(baseRomDir string, platformMap map[string][]string, config *
 	return result
 }
 
-func scanMuOSRoms(baseRomDir string, platformMap map[string][]string, config *Config) map[string][]LocalRomFile {
+func scanMuOSRoms(baseRomDir string, platformMap map[string][]string, config *Config) map[string][]localRomFile {
 	logger := gaba.GetLogger()
-	result := make(map[string][]LocalRomFile)
+	result := make(map[string][]localRomFile)
 
 	for slug := range platformMap {
 		romFolderName := ""
@@ -202,8 +199,8 @@ func scanMuOSRoms(baseRomDir string, platformMap map[string][]string, config *Co
 			continue
 		}
 
-		saveFiles := FindSaveFiles(slug)
-		saveFileMap := make(map[string]*LocalSave)
+		saveFiles := findSaveFiles(slug)
+		saveFileMap := make(map[string]*localSave)
 		for i := range saveFiles {
 			baseName := strings.TrimSuffix(filepath.Base(saveFiles[i].Path), filepath.Ext(saveFiles[i].Path))
 			saveFileMap[baseName] = &saveFiles[i]
@@ -219,9 +216,9 @@ func scanMuOSRoms(baseRomDir string, platformMap map[string][]string, config *Co
 	return result
 }
 
-func scanRomDirectory(slug, romDir string, saveFileMap map[string]*LocalSave) []LocalRomFile {
+func scanRomDirectory(slug, romDir string, saveFileMap map[string]*localSave) []localRomFile {
 	logger := gaba.GetLogger()
-	var roms []LocalRomFile
+	var roms []localRomFile
 
 	entries, err := os.ReadDir(romDir)
 	if err != nil {
@@ -242,18 +239,18 @@ func scanRomDirectory(slug, romDir string, saveFileMap map[string]*LocalSave) []
 			continue
 		}
 
-		hash, err := calculateRomSHA1(romPath)
+		hash, err := calculateSHA1(romPath)
 		if err != nil {
 			logger.Warn("Failed to calculate SHA1 for ROM", "path", romPath, "error", err)
 		}
 
 		baseName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-		var saveFile *LocalSave
+		var saveFile *localSave
 		if sf, found := saveFileMap[baseName]; found {
 			saveFile = sf
 		}
 
-		rom := LocalRomFile{
+		rom := localRomFile{
 			Slug:         slug,
 			Path:         romPath,
 			FileName:     entry.Name(),
@@ -266,19 +263,4 @@ func scanRomDirectory(slug, romDir string, saveFileMap map[string]*LocalSave) []
 	}
 
 	return roms
-}
-
-func calculateRomSHA1(filePath string) (string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	hash := sha1.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", err
-	}
-
-	return hex.EncodeToString(hash.Sum(nil)), nil
 }

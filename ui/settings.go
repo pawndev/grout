@@ -79,14 +79,14 @@ func (s *SettingsScreen) Draw(input SettingsInput) (ScreenResult[SettingsOutput]
 
 	if err != nil {
 		if errors.Is(err, gaba.ErrCancelled) {
-			return Back(SettingsOutput{}), nil
+			return back(SettingsOutput{}), nil
 		}
-		return WithCode(SettingsOutput{}, gaba.ExitCodeError), err
+		return withCode(SettingsOutput{}, gaba.ExitCodeError), err
 	}
 
 	if result.Selected == 0 {
 		output.EditMappingsClicked = true
-		return WithCode(output, constants.ExitCodeEditMappings), nil
+		return withCode(output, constants.ExitCodeEditMappings), nil
 	}
 
 	if result.Selected == 1 {
@@ -114,8 +114,8 @@ func (s *SettingsScreen) Draw(input SettingsInput) (ScreenResult[SettingsOutput]
 
 		if syncResults != nil {
 			if results, ok := syncResults.([]utils.SyncResult); ok && len(results) > 0 {
-				reportScreen := NewSyncReportScreen()
-				_, err := reportScreen.Draw(SyncReportInput{Results: results})
+				reportScreen := newSyncReportScreen()
+				_, err := reportScreen.draw(syncReportInput{Results: results})
 				if err != nil {
 					gaba.GetLogger().Error("Error showing sync report", "error", err)
 				}
@@ -131,7 +131,7 @@ func (s *SettingsScreen) Draw(input SettingsInput) (ScreenResult[SettingsOutput]
 	s.applySettings(config, result.Items)
 
 	output.Config = config
-	return Success(output), nil
+	return success(output), nil
 }
 
 func (s *SettingsScreen) buildMenuItems(config *utils.Config) []gaba.ItemWithOptions {

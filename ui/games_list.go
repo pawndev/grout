@@ -13,11 +13,11 @@ import (
 	gaba "github.com/UncleJunVIP/gabagool/v2/pkg/gabagool"
 )
 
-type FetchType int
+type fetchType int
 
 const (
-	Platform FetchType = iota
-	Collection
+	ftPlatform fetchType = iota
+	ftCollection
 )
 
 type GameListInput struct {
@@ -53,7 +53,7 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 	if len(games) == 0 {
 		loaded, err := s.loadGames(input)
 		if err != nil {
-			return WithCode(GameListOutput{}, gaba.ExitCodeError), err
+			return withCode(GameListOutput{}, gaba.ExitCodeError), err
 		}
 		games = loaded
 	}
@@ -106,15 +106,15 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 			s.showEmptyMessage(displayName, input.SearchFilter)
 		}
 		if input.SearchFilter != "" {
-			return WithCode(output, constants.ExitCodeNoResults), nil
+			return withCode(output, constants.ExitCodeNoResults), nil
 		}
 		if input.Collection.ID != 0 && input.Platform.ID != 0 {
-			return WithCode(output, constants.ExitCodeBackToCollectionPlatform), nil
+			return withCode(output, constants.ExitCodeBackToCollectionPlatform), nil
 		}
 		if input.Collection.ID != 0 {
-			return WithCode(output, constants.ExitCodeBackToCollection), nil
+			return withCode(output, constants.ExitCodeBackToCollection), nil
 		}
-		return Back(output), nil
+		return back(output), nil
 	}
 
 	menuItems := make([]gaba.MenuItem, len(displayGames))
@@ -148,17 +148,17 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 				output.SearchFilter = ""
 				output.LastSelectedIndex = 0
 				output.LastSelectedPosition = 0
-				return WithCode(output, constants.ExitCodeClearSearch), nil
+				return withCode(output, constants.ExitCodeClearSearch), nil
 			}
 			if input.Collection.ID != 0 && input.Platform.ID != 0 {
-				return WithCode(output, constants.ExitCodeBackToCollectionPlatform), nil
+				return withCode(output, constants.ExitCodeBackToCollectionPlatform), nil
 			}
 			if input.Collection.ID != 0 {
-				return WithCode(output, constants.ExitCodeBackToCollection), nil
+				return withCode(output, constants.ExitCodeBackToCollection), nil
 			}
-			return Back(output), nil
+			return back(output), nil
 		}
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
 	switch res.Action {
@@ -170,19 +170,19 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 		output.LastSelectedIndex = res.Selected[0]
 		output.LastSelectedPosition = res.VisiblePosition
 		output.SelectedGames = selectedGames
-		return Success(output), nil
+		return success(output), nil
 
 	case gaba.ListActionTriggered:
-		return WithCode(output, constants.ExitCodeSearch), nil
+		return withCode(output, constants.ExitCodeSearch), nil
 	}
 
 	if input.Collection.ID != 0 && input.Platform.ID != 0 {
-		return WithCode(output, constants.ExitCodeBackToCollectionPlatform), nil
+		return withCode(output, constants.ExitCodeBackToCollectionPlatform), nil
 	}
 	if input.Collection.ID != 0 {
-		return WithCode(output, constants.ExitCodeBackToCollection), nil
+		return withCode(output, constants.ExitCodeBackToCollection), nil
 	}
-	return Back(output), nil
+	return back(output), nil
 }
 
 func (s *GameListScreen) loadGames(input GameListInput) ([]romm.Rom, error) {
@@ -192,12 +192,12 @@ func (s *GameListScreen) loadGames(input GameListInput) ([]romm.Rom, error) {
 	collection := input.Collection
 
 	id := platform.ID
-	ft := Platform
+	ft := ftPlatform
 	displayName := platform.Name
 
 	if collection.ID != 0 {
 		id = collection.ID
-		ft = Collection
+		ft = ftCollection
 		displayName = collection.Name
 	}
 
@@ -259,7 +259,7 @@ func (s *GameListScreen) showFilteredOutMessage(collectionName string) {
 	)
 }
 
-func fetchList(config *utils.Config, host romm.Host, queryID int, fetchType FetchType) ([]romm.Rom, error) {
+func fetchList(config *utils.Config, host romm.Host, queryID int, fetchType fetchType) ([]romm.Rom, error) {
 	logger := gaba.GetLogger()
 
 	rc := romm.NewClient(host.URL(),
@@ -271,9 +271,9 @@ func fetchList(config *utils.Config, host romm.Host, queryID int, fetchType Fetc
 	}
 
 	switch fetchType {
-	case Platform:
+	case ftPlatform:
 		opt.PlatformID = &queryID
-	case Collection:
+	case ftCollection:
 		opt.CollectionID = &queryID
 	}
 

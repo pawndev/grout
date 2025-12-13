@@ -11,31 +11,31 @@ import (
 	gaba "github.com/UncleJunVIP/gabagool/v2/pkg/gabagool"
 )
 
-const BACKUP_TIMESTAMP_FORMAT = "2006-01-02 15-04-05"
+const backupTimestampFormat = "2006-01-02 15-04-05"
 
-type LocalSave struct {
+type localSave struct {
 	Slug         string
 	Path         string
 	LastModified time.Time
 }
 
-func (lc LocalSave) TimestampedFilename() string {
+func (lc localSave) timestampedFilename() string {
 	ext := filepath.Ext(lc.Path)
 	base := strings.ReplaceAll(filepath.Base(lc.Path), ext, "")
 
-	lm := lc.LastModified.Format(BACKUP_TIMESTAMP_FORMAT)
+	lm := lc.LastModified.Format(backupTimestampFormat)
 
 	return fmt.Sprintf("%s [%s]%s", base, lm, ext)
 }
 
-func (lc LocalSave) Backup() error {
-	dest := filepath.Join(filepath.Dir(lc.Path), ".backup", lc.TimestampedFilename())
-	return CopyFile(lc.Path, dest)
+func (lc localSave) backup() error {
+	dest := filepath.Join(filepath.Dir(lc.Path), ".backup", lc.timestampedFilename())
+	return copyFile(lc.Path, dest)
 }
 
-func GetSaveDirectoryForSlug(slug string, emulator string) (string, error) {
+func getSaveDirectoryForSlug(slug string, emulator string) (string, error) {
 	logger := gaba.GetLogger()
-	bsd := GetSaveDirectory()
+	bsd := getSaveDirectory()
 
 	config, err := LoadConfig()
 	if err == nil {
@@ -86,10 +86,10 @@ func GetSaveDirectoryForSlug(slug string, emulator string) (string, error) {
 	return saveDir, nil
 }
 
-func FindSaveFiles(slug string) []LocalSave {
+func findSaveFiles(slug string) []localSave {
 	logger := gaba.GetLogger()
 
-	bsd := GetSaveDirectory()
+	bsd := getSaveDirectory()
 	var saveFolders []string
 
 	switch GetCFW() {
@@ -101,10 +101,10 @@ func FindSaveFiles(slug string) []LocalSave {
 
 	if len(saveFolders) == 0 {
 		logger.Debug("No save folder mapping for slug", "slug", slug)
-		return []LocalSave{}
+		return []localSave{}
 	}
 
-	var allSaveFiles []LocalSave
+	var allSaveFiles []localSave
 
 	for _, saveFolder := range saveFolders {
 		sd := filepath.Join(bsd, saveFolder)
@@ -129,7 +129,7 @@ func FindSaveFiles(slug string) []LocalSave {
 					continue
 				}
 
-				saveFile := LocalSave{
+				saveFile := localSave{
 					Slug:         slug,
 					Path:         savePath,
 					LastModified: fileInfo.ModTime(),

@@ -11,32 +11,32 @@ import (
 	gaba "github.com/UncleJunVIP/gabagool/v2/pkg/gabagool"
 )
 
-type SaveSync struct {
+type saveSync struct {
 	RomID    int
 	Slug     string
 	GameBase string
-	Local    *LocalSave
+	Local    *localSave
 	Remote   romm.Save
-	Action   SyncAction
+	Action   syncAction
 }
 
-type SyncAction string
+type syncAction string
 
 const (
-	Download SyncAction = "DOWNLOAD"
+	Download syncAction = "DOWNLOAD"
 	Upload              = "UPLOAD"
 	Skip                = "SKIP"
 )
 
 type SyncResult struct {
 	GameName string
-	Action   SyncAction
+	Action   syncAction
 	Success  bool
 	Error    string
 	FilePath string
 }
 
-func (s SaveSync) Execute(host romm.Host) SyncResult {
+func (s saveSync) Execute(host romm.Host) SyncResult {
 	result := SyncResult{
 		GameName: s.GameBase,
 		Action:   s.Action,
@@ -49,7 +49,7 @@ func (s SaveSync) Execute(host romm.Host) SyncResult {
 		result.FilePath, err = s.upload(host)
 	case Download:
 		if s.Local != nil {
-			err = s.Local.Backup()
+			err = s.Local.backup()
 			if err != nil {
 				result.Error = err.Error()
 				return result
@@ -70,7 +70,7 @@ func (s SaveSync) Execute(host romm.Host) SyncResult {
 	return result
 }
 
-func (s SaveSync) download(host romm.Host) (string, error) {
+func (s saveSync) download(host romm.Host) (string, error) {
 	logger := gaba.GetLogger()
 	rc := GetRommClient(host)
 
@@ -86,7 +86,7 @@ func (s SaveSync) download(host romm.Host) (string, error) {
 		destDir = filepath.Dir(s.Local.Path)
 	} else {
 		var err error
-		destDir, err = GetSaveDirectoryForSlug(s.Slug, s.Remote.Emulator)
+		destDir, err = getSaveDirectoryForSlug(s.Slug, s.Remote.Emulator)
 		if err != nil {
 			return "", fmt.Errorf("cannot determine save location: %w", err)
 		}
@@ -120,7 +120,7 @@ func (s SaveSync) download(host romm.Host) (string, error) {
 	return destPath, nil
 }
 
-func (s SaveSync) upload(host romm.Host) (string, error) {
+func (s saveSync) upload(host romm.Host) (string, error) {
 	if s.Local == nil {
 		return "", fmt.Errorf("cannot upload: no local save file")
 	}
@@ -134,7 +134,7 @@ func (s SaveSync) upload(host romm.Host) (string, error) {
 	filename := s.GameBase + ext
 	tmp := filepath.Join(TempDir(), "uploads", filename)
 
-	err := CopyFile(s.Local.Path, tmp)
+	err := copyFile(s.Local.Path, tmp)
 	if err != nil {
 		return "", err
 	}
@@ -152,19 +152,19 @@ func (s SaveSync) upload(host romm.Host) (string, error) {
 	return s.Local.Path, nil
 }
 
-func FindSaveSyncs(host romm.Host) ([]SaveSync, error) {
+func FindSaveSyncs(host romm.Host) ([]saveSync, error) {
 	logger := gaba.GetLogger()
 	rc := GetRommClient(host)
 
 	logger.Debug("FindSaveSyncs: Starting save sync discovery")
 
-	scanLocal := ScanAllRoms()
+	scanLocal := scanAllRoms()
 	logger.Debug("FindSaveSyncs: Scanned local ROMs", "platformCount", len(scanLocal))
 
 	allSaves, err := rc.GetSaves(romm.SaveQuery{})
 	if err != nil {
 		logger.Error("FindSaveSyncs: Could not retrieve saves", "error", err)
-		return []SaveSync{}, err
+		return []saveSync{}, err
 	}
 	logger.Debug("FindSaveSyncs: Retrieved all saves", "count", len(*allSaves))
 
@@ -176,7 +176,7 @@ func FindSaveSyncs(host romm.Host) ([]SaveSync, error) {
 	plats, err := rc.GetPlatforms()
 	if err != nil {
 		logger.Error("FindSaveSyncs: Could not retrieve platforms", "error", err)
-		return []SaveSync{}, err
+		return []saveSync{}, err
 	}
 	logger.Debug("FindSaveSyncs: Retrieved platforms from API", "count", len(plats))
 
@@ -226,16 +226,16 @@ func FindSaveSyncs(host romm.Host) ([]SaveSync, error) {
 		logger.Debug("FindSaveSyncs: Finished matching ROMs", "slug", slug, "matchedCount", matchCount)
 	}
 
-	var syncs []SaveSync
+	var syncs []saveSync
 
 	for slug, roms := range scanLocal {
 		for _, r := range roms {
-			action := r.SyncAction()
+			action := r.syncAction()
 			switch action {
 			case Upload, Download:
 				base := strings.ReplaceAll(r.FileName, filepath.Ext(r.FileName), "")
-				lastRemoteSave := r.LastRemoteSave()
-				syncs = append(syncs, SaveSync{
+				lastRemoteSave := r.lastRemoteSave()
+				syncs = append(syncs, saveSync{
 					RomID:    r.RomID,
 					Slug:     r.Slug,
 					GameBase: base,

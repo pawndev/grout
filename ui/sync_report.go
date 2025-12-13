@@ -9,21 +9,21 @@ import (
 	gaba "github.com/UncleJunVIP/gabagool/v2/pkg/gabagool"
 )
 
-type SyncReportInput struct {
+type syncReportInput struct {
 	Results []utils.SyncResult
 }
 
-type SyncReportOutput struct{}
+type syncReportOutput struct{}
 
 type SyncReportScreen struct{}
 
-func NewSyncReportScreen() *SyncReportScreen {
+func newSyncReportScreen() *SyncReportScreen {
 	return &SyncReportScreen{}
 }
 
-func (s *SyncReportScreen) Draw(input SyncReportInput) (ScreenResult[SyncReportOutput], error) {
+func (s *SyncReportScreen) draw(input syncReportInput) (ScreenResult[syncReportOutput], error) {
 	logger := gaba.GetLogger()
-	output := SyncReportOutput{}
+	output := syncReportOutput{}
 
 	sections := s.buildSections(input.Results)
 
@@ -38,17 +38,17 @@ func (s *SyncReportScreen) Draw(input SyncReportInput) (ScreenResult[SyncReportO
 
 	if err != nil {
 		if errors.Is(err, gaba.ErrCancelled) {
-			return Back(output), nil
+			return back(output), nil
 		}
 		logger.Error("Detail screen error", "error", err)
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
 	if result.Action == gaba.DetailActionCancelled {
-		return Back(output), nil
+		return back(output), nil
 	}
 
-	return Success(output), nil
+	return success(output), nil
 }
 
 func (s *SyncReportScreen) buildSections(results []utils.SyncResult) []gaba.Section {

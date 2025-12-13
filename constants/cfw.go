@@ -4,18 +4,12 @@ type CFW string
 
 const (
 	NextUI CFW = "NextUI"
-	MinUI  CFW = "MinUI"
-
 	MuOS   CFW = "muOS"
-	Knulli CFW = "Knulli"
 )
 
 const MuOSSD1 = "/mnt/mmc"
 const MuOSSD2 = "/mnt/sdcard"
 const MuOSRomsFolderUnion = "/mnt/union/ROMS"
-
-const NextUIRomsFolder = "/mnt/SDCARD/Roms"
-const NextUISavesFolder = "/mnt/SDCARD/Saves"
 
 var NextUIPlatforms = map[string][]string{
 	"3do":                                {},

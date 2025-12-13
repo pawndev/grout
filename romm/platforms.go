@@ -13,7 +13,7 @@ type Platform struct {
 	ShortName           string     `json:"short_name"`
 	LogoPath            string     `json:"logo_path"`
 	ROMCount            int        `json:"rom_count"`
-	Firmware            []Firmware `json:"firmware"`
+	Firmware            []firmware `json:"firmware"`
 	CreatedAt           time.Time  `json:"created_at"`
 	UpdatedAt           time.Time  `json:"updated_at"`
 	Manufacturer        *string    `json:"manufacturer"`
@@ -25,13 +25,13 @@ type Platform struct {
 
 func (c *Client) GetPlatforms() ([]Platform, error) {
 	var platforms []Platform
-	err := c.doRequest("GET", EndpointPlatforms, nil, nil, &platforms)
+	err := c.doRequest("GET", endpointPlatforms, nil, nil, &platforms)
 	return platforms, err
 }
 
-func (c *Client) GetPlatform(id int) (*Platform, error) {
+func (c *Client) getPlatform(id int) (*Platform, error) {
 	var platform Platform
-	path := fmt.Sprintf(EndpointPlatformByID, id)
+	path := fmt.Sprintf(endpointPlatformByID, id)
 	err := c.doRequest("GET", path, nil, nil, &platform)
 	return &platform, err
 }

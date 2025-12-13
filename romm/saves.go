@@ -54,7 +54,7 @@ func (sq SaveQuery) Valid() bool {
 
 func (c *Client) GetSaves(query SaveQuery) (*[]Save, error) {
 	var saves []Save
-	err := c.doRequest("GET", EndpointSaves, query, nil, &saves)
+	err := c.doRequest("GET", endpointSaves, query, nil, &saves)
 	return &saves, err
 }
 
@@ -86,7 +86,7 @@ func (c *Client) UploadSave(romID int, savePath string) (*Save, error) {
 	}
 
 	var res Save
-	err = c.doMultipartRequest("POST", EndpointSaves, SaveQuery{RomID: romID}, &buf, writer.FormDataContentType(), &res)
+	err = c.doMultipartRequest("POST", endpointSaves, SaveQuery{RomID: romID}, &buf, writer.FormDataContentType(), &res)
 	if err != nil {
 		return nil, err
 	}

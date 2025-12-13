@@ -20,7 +20,7 @@ type Client struct {
 	password   string
 }
 
-type QueryParam interface {
+type queryParam interface {
 	Valid() bool
 }
 
@@ -54,7 +54,7 @@ func NewClient(baseURL string, opts ...ClientOption) *Client {
 	return c
 }
 
-func (c *Client) doRequest(method string, path string, queryParams QueryParam, body interface{}, result interface{}) error {
+func (c *Client) doRequest(method string, path string, queryParams queryParam, body interface{}, result interface{}) error {
 	var reqBody io.Reader
 	if body != nil {
 		jsonData, err := json.Marshal(body)
@@ -149,7 +149,7 @@ func (c *Client) doRequestRaw(method, path string, body interface{}) ([]byte, er
 	return bodyBytes, nil
 }
 
-func (c *Client) doMultipartRequest(method, path string, queryParams QueryParam, body io.Reader, contentType string, result interface{}) error {
+func (c *Client) doMultipartRequest(method, path string, queryParams queryParam, body io.Reader, contentType string, result interface{}) error {
 	u := c.baseURL + path
 	req, err := http.NewRequest(method, u, body)
 	if err != nil {
@@ -208,7 +208,7 @@ func buildQueryString(params map[string]string) string {
 	return ""
 }
 
-func (c *Client) DownloadFile(downloadURL string) ([]byte, error) {
+func (c *Client) downloadFile(downloadURL string) ([]byte, error) {
 	req, err := http.NewRequest("GET", downloadURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)

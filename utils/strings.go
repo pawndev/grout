@@ -31,7 +31,7 @@ func ParseTag(input string) string {
 	return foundTag
 }
 
-func NameCleaner(name string, stripTag bool) (string, string) {
+func nameCleaner(name string, stripTag bool) (string, string) {
 	cleaned := filepath.Clean(name)
 
 	tags := constants.TagRegex.FindAllStringSubmatch(cleaned, -1)
@@ -73,7 +73,7 @@ func PrepareRomNames(games []romm.Rom) []romm.Rom {
 	for i := range games {
 		regions := strings.Join(games[i].Regions, ", ")
 
-		cleanedName, _ := NameCleaner(games[i].Name, true)
+		cleanedName, _ := nameCleaner(games[i].Name, true)
 		games[i].DisplayName = cleanedName
 
 		if len(regions) > 0 {

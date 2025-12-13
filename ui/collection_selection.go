@@ -35,11 +35,11 @@ func (s *CollectionSelectionScreen) Draw(input CollectionSelectionInput) (Screen
 	rc := utils.GetRommClient(input.Host)
 	collections, err := rc.GetCollections()
 	if err != nil {
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
 	if len(collections) == 0 {
-		return WithCode(output, gaba.ExitCode(404)), nil
+		return withCode(output, gaba.ExitCode(404)), nil
 	}
 
 	var menuItems []gaba.MenuItem
@@ -65,9 +65,9 @@ func (s *CollectionSelectionScreen) Draw(input CollectionSelectionInput) (Screen
 	sel, err := gaba.List(options)
 	if err != nil {
 		if errors.Is(err, gaba.ErrCancelled) {
-			return Back(output), nil
+			return back(output), nil
 		}
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
 	switch sel.Action {
@@ -77,8 +77,9 @@ func (s *CollectionSelectionScreen) Draw(input CollectionSelectionInput) (Screen
 		output.SelectedCollection = collection
 		output.LastSelectedIndex = sel.Selected[0]
 		output.LastSelectedPosition = sel.VisiblePosition
-		return Success(output), nil
-	}
+		return success(output), nil
 
-	return WithCode(output, gaba.ExitCodeBack), nil
+	default:
+		return withCode(output, gaba.ExitCodeBack), nil
+	}
 }

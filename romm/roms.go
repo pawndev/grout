@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type PaginatedRoms struct {
+type paginatedRoms struct {
 	Items  []Rom `json:"items"`
 	Total  int   `json:"total"`
 	Limit  int   `json:"limit"`
@@ -32,14 +32,14 @@ type Rom struct {
 	Slug                string       `json:"slug,omitempty"`
 	Summary             string       `json:"summary,omitempty"`
 	AlternativeNames    []string     `json:"alternative_names,omitempty"`
-	Metadatum           RomMetadata  `json:"metadatum,omitempty"`
+	Metadatum           romMetadata  `json:"metadatum,omitempty"`
 	PathCoverSmall      string       `json:"path_cover_small,omitempty"`
 	PathCoverLarge      string       `json:"path_cover_large,omitempty"`
 	URLCover            string       `json:"url_cover,omitempty"`
 	HasManual           bool         `json:"has_manual,omitempty"`
 	PathManual          string       `json:"path_manual,omitempty"`
 	URLManual           string       `json:"url_manual,omitempty"`
-	UserScreenshots     []Screenshot `json:"user_screenshots,omitempty"`
+	UserScreenshots     []screenshot `json:"user_screenshots,omitempty"`
 	UserSaves           []Save       `json:"user_saves,omitempty"`
 	MergedScreenshots   []string     `json:"merged_screenshots,omitempty"`
 	IsIdentifying       bool         `json:"is_identifying,omitempty"`
@@ -56,7 +56,7 @@ type Rom struct {
 	HasSimpleSingleFile bool         `json:"has_simple_single_file,omitempty"`
 	HasNestedSingleFile bool         `json:"has_nested_single_file,omitempty"`
 	HasMultipleFiles    bool         `json:"has_multiple_files,omitempty"`
-	Files               []RomFile    `json:"files,omitempty"`
+	Files               []romFile    `json:"files,omitempty"`
 	FullPath            string       `json:"full_path,omitempty"`
 	CreatedAt           time.Time    `json:"created_at,omitempty"`
 	UpdatedAt           time.Time    `json:"updated_at,omitempty"`
@@ -69,7 +69,7 @@ func (r Rom) GetGamePage(host Host) string {
 	return u
 }
 
-type Screenshot struct {
+type screenshot struct {
 	ID       int    `json:"id,omitempty"`
 	RomID    int    `json:"rom_id,omitempty"`
 	FileName string `json:"file_name,omitempty"`
@@ -78,7 +78,7 @@ type Screenshot struct {
 	Order    int    `json:"order,omitempty"`
 }
 
-type RomMetadata struct {
+type romMetadata struct {
 	RomID            int      `json:"rom_id,omitempty"`
 	Genres           []string `json:"genres,omitempty"`
 	Franchises       []any    `json:"franchises,omitempty"`
@@ -90,7 +90,7 @@ type RomMetadata struct {
 	AverageRating    float64  `json:"average_rating,omitempty"`
 }
 
-type RomFile struct {
+type romFile struct {
 	ID            int       `json:"id,omitempty"`
 	RomID         int       `json:"rom_id,omitempty"`
 	FileName      string    `json:"file_name,omitempty"`
@@ -116,7 +116,7 @@ type GetRomsOptions struct {
 	OrderDir     string
 }
 
-func (c *Client) GetRoms(opts *GetRomsOptions) (*PaginatedRoms, error) {
+func (c *Client) GetRoms(opts *GetRomsOptions) (*paginatedRoms, error) {
 	params := map[string]string{}
 
 	if opts != nil {
@@ -143,38 +143,38 @@ func (c *Client) GetRoms(opts *GetRomsOptions) (*PaginatedRoms, error) {
 		}
 	}
 
-	var result PaginatedRoms
-	path := EndpointRoms + buildQueryString(params)
+	var result paginatedRoms
+	path := endpointRoms + buildQueryString(params)
 	err := c.doRequest("GET", path, nil, nil, &result)
 
 	return &result, err
 }
 
-func (c *Client) GetRom(id int) (*Rom, error) {
+func (c *Client) getRom(id int) (*Rom, error) {
 	var rom Rom
-	path := fmt.Sprintf(EndpointRomByID, id)
+	path := fmt.Sprintf(endpointRomByID, id)
 	err := c.doRequest("GET", path, nil, nil, &rom)
 	return &rom, err
 }
 
-func (c *Client) GetRomContent(id int, fileName string) ([]byte, error) {
-	path := fmt.Sprintf(EndpointRomContent, id, fileName)
+func (c *Client) getRomContent(id int, fileName string) ([]byte, error) {
+	path := fmt.Sprintf(endpointRomContent, id, fileName)
 	return c.doRequestRaw("GET", path, nil)
 }
 
-func (c *Client) GetRomFile(id int) (*RomFile, error) {
-	var romFile RomFile
-	path := fmt.Sprintf(EndpointRomFileByID, id)
+func (c *Client) getRomFile(id int) (*romFile, error) {
+	var romFile romFile
+	path := fmt.Sprintf(endpointRomFileByID, id)
 	err := c.doRequest("GET", path, nil, nil, &romFile)
 	return &romFile, err
 }
 
-func (c *Client) GetRomFileContent(id int, fileName string) ([]byte, error) {
-	path := fmt.Sprintf(EndpointRomFileContent, id, fileName)
+func (c *Client) getRomFileContent(id int, fileName string) ([]byte, error) {
+	path := fmt.Sprintf(endpointRomFileContent, id, fileName)
 	return c.doRequestRaw("GET", path, nil)
 }
 
-func (c *Client) DownloadRoms(romIDs []int) ([]byte, error) {
+func (c *Client) downloadRoms(romIDs []int) ([]byte, error) {
 	params := map[string]string{}
 
 	if len(romIDs) > 0 {
@@ -188,10 +188,10 @@ func (c *Client) DownloadRoms(romIDs []int) ([]byte, error) {
 		params["rom_ids"] = ids
 	}
 
-	path := EndpointRomsDownload + buildQueryString(params)
+	path := endpointRomsDownload + buildQueryString(params)
 	return c.doRequestRaw("GET", path, nil)
 }
 
-func (c *Client) DownloadMultiFileRom(romID int) ([]byte, error) {
-	return c.DownloadRoms([]int{romID})
+func (c *Client) downloadMultiFileRom(romID int) ([]byte, error) {
+	return c.downloadRoms([]int{romID})
 }

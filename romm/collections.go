@@ -19,7 +19,7 @@ type Collection struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-type SmartCollection struct {
+type smartCollection struct {
 	ID          int         `json:"id"`
 	Name        string      `json:"name"`
 	Description *string     `json:"description"`
@@ -34,7 +34,7 @@ type SmartCollection struct {
 	UpdatedAt   time.Time   `json:"updated_at"`
 }
 
-type VirtualCollection struct {
+type virtualCollection struct {
 	ID          int       `json:"id"`
 	Name        string    `json:"name"`
 	Description *string   `json:"description"`
@@ -49,39 +49,39 @@ type VirtualCollection struct {
 
 func (c *Client) GetCollections() ([]Collection, error) {
 	var collections []Collection
-	err := c.doRequest("GET", EndpointCollections, nil, nil, &collections)
+	err := c.doRequest("GET", endpointCollections, nil, nil, &collections)
 	return collections, err
 }
 
-func (c *Client) GetCollection(id int) (*Collection, error) {
+func (c *Client) getCollection(id int) (*Collection, error) {
 	var collection Collection
-	path := fmt.Sprintf(EndpointCollectionByID, id)
+	path := fmt.Sprintf(endpointCollectionByID, id)
 	err := c.doRequest("GET", path, nil, nil, &collection)
 	return &collection, err
 }
 
-func (c *Client) GetSmartCollections() ([]SmartCollection, error) {
-	var collections []SmartCollection
-	err := c.doRequest("GET", EndpointSmartCollections, nil, nil, &collections)
+func (c *Client) getSmartCollections() ([]smartCollection, error) {
+	var collections []smartCollection
+	err := c.doRequest("GET", endpointSmartCollections, nil, nil, &collections)
 	return collections, err
 }
 
-func (c *Client) GetSmartCollection(id int) (*SmartCollection, error) {
-	var collection SmartCollection
-	path := fmt.Sprintf(EndpointSmartCollectionByID, id)
+func (c *Client) getSmartCollection(id int) (*smartCollection, error) {
+	var collection smartCollection
+	path := fmt.Sprintf(endpointSmartCollectionByID, id)
 	err := c.doRequest("GET", path, nil, nil, &collection)
 	return &collection, err
 }
 
-func (c *Client) GetVirtualCollections() ([]VirtualCollection, error) {
-	var collections []VirtualCollection
-	err := c.doRequest("GET", EndpointVirtualCollections, nil, nil, &collections)
+func (c *Client) getVirtualCollections() ([]virtualCollection, error) {
+	var collections []virtualCollection
+	err := c.doRequest("GET", endpointVirtualCollections, nil, nil, &collections)
 	return collections, err
 }
 
-func (c *Client) GetVirtualCollection(id int) (*VirtualCollection, error) {
-	var collection VirtualCollection
-	path := fmt.Sprintf(EndpointVirtualCollectionByID, id)
+func (c *Client) getVirtualCollection(id int) (*virtualCollection, error) {
+	var collection virtualCollection
+	path := fmt.Sprintf(endpointVirtualCollectionByID, id)
 	err := c.doRequest("GET", path, nil, nil, &collection)
 	return &collection, err
 }

@@ -57,18 +57,18 @@ func (s *GameDetailsScreen) Draw(input GameDetailsInput) (ScreenResult[GameDetai
 
 	if err != nil {
 		if errors.Is(err, gaba.ErrCancelled) {
-			return Back(output), nil
+			return back(output), nil
 		}
 		logger.Error("Detail screen error", "error", err)
-		return WithCode(output, gaba.ExitCodeError), err
+		return withCode(output, gaba.ExitCodeError), err
 	}
 
 	if result.Action == gaba.DetailActionConfirmed {
 		output.DownloadRequested = true
-		return Success(output), nil
+		return success(output), nil
 	}
 
-	return Back(output), nil
+	return back(output), nil
 }
 
 func (s *GameDetailsScreen) buildSections(input GameDetailsInput) []gaba.Section {

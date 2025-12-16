@@ -275,7 +275,6 @@ func (s *PlatformMappingScreen) getCreateDisplayName(slug string, cfw constants.
 
 func (s *PlatformMappingScreen) buildMappingsFromResult(items []gaba.ItemWithOptions) map[string]utils.DirectoryMapping {
 	mappings := make(map[string]utils.DirectoryMapping)
-	cfw := utils.GetCFW()
 
 	for _, item := range items {
 		rommSlug := item.Item.Metadata.(string)
@@ -285,32 +284,13 @@ func (s *PlatformMappingScreen) buildMappingsFromResult(items []gaba.ItemWithOpt
 			continue
 		}
 
-		saveDir := s.inferSaveDirectory(rommSlug, relativePath, cfw)
-
 		mappings[rommSlug] = utils.DirectoryMapping{
-			RomMSlug:      rommSlug,
-			RelativePath:  relativePath,
-			SaveDirectory: saveDir,
+			RomMSlug:     rommSlug,
+			RelativePath: relativePath,
 		}
 	}
 
 	return mappings
-}
-
-func (s *PlatformMappingScreen) inferSaveDirectory(slug, romDir string, cfw constants.CFW) string {
-	saveDirectories := s.getSaveDirectoriesForPlatform(slug, cfw)
-
-	for _, saveDir := range saveDirectories {
-		if s.directoriesMatch(romDir, saveDir, cfw) {
-			return saveDir
-		}
-	}
-
-	if len(saveDirectories) > 0 {
-		return saveDirectories[0]
-	}
-
-	return romDir
 }
 
 func (s *PlatformMappingScreen) createDirectories(

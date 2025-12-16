@@ -422,7 +422,7 @@ var MuOSSaveDirectories = map[string][]string{
 	"galaksija":                          {"Galaksija"},
 	"gamegear":                           {"PicoDrive", "Gearsystem", "Genesis Plus GX"},
 	"gb":                                 {"Gambatte", "DoubleCherryGB", "FixGB", "Gearboy", "mGBA", "SameBoy", "TGB Dual", "VBA-M"},
-	"gba":                                {"gpSP", "mGBA", "mGBA Rumble", "Beetle GBA", "VBA-M", "VBA-Next"},
+	"gba":                                {"gpSP", "mGBA Rumble", "mGBA", "Beetle GBA", "VBA-M", "VBA-Next"},
 	"gbc":                                {"Gambatte", "DoubleCherryGB", "FixGB", "Gearboy", "mGBA", "SameBoy", "TGB Dual", "VBA-M"},
 	"genesis":                            {"Genesis Plus GX", "Genesis Plus GX Wide", "PicoDrive"},
 	"intellivision":                      {"FreeIntv"},

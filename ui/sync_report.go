@@ -10,7 +10,8 @@ import (
 )
 
 type syncReportInput struct {
-	Results []utils.SyncResult
+	Results   []utils.SyncResult
+	Unmatched []utils.UnmatchedSave
 }
 
 type syncReportOutput struct{}
@@ -25,7 +26,7 @@ func (s *SyncReportScreen) draw(input syncReportInput) (ScreenResult[syncReportO
 	logger := gaba.GetLogger()
 	output := syncReportOutput{}
 
-	sections := s.buildSections(input.Results)
+	sections := s.buildSections(input.Results, input.Unmatched)
 
 	options := gaba.DefaultInfoScreenOptions()
 	options.Sections = sections
@@ -51,7 +52,7 @@ func (s *SyncReportScreen) draw(input syncReportInput) (ScreenResult[syncReportO
 	return success(output), nil
 }
 
-func (s *SyncReportScreen) buildSections(results []utils.SyncResult) []gaba.Section {
+func (s *SyncReportScreen) buildSections(results []utils.SyncResult, unmatched []utils.UnmatchedSave) []gaba.Section {
 	sections := make([]gaba.Section, 0)
 
 	uploadedCount := 0
@@ -106,7 +107,11 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult) []gaba.Sect
 				if downloadedFiles != "" {
 					downloadedFiles += "\n"
 				}
-				downloadedFiles += filepath.Base(r.FilePath)
+				displayName := r.RomDisplayName
+				if displayName == "" {
+					displayName = filepath.Base(r.FilePath)
+				}
+				downloadedFiles += displayName
 			}
 		}
 		sections = append(sections, gaba.NewDescriptionSection("Downloaded", downloadedFiles))
@@ -119,7 +124,11 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult) []gaba.Sect
 				if uploadedFiles != "" {
 					uploadedFiles += "\n"
 				}
-				uploadedFiles += filepath.Base(r.FilePath)
+				displayName := r.RomDisplayName
+				if displayName == "" {
+					displayName = filepath.Base(r.FilePath)
+				}
+				uploadedFiles += displayName
 			}
 		}
 		sections = append(sections, gaba.NewDescriptionSection("Uploaded", uploadedFiles))
@@ -136,10 +145,26 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult) []gaba.Sect
 				if errorMsg == "" {
 					errorMsg = "Unknown error"
 				}
-				failedFiles += fmt.Sprintf("%s (%s): %s", r.GameName, r.Action, errorMsg)
+				displayName := r.RomDisplayName
+				if displayName == "" {
+					displayName = r.GameName
+				}
+				failedFiles += fmt.Sprintf("%s (%s): %s", displayName, r.Action, errorMsg)
 			}
 		}
 		sections = append(sections, gaba.NewDescriptionSection("Failed", failedFiles))
+	}
+
+	// Display unmatched saves (ROM not found in RomM)
+	if len(unmatched) > 0 {
+		unmatchedText := ""
+		for _, u := range unmatched {
+			if unmatchedText != "" {
+				unmatchedText += "\n"
+			}
+			unmatchedText += fmt.Sprintf("%s (ROM not found in RomM)", filepath.Base(u.SavePath))
+		}
+		sections = append(sections, gaba.NewDescriptionSection("Unmatched Saves", unmatchedText))
 	}
 
 	return sections

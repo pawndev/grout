@@ -116,6 +116,12 @@ type GetRomsOptions struct {
 	OrderDir     string
 }
 
+type GetRomByHashQuery struct {
+	CrcHash  string
+	Md5Hash  string
+	Sha1Hash string
+}
+
 func (c *Client) GetRoms(opts *GetRomsOptions) (*paginatedRoms, error) {
 	params := map[string]string{}
 
@@ -148,6 +154,26 @@ func (c *Client) GetRoms(opts *GetRomsOptions) (*paginatedRoms, error) {
 	err := c.doRequest("GET", path, nil, nil, &result)
 
 	return &result, err
+}
+
+func (c *Client) GetRomByHash(query GetRomByHashQuery) (*Rom, error) {
+	params := map[string]string{}
+
+	if query.CrcHash != "" {
+		params["crc_hash"] = query.CrcHash
+	}
+	if query.Md5Hash != "" {
+		params["md5_hash"] = query.Md5Hash
+	}
+	if query.Sha1Hash != "" {
+		params["sha1_hash"] = query.Sha1Hash
+	}
+
+	var rom Rom
+	path := endpointRomsByHash + buildQueryString(params)
+	err := c.doRequest("GET", path, nil, nil, &rom)
+
+	return &rom, err
 }
 
 func (c *Client) getRom(id int) (*Rom, error) {

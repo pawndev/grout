@@ -44,8 +44,9 @@ type Save struct {
 }
 
 type SaveQuery struct {
-	RomID      int `qs:"rom_id"`
-	PlatformID int `qs:"platform_id"`
+	RomID      int    `qs:"rom_id"`
+	Emulator   string `qs:"emulator"`
+	PlatformID int    `qs:"platform_id"`
 }
 
 func (sq SaveQuery) Valid() bool {
@@ -62,7 +63,7 @@ func (c *Client) DownloadSave(downloadPath string) ([]byte, error) {
 	return c.doRequestRaw("GET", downloadPath, nil)
 }
 
-func (c *Client) UploadSave(romID int, savePath string) (*Save, error) {
+func (c *Client) UploadSave(romID int, savePath string, emulator string) (*Save, error) {
 	file, err := os.Open(savePath)
 	if err != nil {
 		return nil, err
@@ -86,7 +87,7 @@ func (c *Client) UploadSave(romID int, savePath string) (*Save, error) {
 	}
 
 	var res Save
-	err = c.doMultipartRequest("POST", endpointSaves, SaveQuery{RomID: romID}, &buf, writer.FormDataContentType(), &res)
+	err = c.doMultipartRequest("POST", endpointSaves, SaveQuery{RomID: romID, Emulator: emulator}, &buf, writer.FormDataContentType(), &res)
 	if err != nil {
 		return nil, err
 	}

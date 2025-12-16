@@ -23,9 +23,8 @@ type Config struct {
 }
 
 type DirectoryMapping struct {
-	RomMSlug      string `json:"slug"`
-	RelativePath  string `json:"relative_path"`
-	SaveDirectory string `json:"save_directory,omitempty"`
+	RomMSlug     string `json:"slug"`
+	RelativePath string `json:"relative_path"`
 }
 
 func (c Config) ToLoggable() any {

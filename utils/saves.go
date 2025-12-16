@@ -19,6 +19,13 @@ type localSave struct {
 	LastModified time.Time
 }
 
+type EmulatorDirectoryInfo struct {
+	DirectoryName string
+	FullPath      string
+	HasSaves      bool
+	SaveCount     int
+}
+
 func (lc localSave) timestampedFilename() string {
 	ext := filepath.Ext(lc.Path)
 	base := strings.ReplaceAll(filepath.Base(lc.Path), ext, "")
@@ -35,22 +42,8 @@ func (lc localSave) backup() error {
 
 func getSaveDirectoryForSlug(slug string, emulator string) (string, error) {
 	logger := gaba.GetLogger()
+	logger.Debug("getSaveDirectoryForSlug called", "slug", slug, "emulator", emulator)
 	bsd := getSaveDirectory()
-
-	config, err := LoadConfig()
-	if err == nil {
-		if mapping, ok := config.DirectoryMappings[slug]; ok && mapping.SaveDirectory != "" {
-			saveDir := filepath.Join(bsd, mapping.SaveDirectory)
-			logger.Debug("Using config save directory", "slug", slug, "directory", mapping.SaveDirectory)
-
-			if err := os.MkdirAll(saveDir, 0755); err != nil {
-				logger.Error("Failed to create save directory", "path", saveDir, "error", err)
-				return "", fmt.Errorf("failed to create save directory: %w", err)
-			}
-
-			return saveDir, nil
-		}
-	}
 
 	var saveFolders []string
 
@@ -66,16 +59,32 @@ func getSaveDirectoryForSlug(slug string, emulator string) (string, error) {
 	}
 
 	selectedFolder := saveFolders[0]
+	logger.Debug("Initial selectedFolder (default)", "selectedFolder", selectedFolder, "allFolders", saveFolders)
 	if emulator != "" {
+		// Try exact match first
+		matched := false
 		for _, folder := range saveFolders {
-			if strings.Contains(strings.ToLower(folder), strings.ToLower(emulator)) {
+			if folder == emulator {
 				selectedFolder = folder
-				logger.Debug("Matched emulator to save folder", "emulator", emulator, "folder", folder)
+				matched = true
+				logger.Debug("Exact match for emulator folder", "emulator", emulator, "folder", folder)
 				break
+			}
+		}
+
+		// Fall back to substring match if no exact match
+		if !matched {
+			for _, folder := range saveFolders {
+				if strings.Contains(strings.ToLower(folder), strings.ToLower(emulator)) {
+					selectedFolder = folder
+					logger.Debug("Matched emulator to save folder (substring)", "emulator", emulator, "folder", folder)
+					break
+				}
 			}
 		}
 	}
 
+	logger.Debug("Final selectedFolder", "selectedFolder", selectedFolder)
 	saveDir := filepath.Join(bsd, selectedFolder)
 
 	if err := os.MkdirAll(saveDir, 0755); err != nil {
@@ -144,4 +153,98 @@ func findSaveFiles(slug string) []localSave {
 
 	logger.Debug("Found total save files", "slug", slug, "count", len(allSaveFiles))
 	return allSaveFiles
+}
+
+func GetEmulatorDirectoriesWithStatus(slug string) []EmulatorDirectoryInfo {
+	logger := gaba.GetLogger()
+	bsd := getSaveDirectory()
+
+	var saveFolders []string
+
+	switch GetCFW() {
+	case constants.MuOS:
+		saveFolders = constants.MuOSSaveDirectories[slug]
+	case constants.NextUI:
+		saveFolders = constants.NextUISaves[slug]
+	}
+
+	if len(saveFolders) == 0 {
+		logger.Debug("No save folder mapping for slug", "slug", slug)
+		return []EmulatorDirectoryInfo{}
+	}
+
+	dirInfos := make([]EmulatorDirectoryInfo, 0, len(saveFolders))
+
+	for _, saveFolder := range saveFolders {
+		fullPath := filepath.Join(bsd, saveFolder)
+		info := EmulatorDirectoryInfo{
+			DirectoryName: saveFolder,
+			FullPath:      fullPath,
+			HasSaves:      false,
+			SaveCount:     0,
+		}
+
+		// Check if directory exists
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			dirInfos = append(dirInfos, info)
+			continue
+		}
+
+		// Count non-hidden files
+		entries, err := os.ReadDir(fullPath)
+		if err != nil {
+			logger.Warn("Failed to read directory", "path", fullPath, "error", err)
+			dirInfos = append(dirInfos, info)
+			continue
+		}
+
+		count := 0
+		for _, entry := range entries {
+			if !entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+				count++
+			}
+		}
+
+		info.SaveCount = count
+		info.HasSaves = count > 0
+
+		dirInfos = append(dirInfos, info)
+	}
+
+	return dirInfos
+}
+
+func needsEmulatorSelection(slug string, hasLocalSave bool) bool {
+	// Don't prompt if updating existing save
+	if hasLocalSave {
+		return false
+	}
+
+	dirInfos := GetEmulatorDirectoriesWithStatus(slug)
+
+	// If no directories configured, no selection needed
+	if len(dirInfos) <= 1 {
+		return false
+	}
+
+	// Count directories with existing saves
+	nonEmptyCount := 0
+	for _, info := range dirInfos {
+		if info.HasSaves {
+			nonEmptyCount++
+		}
+	}
+
+	// Prompt if multiple non-empty directories (ambiguous)
+	if nonEmptyCount > 1 {
+		return true
+	}
+
+	// Prompt if no non-empty directories (new platform setup with multiple emulators)
+	if nonEmptyCount == 0 {
+		return true
+	}
+
+	// Single non-empty directory - use it automatically
+	return false
 }

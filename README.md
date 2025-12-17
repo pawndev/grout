@@ -62,7 +62,7 @@ This guide walks you through using Grout's interface to download games from your
 
 When you first launch Grout, you'll be greeted with the login screen. This is where you connect to your RomM server.
 
-[SCREENSHOT: Login screen showing the options form]
+![Grout preview, login flow](.github/resources/user_guide/login.png "Grout preview, login flow")
 
 The login screen has five fields you need to fill out:
 
@@ -92,6 +92,9 @@ This tells Grout where to put games when you download them.
 
 [SCREENSHOT: Platform mapping screen showing platforms and directory options]
 
+![Grout preview, platform mapping](.github/resources/user_guide/platform_mapping.png "Grout preview, platform mapping")
+
+
 You'll see a list of all platforms from your RomM instance. For each one, you can:
 
 - **Skip** – Don't map this platform. Games from this platform won't be available to download.
@@ -114,7 +117,8 @@ You can change these mappings later from the Settings menu.
 Once you've logged in and set up your mappings, you'll land on the main menu. This is your home base for browsing your
 RomM collection.
 
-[SCREENSHOT: Main platform selection menu]
+![Grout preview, main menu (platforms)](.github/resources/user_guide/platforms.png "Grout preview, main menu (platforms)")
+
 
 At the top, you'll see "Collections" (if you have any collections set up in RomM). Below that, you'll see all your RomM
 platforms – NES, SNES, PlayStation, whatever you've got.
@@ -136,7 +140,8 @@ collections.
 Collections are custom groupings you can create in RomM - like "My Favorites," "Beat 'em Ups," or "Games to Play."
 They're a great way to organize games across multiple platforms.
 
-[SCREENSHOT: Collections list]
+![Grout preview, collections list](.github/resources/user_guide/collections.png "Grout preview, collections list")
+
 
 After selecting Collections from the main menu, you'll see all your collections. Pick one and press A.
 

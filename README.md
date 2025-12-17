@@ -36,19 +36,19 @@ A RomM Client for <a href="https://nextui.loveretro.games">NextUI</a> and <a hre
 ## Table of Contents
 
 - [User Guide](#user-guide)
-  - [First Launch and Login](#first-launch-and-login)
-  - [Platform Directory Mapping](#platform-directory-mapping)
-  - [Main Menu - Platform Selection](#main-menu--platform-selection)
-  - [Collections](#collections)
-  - [Game List](#game-list)
-  - [Search](#search)
-  - [Game Details](#game-details)
-  - [Downloading Games](#downloading-games)
-  - [Settings](#settings)
-  - [Save Sync](#save-sync)
+    - [First Launch and Login](#first-launch-and-login)
+    - [Platform Directory Mapping](#platform-directory-mapping)
+    - [Main Menu - Platform Selection](#main-menu--platform-selection)
+    - [Collections](#collections)
+    - [Game List](#game-list)
+    - [Search](#search)
+    - [Game Details](#game-details)
+    - [Downloading Games](#downloading-games)
+    - [Settings](#settings)
+    - [Save Sync](#save-sync)
 - [Installation](#installation)
-  - [NextUI Setup](#nextui-setup)
-  - [muOS Setup](#muos-setup)
+    - [NextUI Setup](#nextui-setup)
+    - [muOS Setup](#muos-setup)
 - [Need Help? Found a Bug? Have an Idea?](#need-help-found-a-bug-have-an-idea)
 - [Make The World Better](#spread-joy)
 
@@ -60,11 +60,9 @@ This guide walks you through using Grout's interface to download games from your
 
 ### First Launch and Login
 
-When you first launch Grout, you'll be greeted with the login screen. This is where you connect to your RomM server.
+When you first launch Grout, you'll be greeted with this login screen.
 
 ![Grout preview, login flow](.github/resources/user_guide/login.png "Grout preview, login flow")
-
-The login screen has five fields you need to fill out:
 
 1. **Protocol** – Choose between HTTP and HTTPS.
 
@@ -80,7 +78,7 @@ The login screen has five fields you need to fill out:
 Use the left and right buttons to cycle through options for Protocol. For the text fields (Hostname, Username,
 Password), pressing A will open an on-screen keyboard.
 
-When you're ready, press Start to log in. If your credentials are correct and Grout can reach your server, you'll move
+Press Start to log in. If your credentials are correct and Grout can reach your server, you'll move
 to the next step. If something goes wrong, you'll get a message telling you what happened, and you can try again.
 
 ---
@@ -88,12 +86,9 @@ to the next step. If something goes wrong, you'll get a message telling you what
 ### Platform Directory Mapping
 
 After logging in successfully for the first time, you'll need to map your RomM platforms to directories on your device.
-This tells Grout where to put games when you download them.
-
-[SCREENSHOT: Platform mapping screen showing platforms and directory options]
+This tells Grout where to put the games that you download.
 
 ![Grout preview, platform mapping](.github/resources/user_guide/platform_mapping.png "Grout preview, platform mapping")
-
 
 You'll see a list of all platforms from your RomM instance. For each one, you can:
 
@@ -119,7 +114,6 @@ RomM collection.
 
 ![Grout preview, main menu (platforms)](.github/resources/user_guide/platforms.png "Grout preview, main menu (platforms)")
 
-
 At the top, you'll see "Collections" (if you have any collections set up in RomM). Below that, you'll see all your RomM
 platforms – NES, SNES, PlayStation, whatever you've got.
 
@@ -142,7 +136,6 @@ They're a great way to organize games across multiple platforms.
 
 ![Grout preview, collections list](.github/resources/user_guide/collections.png "Grout preview, collections list")
 
-
 After selecting Collections from the main menu, you'll see all your collections. Pick one and press A.
 
 If your collection has games from multiple platforms, you'll see a platform selection screen next. This lets you filter
@@ -161,12 +154,14 @@ list.
 
 The game list is where you browse and select games to download.
 
-[SCREENSHOT: Game list showing multiple games]
+![Grout preview, games list](.github/resources/user_guide/games_list.png "Grout preview, games list")
 
 The title bar shows you where you are – either a platform name like "PlayStation" or a collection name like "My
 Favorites."
 
 If you ran a search, you'll see `[Search: "your search term"] | Platform Name` at the top.
+
+![Grout preview, search results](.github/resources/user_guide/search_results.png "Grout preview, search results")
 
 **Navigation and Selection:**
 
@@ -182,7 +177,7 @@ Press Select once to enable multi-select. You'll see checkboxes appear next to e
 game, it toggles selection instead of immediately downloading. This is perfect when you want to grab a bunch of games at
 once. Check all the ones you want, then press start to confirm your selections.
 
-[SCREENSHOT: Game list in multi-select mode with checkboxes]
+![Grout preview, games multi select](.github/resources/user_guide/multi_select.png "Grout preview, games multi select")
 
 ---
 
@@ -190,12 +185,12 @@ once. Check all the ones you want, then press start to confirm your selections.
 
 Press X from any game list to search.
 
-[SCREENSHOT: On-screen keyboard]
+![Grout preview, search](.github/resources/user_guide/games_list.png "Grout preview, search")
 
 Type your search term using the on-screen keyboard and confirm. The game list will filter to show only matching titles.
 The search is case-insensitive and matches anywhere in the game name.
 
-To clear a search, press B to go back from the filtered results.
+To clear a search, press B to go back to the full results.
 
 ---
 
@@ -204,7 +199,7 @@ To clear a search, press B to go back from the filtered results.
 > [!IMPORTANT]
 > This screen will only show if you've enabled "Show Game Details" in Settings.
 
-[SCREENSHOT: Game details screen showing cover art and metadata]
+![Grout preview, game details](.github/resources/user_guide/game_details.png "Grout preview, game details")
 
 You'll see:
 

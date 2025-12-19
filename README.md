@@ -262,6 +262,10 @@ instance. More on this below.
 **Show Game Details** - When enabled, selecting a game shows the details screen first. When disabled, selecting a game
 immediately starts the download. If you know what you want and just want to grab it fast, turn this off.
 
+**Show Collections** - When enabled, Grout displays collections and smart collections in the main menu.
+
+**Show Virtual Collections** - When enabled, Grout displays virtual collections.
+
 **Download Art** – When enabled, Grout downloads box art for games after downloading the ROMs. The art goes into your
 artwork directory so your frontend can display it.
 

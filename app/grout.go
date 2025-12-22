@@ -61,7 +61,10 @@ type (
 		Index int
 	}
 
-	cachedCollectionGames []romm.Rom
+	cachedCollectionGames    []romm.Rom
+	cachedRegularCollections []romm.Collection
+	cachedSmartCollections   []romm.Collection
+	cachedVirtualCollections []romm.VirtualCollection
 )
 
 func setup() *utils.Config {
@@ -234,14 +237,20 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 		host, _ := gaba.Get[romm.Host](ctx)
 		colPos, _ := gaba.Get[collectionListPosition](ctx)
 		searchFilter, _ := gaba.Get[collectionSearchFilter](ctx)
+		cachedRegular, _ := gaba.Get[cachedRegularCollections](ctx)
+		cachedSmart, _ := gaba.Get[cachedSmartCollections](ctx)
+		cachedVirtual, _ := gaba.Get[cachedVirtualCollections](ctx)
 
 		screen := ui.NewCollectionSelectionScreen()
 		result, err := screen.Draw(ui.CollectionSelectionInput{
-			Config:               config,
-			Host:                 host,
-			SearchFilter:         string(searchFilter),
-			LastSelectedIndex:    colPos.Index,
-			LastSelectedPosition: colPos.Pos,
+			Config:                   config,
+			Host:                     host,
+			SearchFilter:             string(searchFilter),
+			LastSelectedIndex:        colPos.Index,
+			LastSelectedPosition:     colPos.Pos,
+			CachedRegularCollections: cachedRegular,
+			CachedSmartCollections:   cachedSmart,
+			CachedVirtualCollections: cachedVirtual,
 		})
 
 		if err != nil {
@@ -253,6 +262,9 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 			Pos:   result.Value.LastSelectedPosition,
 		})
 		gaba.Set(ctx, collectionSearchFilter(result.Value.SearchFilter))
+		gaba.Set(ctx, cachedRegularCollections(result.Value.FetchedRegularCollections))
+		gaba.Set(ctx, cachedSmartCollections(result.Value.FetchedSmartCollections))
+		gaba.Set(ctx, cachedVirtualCollections(result.Value.FetchedVirtualCollections))
 
 		return result.Value, result.ExitCode
 	}).

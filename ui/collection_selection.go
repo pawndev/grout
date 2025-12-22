@@ -8,24 +8,31 @@ import (
 	"grout/utils"
 	"slices"
 	"strings"
+	"sync"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
 )
 
 type CollectionSelectionInput struct {
-	Config               *utils.Config
-	Host                 romm.Host
-	SearchFilter         string
-	LastSelectedIndex    int
-	LastSelectedPosition int
+	Config                   *utils.Config
+	Host                     romm.Host
+	SearchFilter             string
+	LastSelectedIndex        int
+	LastSelectedPosition     int
+	CachedRegularCollections []romm.Collection
+	CachedSmartCollections   []romm.Collection
+	CachedVirtualCollections []romm.VirtualCollection
 }
 
 type CollectionSelectionOutput struct {
-	SelectedCollection   romm.Collection
-	SearchFilter         string
-	LastSelectedIndex    int
-	LastSelectedPosition int
+	SelectedCollection        romm.Collection
+	SearchFilter              string
+	LastSelectedIndex         int
+	LastSelectedPosition      int
+	FetchedRegularCollections []romm.Collection
+	FetchedSmartCollections   []romm.Collection
+	FetchedVirtualCollections []romm.VirtualCollection
 }
 
 type CollectionSelectionScreen struct{}
@@ -42,38 +49,97 @@ func (s *CollectionSelectionScreen) Draw(input CollectionSelectionInput) (Screen
 	}
 
 	rc := utils.GetRommClient(input.Host)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	var regularCollections []romm.Collection
+	var smartCollections []romm.Collection
+	var virtualCollections []romm.VirtualCollection
+
+	// Fetch regular and smart collections if enabled
+	if input.Config.ShowCollections {
+		// Use cached regular collections or fetch
+		if len(input.CachedRegularCollections) > 0 {
+			regularCollections = input.CachedRegularCollections
+		} else {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				fetched, err := rc.GetCollections()
+				if err == nil {
+					mu.Lock()
+					regularCollections = fetched
+					mu.Unlock()
+				}
+			}()
+		}
+
+		// Use cached smart collections or fetch
+		if len(input.CachedSmartCollections) > 0 {
+			smartCollections = input.CachedSmartCollections
+		} else {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				fetched, err := rc.GetSmartCollections()
+				if err == nil {
+					mu.Lock()
+					smartCollections = fetched
+					for i := range smartCollections {
+						smartCollections[i].IsSmart = true
+					}
+					mu.Unlock()
+				}
+			}()
+		}
+	}
+
+	// Fetch virtual collections if enabled
+	if input.Config.ShowVirtualCollections {
+		// Use cached virtual collections or fetch
+		if len(input.CachedVirtualCollections) > 0 {
+			virtualCollections = input.CachedVirtualCollections
+		} else {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				fetched, err := rc.GetVirtualCollections()
+				if err == nil {
+					mu.Lock()
+					virtualCollections = fetched
+					mu.Unlock()
+				}
+			}()
+		}
+	}
+
+	// Wait for all fetches to complete
+	wg.Wait()
+
+	// Store fetched collections for caching
+	output.FetchedRegularCollections = regularCollections
+	output.FetchedSmartCollections = smartCollections
+	output.FetchedVirtualCollections = virtualCollections
+
+	// Combine enabled collections based on current config
 	var collections []romm.Collection
 
-	// Fetch enabled collection types
 	if input.Config.ShowCollections {
-		regularCollections, err := rc.GetCollections()
-		if err == nil {
-			collections = append(collections, regularCollections...)
-		}
-
-		smartCollections, err := rc.GetSmartCollections()
-		if err == nil {
-			for _, sc := range smartCollections {
-				sc.IsSmart = true
-				collections = append(collections, sc)
-			}
-		}
+		collections = append(collections, regularCollections...)
+		collections = append(collections, smartCollections...)
 	}
 
 	if input.Config.ShowVirtualCollections {
-		virtualCollections, err := rc.GetVirtualCollections()
-		if err == nil {
-			for _, vc := range virtualCollections {
-				collections = append(collections, vc.ToCollection())
-			}
+		for _, vc := range virtualCollections {
+			collections = append(collections, vc.ToCollection())
 		}
 	}
 
+	// Sort collections alphabetically
 	slices.SortFunc(collections, func(a, b romm.Collection) int {
 		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
 	})
 
-	// Apply search filter
 	displayCollections := collections
 	if input.SearchFilter != "" {
 		filteredCollections := make([]romm.Collection, 0)

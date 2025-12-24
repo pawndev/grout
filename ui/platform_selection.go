@@ -65,7 +65,6 @@ func (s *PlatformSelectionScreen) Draw(input PlatformSelectionInput) (ScreenResu
 	var footerItems []gaba.FooterHelpItem
 	if input.QuitOnBack {
 		footerItems = []gaba.FooterHelpItem{
-			{ButtonName: "B", HelpText: i18n.GetString("button_quit")},
 			{ButtonName: "X", HelpText: i18n.GetString("button_settings")},
 			{ButtonName: "Y", HelpText: i18n.GetString("button_save_sync")},
 			{ButtonName: "A", HelpText: i18n.GetString("button_select")},

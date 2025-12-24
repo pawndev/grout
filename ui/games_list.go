@@ -114,7 +114,7 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 	title := displayName
 	if input.SearchFilter != "" {
 		message := i18n.GetStringWithData("games_list_search_prefix", map[string]interface{}{"Query": input.SearchFilter})
-		title = fmt.Sprintf("[%s] | %s", message, displayName)
+		title = fmt.Sprintf("%s | %s", message, displayName)
 		displayGames = filterList(displayGames, input.SearchFilter)
 	}
 
@@ -157,7 +157,6 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 	options.HelpExitText = i18n.GetString("help_exit_text")
 
 	options.FooterHelpItems = []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_back")},
 		{ButtonName: i18n.GetString("button_menu"), HelpText: i18n.GetString("button_help")},
 		{ButtonName: "X", HelpText: i18n.GetString("button_search")},
 		{ButtonName: "A", HelpText: i18n.GetString("button_select")},

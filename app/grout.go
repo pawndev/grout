@@ -2,6 +2,7 @@ package main
 
 import (
 	"grout/constants"
+	"grout/resources"
 	"grout/ui"
 	"grout/utils"
 	"log/slog"
@@ -73,12 +74,18 @@ type (
 func setup() *utils.Config {
 	cfw := utils.GetCFW()
 
-	// Check for input_mapping.json in CWD if running on muOS
+	// Set up input mapping for muOS with auto-detection
 	if cfw == constants.MuOS && !utils.IsDevelopment() {
 		if cwd, err := os.Getwd(); err == nil {
 			cwdMappingPath := filepath.Join(cwd, "input_mapping.json")
 			if _, err := os.Stat(cwdMappingPath); err == nil {
+				// User-provided mapping takes priority
 				os.Setenv("INPUT_MAPPING_PATH", cwdMappingPath)
+			} else {
+				// Use embedded mapping with auto-detection
+				if mappingBytes, err := resources.GetMuOSInputMappingBytes(); err == nil {
+					gaba.SetInputMappingBytes(mappingBytes)
+				}
 			}
 		}
 	}
@@ -91,16 +98,25 @@ func setup() *utils.Config {
 		LogFilename:          "grout.log",
 	})
 
-	if err := i18n.InitI18N([]string{"resources/locales/active.en.toml", "resources/locales/active.es.toml", "resources/locales/active.fr.toml"}); err != nil {
+	localeFiles, err := resources.GetLocaleMessageFiles()
+	if err != nil {
+		utils.LogStandardFatal("Failed to load locale files", err)
+	}
+	if err := i18n.InitI18NFromBytes(localeFiles); err != nil {
 		utils.LogStandardFatal("Failed to initialize i18n", err)
 	}
 
 	gaba.SetLogLevel(slog.LevelDebug)
 
+	splashBytes, err := resources.GetSplashImageBytes()
+	if err != nil {
+		utils.LogStandardFatal("Failed to load splash image", err)
+	}
+
 	gaba.ProcessMessage("", gaba.ProcessMessageOptions{
-		Image:       "resources/splash.png",
-		ImageWidth:  gaba.GetWindow().GetWidth(),
-		ImageHeight: gaba.GetWindow().GetHeight(),
+		ImageBytes:  splashBytes,
+		ImageWidth:  870,
+		ImageHeight: 612,
 	}, func() (interface{}, error) {
 		time.Sleep(750 * time.Millisecond)
 		return nil, nil

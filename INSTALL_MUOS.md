@@ -26,14 +26,7 @@ _Please help verify compatibility on other devices by reporting your results!_
 4. Open Applications and launch Archive Manager.
 5. Select `[SDX-APP] Grout` from the list and let it extract to your applications directory.
 6. Exit Archive Manager.
-7. Find an [input mapping config](/.github/resources/input_mappings) for your device.
-    - If one does not exist, try a config for a different device.
-    - If that does not
-      work, [create an issue](https://github.com/rommapp/grout/issues/new?template=button-mapping-request.md) to request
-      a mapping for your device.
-8. Save the input mapping JSON file as `input_mapping.json` and transfer it to the Grout application folder:
-    - `/mnt/mmc/MUOS/application/Grout` or `/mnt/sdcard/MUOS/application/Grout`
-9. Select `Apps` on the main menu, launch Grout, and enjoy!
+7. Select `Apps` on the main menu, launch Grout, and enjoy!
 
 ## Next Steps
 

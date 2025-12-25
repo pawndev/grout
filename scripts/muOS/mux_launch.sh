@@ -12,9 +12,8 @@ GOV_GO="/tmp/gov_go"
 APP_DIR="$(dirname "$0")"
 cd "$APP_DIR" || exit 1
 
-export LD_LIBRARY_PATH=$APP_DIR/resources/lib
 
 export CFW=MUOS
-export INPUT_MAPPING_PATH=$APP_DIR/input_mapping.json
+export LD_LIBRARY_PATH=$APP_DIR/resources/lib
 
 ./grout

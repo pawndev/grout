@@ -2,6 +2,8 @@ module grout
 
 go 1.24.1
 
+replace github.com/BrandonKowalski/gabagool/v2 => ../gabagool
+
 require (
 	github.com/BrandonKowalski/gabagool/v2 v2.2.7
 	github.com/UncleJunVIP/certifiable v1.2.0

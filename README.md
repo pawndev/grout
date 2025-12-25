@@ -52,31 +52,6 @@ For detailed usage instructions, see the [User Guide](USER_GUIDE.md).
 
 ---
 
-## Installation
-
-Choose your platform for detailed instructions:
-
-### [muOS Instructions](INSTALL_MUOS.md)
-
-Compatible devices:
-
-- Anbernic RG34XX, RG35XX-H, RG35XXSP, RG40XXV
-- TrimUI Brick, Smart Pro
-
-### [Knulli Instructions](INSTALL_KNULLI.md)
-
-Compatible devices:
-
-- Anbernic RG34XX
-
-### [NextUI Instructions](INSTALL_NEXTUI.md)
-
-Compatible devices:
-
-- TrimUI Brick, Smart Pro
-
----
-
 ## Need Help? Found a Bug? Have an Idea?
 
 Please [create an issue](https://github.com/rommapp/grout/issues/new/choose) and fill out the template completely.

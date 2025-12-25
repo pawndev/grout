@@ -118,3 +118,13 @@ tasks:
         fi
 
         ffmpeg -i "$INPUT_PATH" -vcodec libwebp -filter:v fps=fps=20 -lossless 0  -compression_level 3 -q:v 70 -loop 0 -preset picture -an -vsync 0 -s 1024:768 "$OUTPUT_PATH"
+
+  resize-user-guide-images:
+    desc: Resize user guide images to 1024px width
+    cmds:
+      - |
+        cd .github/resources/user_guide
+        for img in *.png; do
+          sips -Z 1024 "$img" --out "$img"
+        done
+        echo "All user guide images resized to 1024px width"

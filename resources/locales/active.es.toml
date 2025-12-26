@@ -600,6 +600,26 @@ other = "Español"
 description = "French language option"
 other = "Français"
 
+[settings_language_german]
+description = "German language option"
+other = "Deutsch"
+
+[settings_language_italian]
+description = "Italian language option"
+other = "Italiano"
+
+[settings_language_portuguese]
+description = "Portuguese language option"
+other = "Português"
+
+[settings_language_japanese]
+description = "Japanese language option"
+other = "日本語"
+
+[settings_language_russian]
+description = "Russian language option"
+other = "Русский"
+
 [settings_log_level]
 description = "Log level option"
 hash = "sha1-d4b9f81b67c0923ee427be359a66fdfa670bb6da"

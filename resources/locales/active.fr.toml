@@ -519,6 +519,26 @@ other = "Español"
 description = "Option de langue française"
 other = "Français"
 
+[settings_language_german]
+description = "Option de langue allemande"
+other = "Deutsch"
+
+[settings_language_italian]
+description = "Option de langue italienne"
+other = "Italiano"
+
+[settings_language_portuguese]
+description = "Option de langue portugaise"
+other = "Português"
+
+[settings_language_japanese]
+description = "Option de langue japonaise"
+other = "日本語"
+
+[settings_language_russian]
+description = "Option de langue russe"
+other = "Русский"
+
 [settings_log_level]
 description = "Option du niveau de log"
 other = "Niveau de log"

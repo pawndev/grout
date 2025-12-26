@@ -19,6 +19,11 @@ var localeFiles = []LocaleFile{
 	{Name: "active.en.toml", Path: "locales/active.en.toml"},
 	{Name: "active.es.toml", Path: "locales/active.es.toml"},
 	{Name: "active.fr.toml", Path: "locales/active.fr.toml"},
+	{Name: "active.de.toml", Path: "locales/active.de.toml"},
+	{Name: "active.it.toml", Path: "locales/active.it.toml"},
+	{Name: "active.pt.toml", Path: "locales/active.pt.toml"},
+	{Name: "active.ja.toml", Path: "locales/active.ja.toml"},
+	{Name: "active.ru.toml", Path: "locales/active.ru.toml"},
 }
 
 func GetLocaleMessageFiles() ([]i18n.MessageFile, error) {

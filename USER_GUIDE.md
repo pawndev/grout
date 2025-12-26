@@ -287,8 +287,7 @@ artwork or updating your library after adding new games.
 **Unzip Downloads** - When enabled, Grout automatically extracts zipped ROMs after downloading. The zip file is deleted
 after extraction. Useful if you prefer keeping ROMs uncompressed.
 
-**Language** – Grout is localized! Choose between English, Spanish, and French. If you notice an issue with a
-translation or want to help by translating, please let us know!
+**Language** – Grout is localized! Choose from English, Deutsch, Español, Français, Italiano, Português, Русский, or 日本語. If you notice an issue with a translation or want to help by translating, please let us know!
 
 **Advanced** - Opens a sub-menu for advanced configuration options. See [Advanced Settings](#advanced-settings) below.
 

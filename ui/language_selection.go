@@ -2,6 +2,7 @@ package ui
 
 import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 )
 
 type LanguageSelectionScreen struct{}
@@ -26,7 +27,7 @@ func (s *LanguageSelectionScreen) Draw() (string, error) {
 		"Welcome to Grout!",
 		options,
 		[]gaba.FooterHelpItem{
-			{ButtonName: "←→", HelpText: "Select"},
+			{ButtonName: icons.LeftRight, HelpText: "Select"},
 			{ButtonName: "A", HelpText: "Confirm"},
 		},
 		gaba.SelectionMessageSettings{

@@ -1,13 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"grout/constants"
 	"grout/romm"
 	"grout/ui"
 	"grout/utils"
+	"sync"
+	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 )
+
+type appStartTime struct {
+	time.Time
+	logged bool
+	mu     sync.Mutex
+}
 
 const (
 	platformSelection           gaba.StateName = "platform_selection"
@@ -74,13 +83,10 @@ type (
 
 	infoPreviousState gaba.StateName
 
-	cachedCollectionGames    []romm.Rom
-	cachedRegularCollections []romm.Collection
-	cachedSmartCollections   []romm.Collection
-	cachedVirtualCollections []romm.VirtualCollection
+	cachedCollectionGames []romm.Rom
 )
 
-func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform, quitOnBack bool, showCollections bool) *gaba.FSM {
+func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform, quitOnBack bool, showCollections bool, appStart time.Time) *gaba.FSM {
 	fsm := gaba.NewFSM()
 
 	gaba.Set(fsm.Context(), config)
@@ -90,12 +96,23 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 	gaba.Set(fsm.Context(), quitOnBackBool(quitOnBack))
 	gaba.Set(fsm.Context(), showCollectionsBool(showCollections))
 	gaba.Set(fsm.Context(), searchFilterString(""))
+	gaba.Set(fsm.Context(), &appStartTime{Time: appStart})
 
 	gaba.AddState(fsm, platformSelection, func(ctx *gaba.Context) (ui.PlatformSelectionOutput, gaba.ExitCode) {
 		platforms, _ := gaba.Get[[]romm.Platform](ctx)
 		quitOnBack, _ := gaba.Get[quitOnBackBool](ctx)
 		showCollections, _ := gaba.Get[showCollectionsBool](ctx)
 		platPos, _ := gaba.Get[platformListPosition](ctx)
+
+		// Log time to first platform menu draw (only once)
+		if startTime, ok := gaba.Get[*appStartTime](ctx); ok && startTime != nil {
+			startTime.mu.Lock()
+			if !startTime.logged {
+				gaba.GetLogger().Info("Time to platform menu", "seconds", fmt.Sprintf("%.2f", time.Since(startTime.Time).Seconds()))
+				startTime.logged = true
+			}
+			startTime.mu.Unlock()
+		}
 
 		screen := ui.NewPlatformSelectionScreen()
 		config, _ := gaba.Get[*utils.Config](ctx)
@@ -163,20 +180,14 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 		host, _ := gaba.Get[romm.Host](ctx)
 		colPos, _ := gaba.Get[collectionListPosition](ctx)
 		searchFilter, _ := gaba.Get[collectionSearchFilter](ctx)
-		cachedRegular, _ := gaba.Get[cachedRegularCollections](ctx)
-		cachedSmart, _ := gaba.Get[cachedSmartCollections](ctx)
-		cachedVirtual, _ := gaba.Get[cachedVirtualCollections](ctx)
 
 		screen := ui.NewCollectionSelectionScreen()
 		result, err := screen.Draw(ui.CollectionSelectionInput{
-			Config:                   config,
-			Host:                     host,
-			SearchFilter:             string(searchFilter),
-			LastSelectedIndex:        colPos.Index,
-			LastSelectedPosition:     colPos.Pos,
-			CachedRegularCollections: cachedRegular,
-			CachedSmartCollections:   cachedSmart,
-			CachedVirtualCollections: cachedVirtual,
+			Config:               config,
+			Host:                 host,
+			SearchFilter:         string(searchFilter),
+			LastSelectedIndex:    colPos.Index,
+			LastSelectedPosition: colPos.Pos,
 		})
 
 		if err != nil {
@@ -188,9 +199,6 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 			Pos:   result.Value.LastSelectedPosition,
 		})
 		gaba.Set(ctx, collectionSearchFilter(result.Value.SearchFilter))
-		gaba.Set(ctx, cachedRegularCollections(result.Value.FetchedRegularCollections))
-		gaba.Set(ctx, cachedSmartCollections(result.Value.FetchedSmartCollections))
-		gaba.Set(ctx, cachedVirtualCollections(result.Value.FetchedVirtualCollections))
 
 		return result.Value, result.ExitCode
 	}).

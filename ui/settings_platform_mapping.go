@@ -13,7 +13,9 @@ import (
 	"grout/romm"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type PlatformMappingInput struct {
@@ -54,18 +56,19 @@ func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (ScreenResult[P
 	mappingOptions := s.buildMappingOptions(rommPlatforms, romDirectories, input)
 
 	footerItems := []gaba.FooterHelpItem{
-		{ButtonName: "←→", HelpText: i18n.GetString("button_cycle")},
-		{ButtonName: "Start", HelpText: i18n.GetString("button_save")},
+		{ButtonName: icons.LeftRight, HelpText: i18n.Localize(&goi18n.Message{ID: "button_cycle", Other: "Cycle"}, nil)},
+		{ButtonName: icons.Start, HelpText: i18n.Localize(&goi18n.Message{ID: "button_save", Other: "Save"}, nil)},
 	}
 	if !input.HideBackButton {
-		footerItems = slices.Insert(footerItems, 0, gaba.FooterHelpItem{ButtonName: "B", HelpText: i18n.GetString("button_cancel")})
+		footerItems = slices.Insert(footerItems, 0, gaba.FooterHelpItem{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_cancel", Other: "Cancel"}, nil)})
 	}
 
 	result, err := gaba.OptionsList(
-		i18n.GetString("platform_mapping_title"),
+		i18n.Localize(&goi18n.Message{ID: "platform_mapping_title", Other: "Rom Directory Mapping"}, nil),
 		gaba.OptionListSettings{
 			FooterHelpItems:   footerItems,
 			DisableBackButton: input.HideBackButton,
+			StatusBar:         utils.StatusBar(),
 		},
 		mappingOptions,
 	)
@@ -95,8 +98,8 @@ func (s *PlatformMappingScreen) fetchPlatforms(input PlatformMappingInput) ([]ro
 func (s *PlatformMappingScreen) getRomDirectories(romDir string) ([]os.DirEntry, error) {
 	entries, err := os.ReadDir(romDir)
 	if err != nil {
-		gaba.ConfirmationMessage(i18n.GetString("platform_mapping_directory_not_found"), []gaba.FooterHelpItem{
-			{ButtonName: "B", HelpText: i18n.GetString("button_quit")},
+		gaba.ConfirmationMessage(i18n.Localize(&goi18n.Message{ID: "platform_mapping_directory_not_found", Other: "ROM Directory Could Not Be Found!"}, nil), []gaba.FooterHelpItem{
+			{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_quit", Other: "Quit"}, nil)},
 		}, gaba.MessageOptions{})
 		return nil, fmt.Errorf("failed to read ROM directory: %w", err)
 	}
@@ -132,7 +135,7 @@ func (s *PlatformMappingScreen) buildPlatformOptions(
 	romDirectories []os.DirEntry,
 	input PlatformMappingInput,
 ) ([]gaba.Option, int) {
-	options := []gaba.Option{{DisplayName: i18n.GetString("common_skip"), Value: ""}}
+	options := []gaba.Option{{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_skip", Other: "Skip"}, nil), Value: ""}}
 	selectedIndex := 0
 
 	cfwDirectories := s.getCFWDirectoriesForPlatform(platform.Slug, input.CFW)
@@ -153,7 +156,7 @@ func (s *PlatformMappingScreen) buildPlatformOptions(
 				displayName = utils.ParseTag(cfwDir)
 			}
 			options = append(options, gaba.Option{
-				DisplayName: i18n.GetStringWithData("platform_mapping_create", map[string]interface{}{"Name": displayName}),
+				DisplayName: i18n.Localize(&goi18n.Message{ID: "platform_mapping_create", Other: "Create '{{.Name}}'"}, map[string]interface{}{"Name": displayName}),
 				Value:       cfwDir,
 			})
 			createOptionAdded = true
@@ -170,7 +173,7 @@ func (s *PlatformMappingScreen) buildPlatformOptions(
 			}
 
 			options = append(options, gaba.Option{
-				DisplayName: i18n.GetStringWithData("platform_mapping_path_prefix", map[string]interface{}{"Name": displayName}),
+				DisplayName: i18n.Localize(&goi18n.Message{ID: "platform_mapping_path_prefix", Other: "/{{.Name}}"}, map[string]interface{}{"Name": displayName}),
 				Value:       dirName,
 			})
 

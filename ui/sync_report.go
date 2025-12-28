@@ -8,6 +8,7 @@ import (
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type syncReportInput struct {
@@ -34,8 +35,8 @@ func (s *SyncReportScreen) draw(input syncReportInput) (ScreenResult[syncReportO
 	options.ShowThemeBackground = false
 	options.ShowScrollbar = true
 
-	result, err := gaba.DetailScreen(i18n.GetString("save_sync_summary"), options, []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_close")},
+	result, err := gaba.DetailScreen(i18n.Localize(&goi18n.Message{ID: "save_sync_summary", Other: "Save Sync Summary"}, nil), options, []gaba.FooterHelpItem{
+		{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_close", Other: "Close"}, nil)},
 	})
 
 	if err != nil {
@@ -80,29 +81,29 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult, unmatched [
 	}
 
 	summary := []gaba.MetadataItem{
-		{Label: i18n.GetString("save_sync_total_processed"), Value: fmt.Sprintf("%d", len(results))},
+		{Label: i18n.Localize(&goi18n.Message{ID: "save_sync_total_processed", Other: "Total Processed"}, nil), Value: fmt.Sprintf("%d", len(results))},
 	}
 
 	if downloadedCount > 0 {
-		summary = append(summary, gaba.MetadataItem{Label: i18n.GetString("save_sync_downloaded"), Value: fmt.Sprintf("%d", downloadedCount)})
+		summary = append(summary, gaba.MetadataItem{Label: i18n.Localize(&goi18n.Message{ID: "save_sync_downloaded", Other: "Downloaded"}, nil), Value: fmt.Sprintf("%d", downloadedCount)})
 	}
 
 	if uploadedCount > 0 {
 		summary = append(summary, gaba.MetadataItem{
-			Label: i18n.GetString("save_sync_uploaded"), Value: fmt.Sprintf("%d", uploadedCount)})
+			Label: i18n.Localize(&goi18n.Message{ID: "save_sync_uploaded", Other: "Uploaded"}, nil), Value: fmt.Sprintf("%d", uploadedCount)})
 	}
 
 	if skippedCount > 0 {
 		summary = append(summary, gaba.MetadataItem{
-			Label: i18n.GetString("save_sync_skipped"), Value: fmt.Sprintf("%d", skippedCount)})
+			Label: i18n.Localize(&goi18n.Message{ID: "save_sync_skipped", Other: "Skipped"}, nil), Value: fmt.Sprintf("%d", skippedCount)})
 	}
 
 	if failedCount > 0 {
 		summary = append(summary, gaba.MetadataItem{
-			Label: i18n.GetString("save_sync_failed"), Value: fmt.Sprintf("%d", failedCount)})
+			Label: i18n.Localize(&goi18n.Message{ID: "save_sync_failed", Other: "Failed"}, nil), Value: fmt.Sprintf("%d", failedCount)})
 	}
 
-	sections = append(sections, gaba.NewInfoSection(i18n.GetString("save_sync_summary_section"), summary))
+	sections = append(sections, gaba.NewInfoSection(i18n.Localize(&goi18n.Message{ID: "save_sync_summary_section", Other: "Summary"}, nil), summary))
 
 	if downloadedCount > 0 {
 		downloadedFiles := ""
@@ -118,7 +119,7 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult, unmatched [
 				downloadedFiles += displayName
 			}
 		}
-		sections = append(sections, gaba.NewDescriptionSection(i18n.GetString("save_sync_downloaded"), downloadedFiles))
+		sections = append(sections, gaba.NewDescriptionSection(i18n.Localize(&goi18n.Message{ID: "save_sync_downloaded", Other: "Downloaded"}, nil), downloadedFiles))
 	}
 
 	if uploadedCount > 0 {
@@ -140,7 +141,7 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult, unmatched [
 				uploadedFiles += displayName
 			}
 		}
-		sections = append(sections, gaba.NewDescriptionSection(i18n.GetString("save_sync_uploaded"), uploadedFiles))
+		sections = append(sections, gaba.NewDescriptionSection(i18n.Localize(&goi18n.Message{ID: "save_sync_uploaded", Other: "Uploaded"}, nil), uploadedFiles))
 	}
 
 	if failedCount > 0 {
@@ -152,7 +153,7 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult, unmatched [
 				}
 				errorMsg := r.Error
 				if errorMsg == "" {
-					errorMsg = i18n.GetString("save_sync_unknown_error")
+					errorMsg = i18n.Localize(&goi18n.Message{ID: "save_sync_unknown_error", Other: "Unknown error"}, nil)
 				}
 				displayName := r.RomDisplayName
 				if displayName == "" {
@@ -161,7 +162,7 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult, unmatched [
 				failedFiles += fmt.Sprintf("%s (%s): %s", displayName, r.Action, errorMsg)
 			}
 		}
-		sections = append(sections, gaba.NewDescriptionSection(i18n.GetString("save_sync_failed"), failedFiles))
+		sections = append(sections, gaba.NewDescriptionSection(i18n.Localize(&goi18n.Message{ID: "save_sync_failed", Other: "Failed"}, nil), failedFiles))
 	}
 
 	// Display unmatched saves (ROM not found in RomM)
@@ -171,9 +172,9 @@ func (s *SyncReportScreen) buildSections(results []utils.SyncResult, unmatched [
 			if unmatchedText != "" {
 				unmatchedText += "\n"
 			}
-			unmatchedText += i18n.GetStringWithData("save_sync_rom_not_found", map[string]interface{}{"Name": filepath.Base(u.SavePath)})
+			unmatchedText += i18n.Localize(&goi18n.Message{ID: "save_sync_rom_not_found", Other: "{{.Name}} (ROM not found in RomM)"}, map[string]interface{}{"Name": filepath.Base(u.SavePath)})
 		}
-		sections = append(sections, gaba.NewDescriptionSection(i18n.GetString("save_sync_unmatched_saves"), unmatchedText))
+		sections = append(sections, gaba.NewDescriptionSection(i18n.Localize(&goi18n.Message{ID: "save_sync_unmatched_saves", Other: "Unmatched Saves"}, nil), unmatchedText))
 	}
 
 	return sections

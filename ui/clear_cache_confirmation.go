@@ -7,6 +7,7 @@ import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	buttons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type ClearCacheConfirmationOutput struct {
@@ -23,10 +24,10 @@ func (s *ClearCacheConfirmationScreen) Draw() (ScreenResult[ClearCacheConfirmati
 	output := ClearCacheConfirmationOutput{}
 
 	_, err := gaba.ConfirmationMessage(
-		i18n.GetString("clear_cache_confirm_message"),
+		i18n.Localize(&goi18n.Message{ID: "clear_cache_confirm_message", Other: "Clear all cached artwork?"}, nil),
 		[]gaba.FooterHelpItem{
-			{ButtonName: "B", HelpText: i18n.GetString("button_cancel")},
-			{ButtonName: "X", HelpText: i18n.GetString("button_confirm")},
+			{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_cancel", Other: "Cancel"}, nil)},
+			{ButtonName: "X", HelpText: i18n.Localize(&goi18n.Message{ID: "button_confirm", Other: "Confirm"}, nil)},
 		},
 		gaba.MessageOptions{
 			ConfirmButton: buttons.VirtualButtonX,

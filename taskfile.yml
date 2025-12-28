@@ -131,3 +131,67 @@ tasks:
           sips -Z 1024 "$img" --out "$img"
         done
         echo "All user guide images resized to 1024px width"
+
+  i18n:extract:
+    desc: Extract i18n messages from source code to active.en.toml
+    silent: true
+    cmds:
+      - goi18n extract -format=toml -outdir=resources/locales .
+      - echo "Extracted messages to resources/locales/active.en.toml"
+
+  i18n:merge:
+    desc: Find missing translations for all locales
+    silent: true
+    cmds:
+      - mkdir -p translations_todo
+      - |
+        for lang in es fr de it pt ja ru; do
+          goi18n merge -sourceLanguage en -outdir resources/locales -format toml \
+            resources/locales/active.en.toml resources/locales/active.${lang}.toml
+          if [ -f resources/locales/translate.${lang}.toml ]; then
+            mv resources/locales/translate.${lang}.toml translations_todo/${lang}.toml
+            echo "Created translations_todo/${lang}.toml"
+          else
+            echo "No missing translations for ${lang}"
+          fi
+        done
+      - task: i18n:simplify
+      - |
+        if [ -z "$(ls -A translations_todo 2>/dev/null)" ]; then
+          echo "All translations are complete!"
+          rmdir translations_todo 2>/dev/null || true
+        else
+          echo ""
+          echo "Translation files needing work are in translations_todo/"
+        fi
+
+  i18n:simplify:
+    desc: Convert locale files to simple key=value format
+    silent: true
+    cmds:
+      - |
+        python3 << 'PYEOF'
+        import re
+        locales = ['es', 'fr', 'de', 'it', 'pt', 'ja', 'ru']
+        for lang in locales:
+            filepath = f'resources/locales/active.{lang}.toml'
+            with open(filepath, 'r') as f:
+                content = f.read()
+            entries = {}
+            pattern = r'\[([^\]]+)\]\s*\n(?:hash\s*=\s*"[^"]*"\s*\n)?other\s*=\s*("(?:[^"\\]|\\.)*"|"""[\s\S]*?""")'
+            for match in re.finditer(pattern, content):
+                key, value = match.group(1), match.group(2)
+                if value.startswith('"""'):
+                    inner = value[3:-3].strip('\n').replace('\n', '\\n').replace('"', '\\"')
+                    value = f'"{inner}"'
+                entries[key] = value
+            with open(filepath, 'w') as f:
+                for key in sorted(entries.keys()):
+                    f.write(f'{key} = {entries[key]}\n')
+        PYEOF
+
+  i18n:
+    desc: Extract messages and find missing translations
+    cmds:
+      - task: i18n:extract
+      - task: i18n:merge

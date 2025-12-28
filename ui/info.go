@@ -10,6 +10,7 @@ import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	buttons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type InfoInput struct {
@@ -39,9 +40,9 @@ func (s *InfoScreen) Draw(input InfoInput) (ScreenResult[InfoOutput], error) {
 	options.ActionButton = buttons.VirtualButtonX
 	options.EnableAction = true
 
-	result, err := gaba.DetailScreen(i18n.GetString("info_title"), options, []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-		{ButtonName: "X", HelpText: i18n.GetString("button_logout")},
+	result, err := gaba.DetailScreen(i18n.Localize(&goi18n.Message{ID: "info_title", Other: "Grout Info"}, nil), options, []gaba.FooterHelpItem{
+		{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+		{ButtonName: "X", HelpText: i18n.Localize(&goi18n.Message{ID: "button_logout", Other: "Logout"}, nil)},
 	})
 
 	if err != nil {
@@ -71,20 +72,20 @@ func (s *InfoScreen) buildSections(input InfoInput) []gaba.Section {
 
 	versionInfo := version.Get()
 	versionMetadata := []gaba.MetadataItem{
-		{Label: i18n.GetString("info_version"), Value: versionInfo.Version},
-		{Label: i18n.GetString("info_commit"), Value: versionInfo.GitCommit},
-		{Label: i18n.GetString("info_build_date"), Value: versionInfo.BuildDate},
+		{Label: i18n.Localize(&goi18n.Message{ID: "info_version", Other: "Version"}, nil), Value: versionInfo.Version},
+		{Label: i18n.Localize(&goi18n.Message{ID: "info_commit", Other: "Commit"}, nil), Value: versionInfo.GitCommit},
+		{Label: i18n.Localize(&goi18n.Message{ID: "info_build_date", Other: "Build Date"}, nil), Value: versionInfo.BuildDate},
 	}
 	sections = append(sections, gaba.NewInfoSection("Grout", versionMetadata))
 
 	// RomM server metadata
 	metadata := []gaba.MetadataItem{
 		{
-			Label: i18n.GetString("info_server"),
+			Label: i18n.Localize(&goi18n.Message{ID: "info_server", Other: "Server"}, nil),
 			Value: input.Host.RootURI,
 		},
 		{
-			Label: i18n.GetString("info_user"),
+			Label: i18n.Localize(&goi18n.Message{ID: "info_user", Other: "User"}, nil),
 			Value: input.Host.Username,
 		},
 	}
@@ -95,7 +96,7 @@ func (s *InfoScreen) buildSections(input InfoInput) []gaba.Section {
 	qrcode, err := utils.CreateTempQRCode(qrText, 256)
 	if err == nil {
 		sections = append(sections, gaba.NewImageSection(
-			i18n.GetString("info_repository"),
+			i18n.Localize(&goi18n.Message{ID: "info_repository", Other: "GitHub Repository"}, nil),
 			qrcode,
 			int32(256),
 			int32(256),

@@ -5,7 +5,9 @@ import (
 	"grout/utils"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type CollectionsSettingsInput struct {
@@ -27,14 +29,15 @@ func (s *CollectionsSettingsScreen) Draw(input CollectionsSettingsInput) (Screen
 	items := s.buildMenuItems(config)
 
 	result, err := gaba.OptionsList(
-		i18n.GetString("settings_collections"),
+		i18n.Localize(&goi18n.Message{ID: "settings_collections", Other: "Collections Settings"}, nil),
 		gaba.OptionListSettings{
 			FooterHelpItems: []gaba.FooterHelpItem{
-				{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-				{ButtonName: "←→", HelpText: i18n.GetString("button_cycle")},
-				{ButtonName: "Start", HelpText: i18n.GetString("button_save")},
+				{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+				{ButtonName: icons.LeftRight, HelpText: i18n.Localize(&goi18n.Message{ID: "button_cycle", Other: "Cycle"}, nil)},
+				{ButtonName: icons.Start, HelpText: i18n.Localize(&goi18n.Message{ID: "button_save", Other: "Save"}, nil)},
 			},
 			InitialSelectedIndex: 0,
+			StatusBar:            utils.StatusBar(),
 		},
 		items,
 	)
@@ -61,34 +64,34 @@ func (s *CollectionsSettingsScreen) Draw(input CollectionsSettingsInput) (Screen
 func (s *CollectionsSettingsScreen) buildMenuItems(config *utils.Config) []gaba.ItemWithOptions {
 	return []gaba.ItemWithOptions{
 		{
-			Item: gaba.MenuItem{Text: i18n.GetString("settings_show_collections")},
+			Item: gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_show_collections", Other: "Collections"}, nil)},
 			Options: []gaba.Option{
-				{DisplayName: i18n.GetString("common_show"), Value: true},
-				{DisplayName: i18n.GetString("common_hide"), Value: false},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_show", Other: "Show"}, nil), Value: true},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_hide", Other: "Hide"}, nil), Value: false},
 			},
 			SelectedOption: boolToIndex(!config.ShowCollections),
 		},
 		{
-			Item: gaba.MenuItem{Text: i18n.GetString("settings_show_smart_collections")},
+			Item: gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_show_smart_collections", Other: "Smart Collections"}, nil)},
 			Options: []gaba.Option{
-				{DisplayName: i18n.GetString("common_show"), Value: true},
-				{DisplayName: i18n.GetString("common_hide"), Value: false},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_show", Other: "Show"}, nil), Value: true},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_hide", Other: "Hide"}, nil), Value: false},
 			},
 			SelectedOption: boolToIndex(!config.ShowSmartCollections),
 		},
 		{
-			Item: gaba.MenuItem{Text: i18n.GetString("settings_show_virtual_collections")},
+			Item: gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_show_virtual_collections", Other: "Virtual Collections"}, nil)},
 			Options: []gaba.Option{
-				{DisplayName: i18n.GetString("common_show"), Value: true},
-				{DisplayName: i18n.GetString("common_hide"), Value: false},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_show", Other: "Show"}, nil), Value: true},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_hide", Other: "Hide"}, nil), Value: false},
 			},
 			SelectedOption: boolToIndex(!config.ShowVirtualCollections),
 		},
 		{
-			Item: gaba.MenuItem{Text: i18n.GetString("settings_collection_view")},
+			Item: gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_collection_view", Other: "Collection View"}, nil)},
 			Options: []gaba.Option{
-				{DisplayName: i18n.GetString("collection_view_platform"), Value: "platform"},
-				{DisplayName: i18n.GetString("collection_view_unified"), Value: "unified"},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "collection_view_platform", Other: "Platform"}, nil), Value: "platform"},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "collection_view_unified", Other: "Unified"}, nil), Value: "unified"},
 			},
 			SelectedOption: collectionViewToIndex(config.CollectionView),
 		},
@@ -100,22 +103,22 @@ func (s *CollectionsSettingsScreen) applySettings(config *utils.Config, items []
 		selectedText := item.Item.Text
 
 		switch selectedText {
-		case i18n.GetString("settings_show_collections"):
+		case i18n.Localize(&goi18n.Message{ID: "settings_show_collections", Other: "Collections"}, nil):
 			if val, ok := item.Options[item.SelectedOption].Value.(bool); ok {
 				config.ShowCollections = val
 			}
 
-		case i18n.GetString("settings_show_smart_collections"):
+		case i18n.Localize(&goi18n.Message{ID: "settings_show_smart_collections", Other: "Smart Collections"}, nil):
 			if val, ok := item.Options[item.SelectedOption].Value.(bool); ok {
 				config.ShowSmartCollections = val
 			}
 
-		case i18n.GetString("settings_show_virtual_collections"):
+		case i18n.Localize(&goi18n.Message{ID: "settings_show_virtual_collections", Other: "Virtual Collections"}, nil):
 			if val, ok := item.Options[item.SelectedOption].Value.(bool); ok {
 				config.ShowVirtualCollections = val
 			}
 
-		case i18n.GetString("settings_collection_view"):
+		case i18n.Localize(&goi18n.Message{ID: "settings_collection_view", Other: "Collection View"}, nil):
 			if val, ok := item.Options[item.SelectedOption].Value.(string); ok {
 				config.CollectionView = val
 			}

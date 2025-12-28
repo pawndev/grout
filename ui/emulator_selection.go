@@ -2,11 +2,13 @@ package ui
 
 import (
 	"errors"
+	"grout/utils"
 	"sort"
 	"strings"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type EmulatorSelectionInput struct {
@@ -63,7 +65,7 @@ func (s *EmulatorSelectionScreen) Draw(input EmulatorSelectionInput) (ScreenResu
 	for _, choice := range sortedChoices {
 		displayText := choice.DisplayName
 		if choice.HasExistingSaves {
-			displayText = choice.DisplayName + i18n.GetStringWithData("emulator_saves_count", map[string]interface{}{"Count": choice.SaveCount})
+			displayText = choice.DisplayName + i18n.Localize(&goi18n.Message{ID: "emulator_saves_count", Other: " ({{.Count}} saves)"}, map[string]interface{}{"Count": choice.SaveCount})
 		}
 
 		menuItems = append(menuItems, gaba.MenuItem{
@@ -75,16 +77,17 @@ func (s *EmulatorSelectionScreen) Draw(input EmulatorSelectionInput) (ScreenResu
 	}
 
 	footerItems := []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_cancel")},
-		{ButtonName: "A", HelpText: i18n.GetString("button_select")},
+		{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_cancel", Other: "Cancel"}, nil)},
+		{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_select", Other: "Select"}, nil)},
 	}
 
-	title := i18n.GetStringWithData("emulator_selection_title", map[string]interface{}{"Platform": input.PlatformName})
+	title := i18n.Localize(&goi18n.Message{ID: "emulator_selection_title", Other: "Select {{.Platform}} Emulator"}, map[string]interface{}{"Platform": input.PlatformName})
 	options := gaba.DefaultListOptions(title, menuItems)
 	options.SmallTitle = true
 	options.FooterHelpItems = footerItems
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
+	options.StatusBar = utils.StatusBar()
 
 	sel, err := gaba.List(options)
 	if err != nil {

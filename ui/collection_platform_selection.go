@@ -11,6 +11,7 @@ import (
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type CollectionPlatformSelectionInput struct {
@@ -50,7 +51,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 	} else {
 		var loadErr error
 		_, err := gaba.ProcessMessage(
-			i18n.GetStringWithData("games_list_loading", map[string]interface{}{"Name": input.Collection.Name}),
+			i18n.Localize(&goi18n.Message{ID: "games_list_loading", Other: "Loading {{.Name}}..."}, map[string]interface{}{"Name": input.Collection.Name}),
 			gaba.ProcessMessageOptions{ShowThemeBackground: true},
 			func() (interface{}, error) {
 				rc := utils.GetRommClient(input.Host)
@@ -113,7 +114,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 
 	if len(platformMap) == 0 {
 		gaba.ProcessMessage(
-			i18n.GetStringWithData("collection_platform_no_mapped", map[string]interface{}{"Name": input.Collection.Name}),
+			i18n.Localize(&goi18n.Message{ID: "collection_platform_no_mapped", Other: "No platforms with mapped games in\\n{{.Name}}"}, map[string]interface{}{"Name": input.Collection.Name}),
 			gaba.ProcessMessageOptions{ShowThemeBackground: true},
 			func() (interface{}, error) {
 				time.Sleep(time.Second * 2)
@@ -152,16 +153,17 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 	}
 
 	footerItems := []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-		{ButtonName: "A", HelpText: i18n.GetString("button_select")},
+		{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+		{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_select", Other: "Select"}, nil)},
 	}
 
-	title := i18n.GetStringWithData("collection_platform_title", map[string]interface{}{"Name": input.Collection.Name})
+	title := i18n.Localize(&goi18n.Message{ID: "collection_platform_title", Other: "{{.Name}} - Platforms"}, map[string]interface{}{"Name": input.Collection.Name})
 	options := gaba.DefaultListOptions(title, menuItems)
 	options.SmallTitle = true
 	options.FooterHelpItems = footerItems
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
+	options.StatusBar = utils.StatusBar()
 
 	sel, err := gaba.List(options)
 	if err != nil {

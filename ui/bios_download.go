@@ -11,7 +11,9 @@ import (
 	"grout/utils"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type BIOSDownloadInput struct {
@@ -59,7 +61,7 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 		logger.Error("Failed to fetch firmware from RomM", "error", err, "platform_id", input.Platform.ID)
 		gaba.ConfirmationMessage(
 			fmt.Sprintf("Failed to fetch BIOS files from RomM: %v", err),
-			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.GetString("button_continue")}},
+			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_continue", Other: "Continue"}, nil)}},
 			gaba.MessageOptions{},
 		)
 		return back(output), nil
@@ -68,8 +70,8 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 	if len(firmwareList) == 0 {
 		logger.Info("No BIOS files available in RomM for platform", "platform", input.Platform.Name)
 		gaba.ConfirmationMessage(
-			i18n.GetString("bios_no_files_required"),
-			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.GetString("button_continue")}},
+			i18n.Localize(&goi18n.Message{ID: "bios_no_files_required", Other: "This platform doesn't require any BIOS files."}, nil),
+			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_continue", Other: "Continue"}, nil)}},
 			gaba.MessageOptions{},
 		)
 		return back(output), nil
@@ -135,13 +137,13 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 			var statusText string
 			switch status.Status {
 			case utils.BIOSStatusValid:
-				statusText = i18n.GetString("bios_status_ready")
+				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_ready", Other: "Ready"}, nil)
 			case utils.BIOSStatusInvalidHash:
-				statusText = i18n.GetString("bios_status_wrong_version")
+				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_wrong_version", Other: "Wrong Version"}, nil)
 			case utils.BIOSStatusNoHashToVerify:
-				statusText = i18n.GetString("bios_status_unverified")
+				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_unverified", Other: "Installed (Unverified)"}, nil)
 			case utils.BIOSStatusMissing:
-				statusText = i18n.GetString("bios_status_not_installed")
+				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_not_installed", Other: "Not Installed"}, nil)
 			}
 
 			optionalText := ""
@@ -171,10 +173,10 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 
 			var statusText string
 			if fileExists {
-				statusText = i18n.GetString("bios_status_ready")
+				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_ready", Other: "Ready"}, nil)
 				shouldSelect = false
 			} else {
-				statusText = i18n.GetString("bios_status_not_installed")
+				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_not_installed", Other: "Not Installed"}, nil)
 				shouldSelect = true
 			}
 
@@ -193,9 +195,10 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 	options.SmallTitle = true
 	options.StartInMultiSelectMode = true
 	options.FooterHelpItems = []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-		{ButtonName: "Start", HelpText: i18n.GetString("button_download"), IsConfirmButton: true},
+		{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+		{ButtonName: icons.Start, HelpText: i18n.Localize(&goi18n.Message{ID: "button_download", Other: "Download"}, nil), IsConfirmButton: true},
 	}
+	options.StatusBar = utils.StatusBar()
 
 	sel, err := gaba.List(options)
 	if err != nil {
@@ -319,8 +322,8 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 	if successCount > 0 && warningCount == 0 {
 		logger.Info("BIOS download complete", "success", successCount)
 		gaba.ConfirmationMessage(
-			fmt.Sprintf(i18n.GetString("bios_download_complete"), successCount),
-			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.GetString("button_continue")}},
+			fmt.Sprintf(i18n.Localize(&goi18n.Message{ID: "bios_download_complete", Other: "Successfully downloaded %d BIOS file(s)."}, nil), successCount),
+			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_continue", Other: "Continue"}, nil)}},
 			gaba.MessageOptions{},
 		)
 	} else if successCount > 0 && warningCount > 0 {
@@ -328,15 +331,15 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 			"success", successCount,
 			"warnings", warningCount)
 		gaba.ConfirmationMessage(
-			fmt.Sprintf(i18n.GetString("bios_download_complete_with_warnings"), successCount, warningCount),
-			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.GetString("button_continue")}},
+			fmt.Sprintf(i18n.Localize(&goi18n.Message{ID: "bios_download_complete_with_warnings", Other: "Downloaded %d BIOS file(s) with %d hash warning(s). Files may not be the correct version."}, nil), successCount, warningCount),
+			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_continue", Other: "Continue"}, nil)}},
 			gaba.MessageOptions{},
 		)
 	} else if len(res.Failed) > 0 {
 		logger.Error("BIOS download failed", "failed", len(res.Failed))
 		gaba.ConfirmationMessage(
-			fmt.Sprintf(i18n.GetString("bios_download_failed"), len(res.Failed)),
-			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.GetString("button_continue")}},
+			fmt.Sprintf(i18n.Localize(&goi18n.Message{ID: "bios_download_failed", Other: "Failed to download %d BIOS file(s)."}, nil), len(res.Failed)),
+			[]gaba.FooterHelpItem{{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_continue", Other: "Continue"}, nil)}},
 			gaba.MessageOptions{},
 		)
 	}

@@ -17,6 +17,7 @@ import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type GameDetailsInput struct {
@@ -53,8 +54,8 @@ func (s *GameDetailsScreen) Draw(input GameDetailsInput) (ScreenResult[GameDetai
 	options.ShowScrollbar = true
 
 	result, err := gaba.DetailScreen(input.Game.Name, options, []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-		{ButtonName: "A", HelpText: i18n.GetString("button_download")},
+		{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+		{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_download", Other: "Download"}, nil)},
 	})
 
 	if err != nil {
@@ -109,64 +110,64 @@ func (s *GameDetailsScreen) buildSections(input GameDetailsInput) []gaba.Section
 	if game.Metadatum.FirstReleaseDate > 0 {
 		releaseDate := time.Unix(game.Metadatum.FirstReleaseDate/1000, 0)
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_release_date"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_release_date", Other: "Release Date"}, nil),
 			Value: releaseDate.Format("January 2, 2006"),
 		})
 	}
 
 	if game.Metadatum.AverageRating > 0 {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_average_rating"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_average_rating", Other: "Average Rating"}, nil),
 			Value: fmt.Sprintf("%.1f/100", game.Metadatum.AverageRating),
 		})
 	}
 
 	if len(game.Metadatum.Genres) > 0 {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_genres"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_genres", Other: "Genres"}, nil),
 			Value: strings.Join(game.Metadatum.Genres, ", "),
 		})
 	}
 
 	if len(game.Metadatum.Companies) > 0 {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_companies"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_companies", Other: "Companies"}, nil),
 			Value: strings.Join(game.Metadatum.Companies, ", "),
 		})
 	}
 
 	if len(game.Metadatum.GameModes) > 0 {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_game_modes"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_game_modes", Other: "Game Modes"}, nil),
 			Value: strings.Join(game.Metadatum.GameModes, ", "),
 		})
 	}
 
 	if len(game.Regions) > 0 {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_regions"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_regions", Other: "Regions"}, nil),
 			Value: strings.Join(game.Regions, ", "),
 		})
 	}
 
 	if len(game.Languages) > 0 {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_languages"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_languages", Other: "Languages"}, nil),
 			Value: strings.Join(game.Languages, ", "),
 		})
 	}
 
 	if game.FsSizeBytes > 0 {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_file_size"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_file_size", Other: "File Size"}, nil),
 			Value: utils.FormatBytes(game.FsSizeBytes),
 		})
 	}
 
 	if game.Multi {
 		metadata = append(metadata, gaba.MetadataItem{
-			Label: i18n.GetString("game_details_type"),
-			Value: i18n.GetString("game_details_multi_file_rom"),
+			Label: i18n.Localize(&goi18n.Message{ID: "game_details_type", Other: "Type"}, nil),
+			Value: i18n.Localize(&goi18n.Message{ID: "game_details_multi_file_rom", Other: "Multi-file ROM"}, nil),
 		})
 	}
 
@@ -177,15 +178,15 @@ func (s *GameDetailsScreen) buildSections(input GameDetailsInput) []gaba.Section
 	if len(sections) == 0 {
 		logger.Warn("No sections available for game", "game", game.Name)
 		sections = append(sections, gaba.NewInfoSection("", []gaba.MetadataItem{
-			{Label: i18n.GetString("game_details_game"), Value: game.Name},
-			{Label: i18n.GetString("game_details_platform"), Value: game.PlatformDisplayName},
+			{Label: i18n.Localize(&goi18n.Message{ID: "game_details_game", Other: "Game"}, nil), Value: game.Name},
+			{Label: i18n.Localize(&goi18n.Message{ID: "game_details_platform", Other: "Platform"}, nil), Value: game.PlatformDisplayName},
 		}))
 	}
 
 	qrcode, err := utils.CreateTempQRCode(game.GetGamePage(input.Host), 256)
 	if err == nil {
 		sections = append(sections, gaba.NewImageSection(
-			i18n.GetString("game_details_qr_section"),
+			i18n.Localize(&goi18n.Message{ID: "game_details_qr_section", Other: "RomM Game Listing"}, nil),
 			qrcode,
 			int32(256),
 			int32(256),

@@ -8,7 +8,9 @@ import (
 	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type AdvancedSettingsInput struct {
@@ -39,15 +41,16 @@ func (s *AdvancedSettingsScreen) Draw(input AdvancedSettingsInput) (ScreenResult
 	items := s.buildMenuItems(config)
 
 	result, err := gaba.OptionsList(
-		i18n.GetString("settings_advanced"),
+		i18n.Localize(&goi18n.Message{ID: "settings_advanced", Other: "Advanced"}, nil),
 		gaba.OptionListSettings{
 			FooterHelpItems: []gaba.FooterHelpItem{
-				{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-				{ButtonName: "←→", HelpText: i18n.GetString("button_cycle")},
-				{ButtonName: "Start", HelpText: i18n.GetString("button_save")},
+				{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+				{ButtonName: icons.LeftRight, HelpText: i18n.Localize(&goi18n.Message{ID: "button_cycle", Other: "Cycle"}, nil)},
+				{ButtonName: icons.Start, HelpText: i18n.Localize(&goi18n.Message{ID: "button_save", Other: "Save"}, nil)},
 			},
 			InitialSelectedIndex: input.LastSelectedIndex,
 			VisibleStartIndex:    input.LastVisibleStartIndex,
+			StatusBar:            utils.StatusBar(),
 		},
 		items,
 	)
@@ -68,17 +71,17 @@ func (s *AdvancedSettingsScreen) Draw(input AdvancedSettingsInput) (ScreenResult
 	if result.Action == gaba.ListActionSelected {
 		selectedText := items[result.Selected].Item.Text
 
-		if selectedText == i18n.GetString("settings_info") {
+		if selectedText == i18n.Localize(&goi18n.Message{ID: "settings_info", Other: "Grout Info"}, nil) {
 			output.InfoClicked = true
 			return withCode(output, constants.ExitCodeInfo), nil
 		}
 
-		if selectedText == i18n.GetString("settings_edit_mappings") {
+		if selectedText == i18n.Localize(&goi18n.Message{ID: "settings_edit_mappings", Other: "Directory Mappings"}, nil) {
 			output.EditMappingsClicked = true
 			return withCode(output, constants.ExitCodeEditMappings), nil
 		}
 
-		if selectedText == i18n.GetString("settings_clear_cache") {
+		if selectedText == i18n.Localize(&goi18n.Message{ID: "settings_clear_cache", Other: "Clear Cache"}, nil) {
 			output.ClearCacheClicked = true
 			return withCode(output, constants.ExitCodeClearCache), nil
 		}
@@ -98,53 +101,53 @@ func (s *AdvancedSettingsScreen) Draw(input AdvancedSettingsInput) (ScreenResult
 func (s *AdvancedSettingsScreen) buildMenuItems(config *utils.Config) []gaba.ItemWithOptions {
 	return []gaba.ItemWithOptions{
 		{
-			Item:    gaba.MenuItem{Text: i18n.GetString("settings_edit_mappings")},
+			Item:    gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_edit_mappings", Other: "Directory Mappings"}, nil)},
 			Options: []gaba.Option{{Type: gaba.OptionTypeClickable}},
 		},
 		{
-			Item: gaba.MenuItem{Text: i18n.GetString("settings_download_timeout")},
+			Item: gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_download_timeout", Other: "Download Timeout"}, nil)},
 			Options: []gaba.Option{
-				{DisplayName: i18n.GetString("time_15_minutes"), Value: 15 * time.Minute},
-				{DisplayName: i18n.GetString("time_30_minutes"), Value: 30 * time.Minute},
-				{DisplayName: i18n.GetString("time_45_minutes"), Value: 45 * time.Minute},
-				{DisplayName: i18n.GetString("time_60_minutes"), Value: 60 * time.Minute},
-				{DisplayName: i18n.GetString("time_75_minutes"), Value: 75 * time.Minute},
-				{DisplayName: i18n.GetString("time_90_minutes"), Value: 90 * time.Minute},
-				{DisplayName: i18n.GetString("time_105_minutes"), Value: 105 * time.Minute},
-				{DisplayName: i18n.GetString("time_120_minutes"), Value: 120 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_15_minutes", Other: "15 Minutes"}, nil), Value: 15 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_30_minutes", Other: "30 Minutes"}, nil), Value: 30 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_45_minutes", Other: "45 Minutes"}, nil), Value: 45 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_60_minutes", Other: "60 Minutes"}, nil), Value: 60 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_75_minutes", Other: "75 Minutes"}, nil), Value: 75 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_90_minutes", Other: "90 Minutes"}, nil), Value: 90 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_105_minutes", Other: "105 Minutes"}, nil), Value: 105 * time.Minute},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_120_minutes", Other: "120 Minutes"}, nil), Value: 120 * time.Minute},
 			},
 			SelectedOption: s.findDownloadTimeoutIndex(config.DownloadTimeout),
 		},
 		{
-			Item: gaba.MenuItem{Text: i18n.GetString("settings_api_timeout")},
+			Item: gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_api_timeout", Other: "API Timeout"}, nil)},
 			Options: []gaba.Option{
-				{DisplayName: i18n.GetString("time_15_seconds"), Value: 15 * time.Second},
-				{DisplayName: i18n.GetString("time_30_seconds"), Value: 30 * time.Second},
-				{DisplayName: i18n.GetString("time_45_seconds"), Value: 45 * time.Second},
-				{DisplayName: i18n.GetString("time_60_seconds"), Value: 60 * time.Second},
-				{DisplayName: i18n.GetString("time_75_seconds"), Value: 75 * time.Second},
-				{DisplayName: i18n.GetString("time_90_seconds"), Value: 90 * time.Second},
-				{DisplayName: i18n.GetString("time_120_seconds"), Value: 120 * time.Second},
-				{DisplayName: i18n.GetString("time_180_seconds"), Value: 180 * time.Second},
-				{DisplayName: i18n.GetString("time_240_seconds"), Value: 240 * time.Second},
-				{DisplayName: i18n.GetString("time_300_seconds"), Value: 300 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_15_seconds", Other: "15 Seconds"}, nil), Value: 15 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_30_seconds", Other: "30 Seconds"}, nil), Value: 30 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_45_seconds", Other: "45 Seconds"}, nil), Value: 45 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_60_seconds", Other: "60 Seconds"}, nil), Value: 60 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_75_seconds", Other: "75 Seconds"}, nil), Value: 75 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_90_seconds", Other: "90 Seconds"}, nil), Value: 90 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_120_seconds", Other: "120 Seconds"}, nil), Value: 120 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_180_seconds", Other: "180 Seconds"}, nil), Value: 180 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_240_seconds", Other: "240 Seconds"}, nil), Value: 240 * time.Second},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "time_300_seconds", Other: "300 Seconds"}, nil), Value: 300 * time.Second},
 			},
 			SelectedOption: s.findApiTimeoutIndex(config.ApiTimeout),
 		},
 		{
-			Item: gaba.MenuItem{Text: i18n.GetString("settings_log_level")},
+			Item: gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_log_level", Other: "Log Level"}, nil)},
 			Options: []gaba.Option{
-				{DisplayName: i18n.GetString("log_level_debug"), Value: "DEBUG"},
-				{DisplayName: i18n.GetString("log_level_error"), Value: "ERROR"},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "log_level_debug", Other: "Debug"}, nil), Value: "DEBUG"},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "log_level_error", Other: "Error"}, nil), Value: "ERROR"},
 			},
 			SelectedOption: logLevelToIndex(config.LogLevel),
 		},
 		{
-			Item:    gaba.MenuItem{Text: i18n.GetString("settings_clear_cache")},
+			Item:    gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_clear_cache", Other: "Clear Cache"}, nil)},
 			Options: []gaba.Option{{Type: gaba.OptionTypeClickable}},
 		},
 		{
-			Item:    gaba.MenuItem{Text: i18n.GetString("settings_info")},
+			Item:    gaba.MenuItem{Text: i18n.Localize(&goi18n.Message{ID: "settings_info", Other: "Grout Info"}, nil)},
 			Options: []gaba.Option{{Type: gaba.OptionTypeClickable}},
 		},
 	}
@@ -155,17 +158,17 @@ func (s *AdvancedSettingsScreen) applySettings(config *utils.Config, items []gab
 		selectedText := item.Item.Text
 
 		switch selectedText {
-		case i18n.GetString("settings_download_timeout"):
+		case i18n.Localize(&goi18n.Message{ID: "settings_download_timeout", Other: "Download Timeout"}, nil):
 			if val, ok := item.Options[item.SelectedOption].Value.(time.Duration); ok {
 				config.DownloadTimeout = val
 			}
 
-		case i18n.GetString("settings_api_timeout"):
+		case i18n.Localize(&goi18n.Message{ID: "settings_api_timeout", Other: "API Timeout"}, nil):
 			if val, ok := item.Options[item.SelectedOption].Value.(time.Duration); ok {
 				config.ApiTimeout = val
 			}
 
-		case i18n.GetString("settings_log_level"):
+		case i18n.Localize(&goi18n.Message{ID: "settings_log_level", Other: "Log Level"}, nil):
 			if val, ok := item.Options[item.SelectedOption].Value.(string); ok {
 				config.LogLevel = val
 			}

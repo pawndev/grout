@@ -13,7 +13,9 @@ import (
 	"grout/romm"
 
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type loginInput struct {
@@ -27,7 +29,7 @@ type loginOutput struct {
 
 type loginAttemptResult struct {
 	ErrorType string
-	ErrorMsg  string
+	ErrorMsg  *goi18n.Message
 	Success   bool
 }
 
@@ -43,11 +45,11 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 	items := []gabagool.ItemWithOptions{
 		{
 			Item: gabagool.MenuItem{
-				Text: i18n.GetString("login_protocol"),
+				Text: i18n.Localize(&goi18n.Message{ID: "login_protocol", Other: "Protocol"}, nil),
 			},
 			Options: []gabagool.Option{
-				{DisplayName: i18n.GetString("login_protocol_http"), Value: "http://"},
-				{DisplayName: i18n.GetString("login_protocol_https"), Value: "https://"},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "login_protocol_http", Other: "HTTP"}, nil), Value: "http://"},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "login_protocol_https", Other: "HTTPS"}, nil), Value: "https://"},
 			},
 			SelectedOption: func() int {
 				if strings.Contains(host.RootURI, "https") {
@@ -58,7 +60,7 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 		},
 		{
 			Item: gabagool.MenuItem{
-				Text: i18n.GetString("login_hostname"),
+				Text: i18n.Localize(&goi18n.Message{ID: "login_hostname", Other: "Hostname"}, nil),
 			},
 			Options: []gabagool.Option{
 				{
@@ -79,7 +81,7 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 		},
 		{
 			Item: gabagool.MenuItem{
-				Text: i18n.GetString("login_port"),
+				Text: i18n.Localize(&goi18n.Message{ID: "login_port", Other: "Port (optional)"}, nil),
 			},
 			Options: []gabagool.Option{
 				{
@@ -108,7 +110,7 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 		},
 		{
 			Item: gabagool.MenuItem{
-				Text: i18n.GetString("login_username"),
+				Text: i18n.Localize(&goi18n.Message{ID: "login_username", Other: "Username"}, nil),
 			},
 			Options: []gabagool.Option{
 				{
@@ -121,7 +123,7 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 		},
 		{
 			Item: gabagool.MenuItem{
-				Text: i18n.GetString("login_password"),
+				Text: i18n.Localize(&goi18n.Message{ID: "login_password", Other: "Password"}, nil),
 			},
 			Options: []gabagool.Option{
 				{
@@ -136,13 +138,13 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 	}
 
 	res, err := gabagool.OptionsList(
-		i18n.GetString("login_title"),
+		i18n.Localize(&goi18n.Message{ID: "login_title", Other: "Login to RomM"}, nil),
 		gabagool.OptionListSettings{
 			DisableBackButton: false,
 			FooterHelpItems: []gabagool.FooterHelpItem{
-				{ButtonName: "B", HelpText: i18n.GetString("button_quit")},
-				{ButtonName: "←→", HelpText: i18n.GetString("button_cycle")},
-				{ButtonName: "Start", HelpText: i18n.GetString("button_login")},
+				{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_quit", Other: "Quit"}, nil)},
+				{ButtonName: icons.LeftRight, HelpText: i18n.Localize(&goi18n.Message{ID: "button_cycle", Other: "Cycle"}, nil)},
+				{ButtonName: icons.Start, HelpText: i18n.Localize(&goi18n.Message{ID: "button_login", Other: "Login"}, nil)},
 			},
 		},
 		items,
@@ -175,7 +177,7 @@ func LoginFlow(existingHost romm.Host) (*utils.Config, error) {
 	for {
 		result, err := screen.draw(loginInput{ExistingHost: existingHost})
 		if err != nil {
-			gabagool.ProcessMessage(i18n.GetString("login_error_unexpected"), gabagool.ProcessMessageOptions{}, func() (interface{}, error) {
+			gabagool.ProcessMessage(i18n.Localize(&goi18n.Message{ID: "login_error_unexpected", Other: "Something unexpected happened!\\nCheck the logs for more info."}, nil), gabagool.ProcessMessageOptions{}, func() (interface{}, error) {
 				time.Sleep(3 * time.Second)
 				return nil, nil
 			})
@@ -198,9 +200,9 @@ func LoginFlow(existingHost romm.Host) (*utils.Config, error) {
 		}
 
 		gabagool.ConfirmationMessage(
-			i18n.GetString(loginResult.ErrorMsg),
+			i18n.Localize(loginResult.ErrorMsg, nil),
 			[]gabagool.FooterHelpItem{
-				{ButtonName: "A", HelpText: i18n.GetString("button_continue")},
+				{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_continue", Other: "Continue"}, nil)},
 			},
 			gabagool.MessageOptions{},
 		)
@@ -209,11 +211,10 @@ func LoginFlow(existingHost romm.Host) (*utils.Config, error) {
 }
 
 func attemptLogin(host romm.Host) loginAttemptResult {
-	// Phase 1: Quick validation with short timeout
 	validationClient := utils.GetRommClient(host, constants.ValidationTimeout)
 
 	result, _ := gabagool.ProcessMessage(
-		i18n.GetString("login_validating"),
+		i18n.Localize(&goi18n.Message{ID: "login_validating", Other: "Validating connection..."}, nil),
 		gabagool.ProcessMessageOptions{},
 		func() (interface{}, error) {
 			err := validationClient.ValidateConnection()
@@ -221,7 +222,6 @@ func attemptLogin(host romm.Host) loginAttemptResult {
 				return classifyLoginError(err), nil
 			}
 
-			// Phase 2: Full login with normal timeout
 			loginClient := utils.GetRommClient(host, constants.LoginTimeout)
 			err = loginClient.Login(host.Username, host.Password)
 			if err != nil {
@@ -245,12 +245,12 @@ func classifyLoginError(err error) loginAttemptResult {
 		if protocolErr.CorrectProtocol == "https" {
 			return loginAttemptResult{
 				ErrorType: "protocol",
-				ErrorMsg:  "login_error_use_https",
+				ErrorMsg:  &goi18n.Message{ID: "login_error_use_https", Other: "Protocol mismatch!\\nPlease use HTTPS instead of HTTP."},
 			}
 		}
 		return loginAttemptResult{
 			ErrorType: "protocol",
-			ErrorMsg:  "login_error_use_http",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_use_http", Other: "Protocol mismatch!\\nPlease use HTTP instead of HTTPS."},
 		}
 	}
 
@@ -258,43 +258,43 @@ func classifyLoginError(err error) loginAttemptResult {
 	case errors.Is(err, romm.ErrInvalidHostname):
 		return loginAttemptResult{
 			ErrorType: "dns",
-			ErrorMsg:  "login_error_invalid_hostname",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_invalid_hostname", Other: "Could not resolve hostname!\\nPlease check the hostname is correct."},
 		}
 	case errors.Is(err, romm.ErrConnectionRefused):
 		return loginAttemptResult{
 			ErrorType: "connection",
-			ErrorMsg:  "login_error_connection_refused",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_connection_refused", Other: "Could not connect to host!\\nPlease check the hostname and port are correct."},
 		}
 	case errors.Is(err, romm.ErrTimeout):
 		return loginAttemptResult{
 			ErrorType: "timeout",
-			ErrorMsg:  "login_error_timeout",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_timeout", Other: "Connection timed out!\\nPlease check your network connection and that the host is reachable."},
 		}
 	case errors.Is(err, romm.ErrWrongProtocol):
 		return loginAttemptResult{
 			ErrorType: "protocol",
-			ErrorMsg:  "login_error_wrong_protocol",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_wrong_protocol", Other: "Protocol mismatch!\\nTry switching between http and https."},
 		}
 	case errors.Is(err, romm.ErrUnauthorized):
 		return loginAttemptResult{
 			ErrorType: "credentials",
-			ErrorMsg:  "login_error_credentials",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_credentials", Other: "Invalid Username or Password."},
 		}
 	case errors.Is(err, romm.ErrForbidden):
 		return loginAttemptResult{
 			ErrorType: "forbidden",
-			ErrorMsg:  "login_error_forbidden",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_forbidden", Other: "Access Forbidden!\\nCheck your username/password and try switching between http and https."},
 		}
 	case errors.Is(err, romm.ErrServerError):
 		return loginAttemptResult{
 			ErrorType: "server",
-			ErrorMsg:  "login_error_server",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_server", Other: "RomM server error!\\nPlease check the RomM server logs."},
 		}
 	default:
 		gabagool.GetLogger().Warn("Unclassified login error", "error", err)
 		return loginAttemptResult{
 			ErrorType: "unknown",
-			ErrorMsg:  "login_error_unexpected",
+			ErrorMsg:  &goi18n.Message{ID: "login_error_unexpected", Other: "Something unexpected happened!\\nCheck the logs for more info."},
 		}
 	}
 }

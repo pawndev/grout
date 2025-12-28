@@ -7,6 +7,7 @@ import (
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type SaveSyncInput struct {
@@ -30,7 +31,7 @@ func (s *SaveSyncScreen) Draw(input SaveSyncInput) (ScreenResult[SaveSyncOutput]
 		Unmatched []utils.UnmatchedSave
 	}
 
-	scanData, _ := gaba.ProcessMessage(i18n.GetString("save_sync_scanning"), gaba.ProcessMessageOptions{}, func() (interface{}, error) {
+	scanData, _ := gaba.ProcessMessage(i18n.Localize(&goi18n.Message{ID: "save_sync_scanning", Other: "Scanning save files..."}, nil), gaba.ProcessMessageOptions{}, func() (interface{}, error) {
 		syncs, unmatched, err := utils.FindSaveSyncs(input.Host)
 		if err != nil {
 			gaba.GetLogger().Error("Unable to scan save files!", "error", err)
@@ -87,7 +88,7 @@ func (s *SaveSyncScreen) Draw(input SaveSyncInput) (ScreenResult[SaveSyncOutput]
 				for i, info := range dirInfos {
 					displayName := info.DirectoryName
 					if i == 0 {
-						displayName = info.DirectoryName + i18n.GetString("emulator_default")
+						displayName = info.DirectoryName + i18n.Localize(&goi18n.Message{ID: "emulator_default", Other: " (Default)"}, nil)
 					}
 					uiChoices[i] = EmulatorChoice{
 						DirectoryName:    info.DirectoryName,
@@ -171,7 +172,7 @@ func (s *SaveSyncScreen) Draw(input SaveSyncInput) (ScreenResult[SaveSyncOutput]
 			gaba.GetLogger().Error("Error showing sync report", "error", err)
 		}
 	} else {
-		gaba.ProcessMessage(i18n.GetString("save_sync_up_to_date"), gaba.ProcessMessageOptions{}, func() (interface{}, error) {
+		gaba.ProcessMessage(i18n.Localize(&goi18n.Message{ID: "save_sync_up_to_date", Other: "Everything is up to date!\\nGo play some games!"}, nil), gaba.ProcessMessageOptions{}, func() (interface{}, error) {
 			time.Sleep(time.Second * 2)
 			return nil, nil
 		})

@@ -4,10 +4,12 @@ import (
 	"errors"
 	"grout/constants"
 	"grout/romm"
+	"grout/utils"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	buttons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type PlatformSelectionInput struct {
@@ -46,7 +48,7 @@ func (s *PlatformSelectionScreen) Draw(input PlatformSelectionInput) (ScreenResu
 
 	if input.ShowCollections {
 		menuItems = append(menuItems, gaba.MenuItem{
-			Text:           i18n.GetString("platform_selection_collections"),
+			Text:           i18n.Localize(&goi18n.Message{ID: "platform_selection_collections", Other: "Collections"}, nil),
 			Selected:       false,
 			Focused:        false,
 			Metadata:       romm.Platform{Slug: "collections"},
@@ -66,16 +68,16 @@ func (s *PlatformSelectionScreen) Draw(input PlatformSelectionInput) (ScreenResu
 	var footerItems []gaba.FooterHelpItem
 	if input.QuitOnBack {
 		footerItems = []gaba.FooterHelpItem{
-			{ButtonName: "X", HelpText: i18n.GetString("button_settings")},
+			{ButtonName: "X", HelpText: i18n.Localize(&goi18n.Message{ID: "button_settings", Other: "Settings"}, nil)},
 		}
 		if input.ShowSaveSync {
-			footerItems = append(footerItems, gaba.FooterHelpItem{ButtonName: "Y", HelpText: i18n.GetString("button_save_sync")})
+			footerItems = append(footerItems, gaba.FooterHelpItem{ButtonName: "Y", HelpText: i18n.Localize(&goi18n.Message{ID: "button_save_sync", Other: "Sync"}, nil)})
 		}
-		footerItems = append(footerItems, gaba.FooterHelpItem{ButtonName: "A", HelpText: i18n.GetString("button_select")})
+		footerItems = append(footerItems, gaba.FooterHelpItem{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_select", Other: "Select"}, nil)})
 	} else {
 		footerItems = []gaba.FooterHelpItem{
-			{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-			{ButtonName: "A", HelpText: i18n.GetString("button_select")},
+			{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+			{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_select", Other: "Select"}, nil)},
 		}
 	}
 
@@ -88,6 +90,8 @@ func (s *PlatformSelectionScreen) Draw(input PlatformSelectionInput) (ScreenResu
 	options.FooterHelpItems = footerItems
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
+
+	options.StatusBar = utils.StatusBar()
 
 	sel, err := gaba.List(options)
 

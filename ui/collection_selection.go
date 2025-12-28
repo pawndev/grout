@@ -13,27 +13,22 @@ import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	buttons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type CollectionSelectionInput struct {
-	Config                   *utils.Config
-	Host                     romm.Host
-	SearchFilter             string
-	LastSelectedIndex        int
-	LastSelectedPosition     int
-	CachedRegularCollections []romm.Collection
-	CachedSmartCollections   []romm.Collection
-	CachedVirtualCollections []romm.VirtualCollection
+	Config               *utils.Config
+	Host                 romm.Host
+	SearchFilter         string
+	LastSelectedIndex    int
+	LastSelectedPosition int
 }
 
 type CollectionSelectionOutput struct {
-	SelectedCollection        romm.Collection
-	SearchFilter              string
-	LastSelectedIndex         int
-	LastSelectedPosition      int
-	FetchedRegularCollections []romm.Collection
-	FetchedSmartCollections   []romm.Collection
-	FetchedVirtualCollections []romm.VirtualCollection
+	SelectedCollection   romm.Collection
+	SearchFilter         string
+	LastSelectedIndex    int
+	LastSelectedPosition int
 }
 
 type CollectionSelectionScreen struct{}
@@ -59,71 +54,51 @@ func (s *CollectionSelectionScreen) Draw(input CollectionSelectionInput) (Screen
 
 	// Fetch regular collections if enabled
 	if input.Config.ShowCollections {
-		// Use cached regular collections or fetch
-		if len(input.CachedRegularCollections) > 0 {
-			regularCollections = input.CachedRegularCollections
-		} else {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				fetched, err := rc.GetCollections()
-				if err == nil {
-					mu.Lock()
-					regularCollections = fetched
-					mu.Unlock()
-				}
-			}()
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fetched, err := rc.GetCollections()
+			if err == nil {
+				mu.Lock()
+				regularCollections = fetched
+				mu.Unlock()
+			}
+		}()
 	}
 
 	// Fetch smart collections if enabled
 	if input.Config.ShowSmartCollections {
-		// Use cached smart collections or fetch
-		if len(input.CachedSmartCollections) > 0 {
-			smartCollections = input.CachedSmartCollections
-		} else {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				fetched, err := rc.GetSmartCollections()
-				if err == nil {
-					mu.Lock()
-					smartCollections = fetched
-					for i := range smartCollections {
-						smartCollections[i].IsSmart = true
-					}
-					mu.Unlock()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fetched, err := rc.GetSmartCollections()
+			if err == nil {
+				mu.Lock()
+				smartCollections = fetched
+				for i := range smartCollections {
+					smartCollections[i].IsSmart = true
 				}
-			}()
-		}
+				mu.Unlock()
+			}
+		}()
 	}
 
 	// Fetch virtual collections if enabled
 	if input.Config.ShowVirtualCollections {
-		// Use cached virtual collections or fetch
-		if len(input.CachedVirtualCollections) > 0 {
-			virtualCollections = input.CachedVirtualCollections
-		} else {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				fetched, err := rc.GetVirtualCollections()
-				if err == nil {
-					mu.Lock()
-					virtualCollections = fetched
-					mu.Unlock()
-				}
-			}()
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fetched, err := rc.GetVirtualCollections()
+			if err == nil {
+				mu.Lock()
+				virtualCollections = fetched
+				mu.Unlock()
+			}
+		}()
 	}
 
 	// Wait for all fetches to complete
 	wg.Wait()
-
-	// Store fetched collections for caching
-	output.FetchedRegularCollections = regularCollections
-	output.FetchedSmartCollections = smartCollections
-	output.FetchedVirtualCollections = virtualCollections
 
 	// Combine enabled collections based on current config
 	var collections []romm.Collection
@@ -173,9 +148,9 @@ func (s *CollectionSelectionScreen) Draw(input CollectionSelectionInput) (Screen
 	}
 
 	footerItems := []gaba.FooterHelpItem{
-		{ButtonName: "B", HelpText: i18n.GetString("button_back")},
-		{ButtonName: "X", HelpText: i18n.GetString("button_search")},
-		{ButtonName: "A", HelpText: i18n.GetString("button_select")},
+		{ButtonName: "B", HelpText: i18n.Localize(&goi18n.Message{ID: "button_back", Other: "Back"}, nil)},
+		{ButtonName: "X", HelpText: i18n.Localize(&goi18n.Message{ID: "button_search", Other: "Search"}, nil)},
+		{ButtonName: "A", HelpText: i18n.Localize(&goi18n.Message{ID: "button_select", Other: "Select"}, nil)},
 	}
 
 	title := "Collections"
@@ -188,6 +163,7 @@ func (s *CollectionSelectionScreen) Draw(input CollectionSelectionInput) (Screen
 	options.FooterHelpItems = footerItems
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
+	options.StatusBar = utils.StatusBar()
 
 	sel, err := gaba.List(options)
 	if err != nil {

@@ -8,11 +8,13 @@ import (
 	"grout/utils"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	buttons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type fetchType int
@@ -39,6 +41,7 @@ type GameListOutput struct {
 	Collection           romm.Collection
 	SearchFilter         string
 	AllGames             []romm.Rom
+	HasBIOS              bool
 	LastSelectedIndex    int
 	LastSelectedPosition int
 }
@@ -55,16 +58,18 @@ func isCollectionSet(c romm.Collection) bool {
 
 func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput], error) {
 	games := input.Games
+	var hasBIOS bool
 
 	if len(games) == 0 {
 		loaded, err := s.loadGames(input)
 		if err != nil {
 			return withCode(GameListOutput{}, gaba.ExitCodeError), err
 		}
-		games = loaded
+		games = loaded.games
+		hasBIOS = loaded.hasBIOS
 
 		if input.Config.ShowBoxArt {
-			go utils.SyncArtworkInBackground(input.Host, loaded)
+			go utils.SyncArtworkInBackground(input.Host, games)
 		}
 	}
 
@@ -73,6 +78,7 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 		Collection:           input.Collection,
 		SearchFilter:         input.SearchFilter,
 		AllGames:             games,
+		HasBIOS:              hasBIOS,
 		LastSelectedIndex:    input.LastSelectedIndex,
 		LastSelectedPosition: input.LastSelectedPosition,
 	}
@@ -134,7 +140,7 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 
 	title := displayName
 	if input.SearchFilter != "" {
-		message := i18n.GetStringWithData("games_list_search_prefix", map[string]interface{}{"Query": input.SearchFilter})
+		message := i18n.Localize(&goi18n.Message{ID: "games_list_search_prefix", Other: "[Search: \\\"{{.Query}}\\\"]"}, map[string]interface{}{"Query": input.SearchFilter})
 		title = fmt.Sprintf("%s | %s", message, displayName)
 		displayGames = filterList(displayGames, input.SearchFilter)
 	}
@@ -179,27 +185,29 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 	options.MultiSelectButton = buttons.VirtualButtonSelect
 	options.HelpButton = buttons.VirtualButtonMenu
 
-	hasBIOS := input.Config.ShowBIOSDownload && input.Platform.ID != 0 && s.hasBIOSFilesInRomM(*input.Config, input.Host, input.Platform)
 	if hasBIOS {
 		options.SecondaryActionButton = buttons.VirtualButtonY
 	}
 
-	options.HelpTitle = i18n.GetString("games_list_help_title")
-	options.HelpText = strings.Split(i18n.GetString("games_list_help_body"), "\n")
-	options.HelpExitText = i18n.GetString("help_exit_text")
+	options.HelpTitle = i18n.Localize(&goi18n.Message{ID: "games_list_help_title", Other: "Games List Help"}, nil)
+	options.HelpText = strings.Split(i18n.Localize(&goi18n.Message{ID: "games_list_help_body", Other: "A - Select a game\nB - Go back to the previous screen\nX - Search for games by name\nSelect - Toggle multi-select mode\n  In multi-select mode:\n  - Use D-Pad to navigate\n  - Press A to toggle selection\n  - Press Start to confirm selections\nMenu - Show this help screen\nD-Pad - Navigate the game list"}, nil), "\n")
+	options.HelpExitText = i18n.Localize(&goi18n.Message{ID: "help_exit_text", Other: "Press any button to close help"}, nil)
 
 	footerItems := []gaba.FooterHelpItem{
-		{ButtonName: i18n.GetString("button_menu"), HelpText: i18n.GetString("button_help")},
-		{ButtonName: "X", HelpText: i18n.GetString("button_search")},
+		{ButtonName: i18n.Localize(&goi18n.Message{ID: "button_menu", Other: "Menu"}, nil), HelpText: i18n.Localize(&goi18n.Message{ID: "button_help", Other: "Help"}, nil)},
 	}
+
 	if hasBIOS {
-		footerItems = append(footerItems, gaba.FooterHelpItem{ButtonName: "Y", HelpText: i18n.GetString("button_bios")})
+		footerItems = append(footerItems, gaba.FooterHelpItem{ButtonName: "Y", HelpText: i18n.Localize(&goi18n.Message{ID: "button_bios", Other: "BIOS"}, nil)})
 	}
+
+	footerItems = append(footerItems, gaba.FooterHelpItem{ButtonName: "X", HelpText: i18n.Localize(&goi18n.Message{ID: "button_search", Other: "Search"}, nil)})
 
 	options.FooterHelpItems = footerItems
 
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
+	options.StatusBar = utils.StatusBar()
 
 	res, err := gaba.List(options)
 	if err != nil {
@@ -248,7 +256,12 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 	return back(output), nil
 }
 
-func (s *GameListScreen) loadGames(input GameListInput) ([]romm.Rom, error) {
+type loadGamesResult struct {
+	games   []romm.Rom
+	hasBIOS bool
+}
+
+func (s *GameListScreen) loadGames(input GameListInput) (loadGamesResult, error) {
 	config := input.Config
 	host := input.Host
 	platform := input.Platform
@@ -266,37 +279,66 @@ func (s *GameListScreen) loadGames(input GameListInput) ([]romm.Rom, error) {
 
 	logger := gaba.GetLogger()
 
-	var games []romm.Rom
+	var result loadGamesResult
 	var loadErr error
 
 	_, err := gaba.ProcessMessage(
-		i18n.GetStringWithData("games_list_loading", map[string]interface{}{"Name": displayName}),
+		i18n.Localize(&goi18n.Message{ID: "games_list_loading", Other: "Loading {{.Name}}..."}, map[string]interface{}{"Name": displayName}),
 		gaba.ProcessMessageOptions{ShowThemeBackground: true},
 		func() (interface{}, error) {
-			roms, err := fetchList(config, host, id, ft)
-			if err != nil {
-				logger.Error("Error downloading game list", "error", err)
-				loadErr = err
-				return nil, err
+			rc := utils.GetRommClient(host, config.ApiTimeout)
+
+			// Fetch games and BIOS info in parallel
+			var wg sync.WaitGroup
+			var gamesFetchErr error
+
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				roms, err := fetchList(config, host, id, ft)
+				if err != nil {
+					logger.Error("Error downloading game list", "error", err)
+					gamesFetchErr = err
+					return
+				}
+				result.games = roms
+			}()
+
+			// Check BIOS availability (only for platforms, not collections)
+			if config.ShowBIOSDownload && platform.ID != 0 && !isCollectionSet(collection) {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					firmware, err := rc.GetFirmware(platform.ID)
+					if err == nil && len(firmware) > 0 {
+						result.hasBIOS = true
+					}
+				}()
 			}
-			games = roms
+
+			wg.Wait()
+
+			if gamesFetchErr != nil {
+				loadErr = gamesFetchErr
+				return nil, gamesFetchErr
+			}
 			return nil, nil
 		},
 	)
 
 	if err != nil || loadErr != nil {
-		return nil, fmt.Errorf("failed to load games: %w", err)
+		return loadGamesResult{}, fmt.Errorf("failed to load games: %w", err)
 	}
 
-	return games, nil
+	return result, nil
 }
 
 func (s *GameListScreen) showEmptyMessage(platformName, searchFilter string) {
 	var message string
 	if searchFilter != "" {
-		message = i18n.GetStringWithData("games_list_no_results", map[string]interface{}{"Query": searchFilter})
+		message = i18n.Localize(&goi18n.Message{ID: "games_list_no_results", Other: "No results found for \\\"{{.Query}}\\\""}, map[string]interface{}{"Query": searchFilter})
 	} else {
-		message = i18n.GetStringWithData("games_list_no_games", map[string]interface{}{"Name": platformName})
+		message = i18n.Localize(&goi18n.Message{ID: "games_list_no_games", Other: "No games found for {{.Name}}"}, map[string]interface{}{"Name": platformName})
 	}
 
 	gaba.ProcessMessage(
@@ -310,7 +352,7 @@ func (s *GameListScreen) showEmptyMessage(platformName, searchFilter string) {
 }
 
 func (s *GameListScreen) showFilteredOutMessage(collectionName string) {
-	message := i18n.GetStringWithData("games_list_filtered_out", map[string]interface{}{"Name": collectionName})
+	message := i18n.Localize(&goi18n.Message{ID: "games_list_filtered_out", Other: "No games in {{.Name}} match your platform mappings"}, map[string]interface{}{"Name": collectionName})
 
 	gaba.ProcessMessage(
 		message,
@@ -322,41 +364,47 @@ func (s *GameListScreen) showFilteredOutMessage(collectionName string) {
 	)
 }
 
-func (s *GameListScreen) hasBIOSFilesInRomM(config utils.Config, host romm.Host, platform romm.Platform) bool {
-	// Check if RomM has any firmware for this platform
-	client := utils.GetRommClient(host, config.ApiTimeout)
-	firmwareList, err := client.GetFirmware(platform.ID)
-	if err != nil {
-		// If we can't fetch from RomM, don't show the button
-		return false
-	}
-
-	// Show BIOS button if RomM has any firmware files for this platform
-	return len(firmwareList) > 0
-}
+const fetchPageSize = 1000
 
 func fetchList(config *utils.Config, host romm.Host, queryID int, fetchType fetchType) ([]romm.Rom, error) {
 	logger := gaba.GetLogger()
 
 	rc := utils.GetRommClient(host, config.ApiTimeout)
 
-	opt := romm.GetRomsQuery{
-		Limit: 10000,
+	var allGames []romm.Rom
+	page := 1
+
+	for {
+		opt := romm.GetRomsQuery{
+			Page:  page,
+			Limit: fetchPageSize,
+		}
+
+		switch fetchType {
+		case ftPlatform:
+			opt.PlatformID = queryID
+		case ftCollection:
+			opt.CollectionID = queryID
+		}
+
+		res, err := rc.GetRoms(opt)
+		if err != nil {
+			return nil, err
+		}
+
+		allGames = append(allGames, res.Items...)
+		logger.Debug("Fetched games page", "page", page, "count", len(res.Items), "total", res.Total, "fetched", len(allGames))
+
+		// Check if we've fetched all items
+		if len(allGames) >= res.Total || len(res.Items) == 0 {
+			break
+		}
+
+		page++
 	}
 
-	switch fetchType {
-	case ftPlatform:
-		opt.PlatformID = queryID
-	case ftCollection:
-		opt.CollectionID = queryID
-	}
-
-	res, err := rc.GetRoms(opt)
-	if err != nil {
-		return nil, err
-	}
-	logger.Debug("Fetched platform games", "count", len(res.Items), "total", res.Total)
-	return res.Items, nil
+	logger.Debug("Fetched all games", "total", len(allGames))
+	return allGames, nil
 }
 
 func filterList(itemList []romm.Rom, filter string) []romm.Rom {

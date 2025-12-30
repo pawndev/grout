@@ -5,6 +5,7 @@ import (
 	"grout/romm"
 	"grout/ui"
 	"grout/utils"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -857,6 +858,10 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 
 		if err != nil {
 			return ui.UpdateOutput{}, gaba.ExitCodeError
+		}
+
+		if result.Value.UpdatePerformed {
+			os.Exit(0)
 		}
 
 		return result.Value, result.ExitCode

@@ -140,15 +140,15 @@ other = "Настройки"
 
 [cache_artwork]
 hash = "sha1-1cb834b429143507648837792190c647a34f64ab"
-other = "Artwork Cache"
+other = "Кэш обложек"
 
 [cache_games]
 hash = "sha1-1e7dbd606b8bad53986d06fd58c9d73dcad67d64"
-other = "Games Cache"
+other = "Кэш игр"
 
 [clear_cache_title]
 hash = "sha1-522175083f0bf50b4584d1dd8dbed60ae22535be"
-other = "Clear Cache"
+other = "Очистить кэш"
 
 [collection_platform_no_mapped]
 hash = "sha1-423fa43d1088dbfa790bd41466ee1193947902cd"
@@ -168,7 +168,7 @@ other = "Объединённый"
 
 [common_default]
 hash = "sha1-808d7dca8a74d84af27a2d6602c3d786de45fe1e"
-other = "Default"
+other = "По умолчанию"
 
 [common_false]
 hash = "sha1-97cdbdc7feff827efb082a6b6dd2727237cd49fd"
@@ -476,7 +476,7 @@ other = "Сканирование файлов сохранений..."
 
 [save_sync_settings_title]
 hash = "sha1-d3cc05947f3967eb75f60603d7fe6d6d88dbcf7f"
-other = "Save Sync Mappings"
+other = "Настройки синхронизации"
 
 [save_sync_skipped]
 hash = "sha1-5a000ad7bd1b8f7f50a72ac16d1da0d16e542d91"
@@ -550,6 +550,9 @@ other = "Загруженные игры"
 hash = "sha1-b03742e94a46dd9476e23dd8a3486b38dda3ae3c"
 other = "Сопоставления каталогов"
 
+[settings_general]
+other = "Общие"
+
 [settings_info]
 hash = "sha1-539fd998d1d49832e77eec5bf350485f054da400"
 other = "Информация о Grout"
@@ -600,7 +603,7 @@ other = "Синхронизация сохранений"
 
 [settings_save_sync_settings]
 hash = "sha1-d3cc05947f3967eb75f60603d7fe6d6d88dbcf7f"
-other = "Save Sync Mappings"
+other = "Настройки синхронизации"
 
 [settings_show_collections]
 hash = "sha1-4bbb632f02fd69807705c0179999c17d35c93b0f"

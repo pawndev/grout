@@ -104,7 +104,7 @@ platforms – NES, SNES, PlayStation, whatever you've got.
 - `Up/Down` to scroll through platforms
 - `A` to select a platform or collection
 - `X` to open Settings
-- `Y` to open the Save Sync menu
+- `Y` to open the Save Sync menu (when Save Sync is enabled in Manual mode, or when issues occur in Automatic mode)
 - `Select` to enter reordering mode
 - `B` to quit Grout
 
@@ -133,7 +133,7 @@ Grout has two views for collections. You can choose this view in the Settings �
 **Platform** – After selecting a collection, you'll see a platform selection screen showing all platforms in that
 collection. Select a platform to view games from only that platform.
 
-![Grout preview, collection content - platform](../.github/resources/user_guide/collections_platform.png "Grout preview, collection content - platform")
+![Grout preview, collection content - platforms](../.github/resources/user_guide/collections_platforms.png "Grout preview, collection content - platform")
 
 **Unified** – After selecting a collection, you'll immediately see all games from all platforms with platform slugs
 shown as prefixes (e.g., `[nes] Tetris`, `[snes] Tetris Battle Gaiden`)
@@ -217,8 +217,9 @@ From here:
 
 ### Game Options
 
-- **Save Directory** – Choose which emulator's save folder this game should use. When changed, Grout automatically moves
-  existing save files to the new location.
+- **Save Directory** – Choose which emulator's save folder this game should use. This overrides the platform-wide
+  setting configured in Save Sync Mappings. When changed, Grout automatically moves existing save files to the new
+  location. This is useful when you use different emulators for specific games within the same platform.
 
 ---
 
@@ -286,9 +287,12 @@ See [Collections Settings](#collections-settings) below.
 - **Automatic** – Grout automatically syncs saves in the background when you launch the app. A cloud icon in the status
   bar shows sync progress. If issues are detected, a `Y` button appears to access manual sync.
 
-**Save Sync Mappings** - Opens a sub-menu where you can configure which emulator save directory to use for each
-platform. This is useful for platforms with multiple emulators (e.g., GBA on muOS). Only visible when Save Sync is
-enabled.
+**Save Sync Mappings** - Opens a sub-menu where you can configure the default save directory for each platform. This is
+useful for platforms with multiple emulators (e.g., GBA on muOS), allowing you to set which emulator's save folder
+should be used for syncing. Only visible when Save Sync is enabled. Individual games can override this setting via
+Game Options.
+
+![Grout preview, save sync mapping](../.github/resources/user_guide/sync_mappings.png "Grout preview, save sync mapping")
 
 **Advanced** - Opens a sub-menu for advanced configuration options. See [Advanced Settings](#advanced-settings) below.
 
@@ -301,6 +305,9 @@ This sub-menu contains general display and download settings:
 **Box Art** - When set to show, Grout displays cover art thumbnails next to game names in the game list. Artwork is
 automatically cached in the background as you browse. This provides a visual preview similar to your frontend's game
 library view.
+
+**Game Details** - When enabled, selecting a game shows a detailed information screen with cover art, summary,
+metadata, and game options before downloading. When disabled, selecting a game immediately starts the download.
 
 **Downloaded Games** - Controls how already-downloaded games appear in game lists:
 
@@ -371,7 +378,25 @@ Use `Left/Right` to cycle through options. Press `Start` to save your changes, o
 
 Save Sync keeps your game saves synchronized between your RomM server and your handheld device.
 
-To access save sync, press `Y` from the main menu.
+### Sync Modes
+
+Grout offers two sync modes, configurable in Settings:
+
+**Manual Mode:**
+
+- Press `Y` from the main menu to access save sync
+- You control when syncing happens
+- A sync summary is displayed after completion
+
+**Automatic Mode:**
+
+- Grout automatically syncs saves in the background when you launch the app
+- A cloud icon appears in the status bar showing sync progress:
+    - **Cloud with arrow** – Sync in progress
+    - **Cloud with checkmark** – Sync completed successfully
+    - **Cloud with exclamation** – Issues detected during sync
+- If issues are detected, the `Y` button prompt appears so you can access manual sync to review and resolve problems
+- The status icon disappears after a few seconds once sync completes successfully
 
 ### How It Works
 
@@ -405,16 +430,6 @@ For each save file found on your device, Grout determines what action to take:
 **When there's no matching ROM in RomM:**
 
 - The save file is reported as "unmatched" in the sync results
-
-### Emulator Selection
-
-Some platforms (like Game Boy Advance on muOS) support multiple emulators, each with its own save directory.
-
-If Grout detects multiple possible save locations, it will prompt you to select which emulator you're using:
-
-![Grout preview, emulator selection](../.github/resources/user_guide/emulator_selection.png "Grout preview, emulator selection")
-
-Choose your active emulator to ensure the correct saves are synced.
 
 ### Sync Results
 

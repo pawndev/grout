@@ -138,7 +138,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 
 	if len(platformMap) == 0 {
 		gaba.ProcessMessage(
-			i18n.Localize(&goi18n.Message{ID: "collection_platform_no_mapped", Other: "No platforms with mapped games in\\n{{.Name}}"}, map[string]interface{}{"Name": input.Collection.Name}),
+			i18n.Localize(&goi18n.Message{ID: "collection_platform_no_mapped", Other: "No platforms with mapped games in\n{{.Name}}"}, map[string]interface{}{"Name": input.Collection.Name}),
 			gaba.ProcessMessageOptions{ShowThemeBackground: true},
 			func() (interface{}, error) {
 				time.Sleep(time.Second * 2)

@@ -68,7 +68,7 @@ func (s *SaveSyncScreen) Draw(input SaveSyncInput) (ScreenResult[SaveSyncOutput]
 			gaba.GetLogger().Error("Error showing sync report", "error", err)
 		}
 	} else {
-		gaba.ProcessMessage(i18n.Localize(&goi18n.Message{ID: "save_sync_up_to_date", Other: "Everything is up to date!\\nGo play some games!"}, nil), gaba.ProcessMessageOptions{}, func() (interface{}, error) {
+		gaba.ProcessMessage(i18n.Localize(&goi18n.Message{ID: "save_sync_up_to_date", Other: "Everything is up to date!\nGo play some games!"}, nil), gaba.ProcessMessageOptions{}, func() (interface{}, error) {
 			time.Sleep(time.Second * 2)
 			return nil, nil
 		})

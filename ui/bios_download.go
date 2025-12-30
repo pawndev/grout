@@ -191,7 +191,7 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 		})
 	}
 
-	options := gaba.DefaultListOptions(fmt.Sprintf("%s - BIOS Files", input.Platform.Name), menuItems)
+	options := gaba.DefaultListOptions(fmt.Sprintf("%s - BIOS", input.Platform.Name), menuItems)
 	options.SmallTitle = true
 	options.StartInMultiSelectMode = true
 	options.FooterHelpItems = []gaba.FooterHelpItem{

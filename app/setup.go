@@ -31,21 +31,21 @@ func classifyStartupError(err error) *goi18n.Message {
 
 	switch {
 	case errors.Is(err, romm.ErrInvalidHostname):
-		return &goi18n.Message{ID: "startup_error_invalid_hostname", Other: "Could not resolve hostname!\\nPlease check your server configuration."}
+		return &goi18n.Message{ID: "startup_error_invalid_hostname", Other: "Could not resolve hostname!\nPlease check your server configuration."}
 	case errors.Is(err, romm.ErrConnectionRefused):
-		return &goi18n.Message{ID: "startup_error_connection_refused", Other: "Could not connect to RomM!\\nPlease check the server is running."}
+		return &goi18n.Message{ID: "startup_error_connection_refused", Other: "Could not connect to RomM!\nPlease check the server is running."}
 	case errors.Is(err, romm.ErrTimeout):
-		return &goi18n.Message{ID: "startup_error_timeout", Other: "Connection timed out!\\nPlease check your network connection."}
+		return &goi18n.Message{ID: "startup_error_timeout", Other: "Connection timed out!\nPlease check your network connection."}
 	case errors.Is(err, romm.ErrWrongProtocol):
-		return &goi18n.Message{ID: "startup_error_wrong_protocol", Other: "Protocol mismatch!\\nCheck your server configuration."}
+		return &goi18n.Message{ID: "startup_error_wrong_protocol", Other: "Protocol mismatch!\nCheck your server configuration."}
 	case errors.Is(err, romm.ErrUnauthorized):
-		return &goi18n.Message{ID: "startup_error_credentials", Other: "Invalid credentials!\\nPlease check your username and password."}
+		return &goi18n.Message{ID: "startup_error_credentials", Other: "Invalid credentials!\nPlease check your username and password."}
 	case errors.Is(err, romm.ErrForbidden):
-		return &goi18n.Message{ID: "startup_error_forbidden", Other: "Access forbidden!\\nCheck your server permissions."}
+		return &goi18n.Message{ID: "startup_error_forbidden", Other: "Access forbidden!\nCheck your server permissions."}
 	case errors.Is(err, romm.ErrServerError):
-		return &goi18n.Message{ID: "startup_error_server", Other: "RomM server error!\\nPlease check the RomM server logs."}
+		return &goi18n.Message{ID: "startup_error_server", Other: "RomM server error!\nPlease check the RomM server logs."}
 	default:
-		return &goi18n.Message{ID: "error_loading_platforms", Other: "Error loading platforms!\\nPlease check the logs for more info."}
+		return &goi18n.Message{ID: "error_loading_platforms", Other: "Error loading platforms!\nPlease check the logs for more info."}
 	}
 }
 

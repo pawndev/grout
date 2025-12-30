@@ -140,15 +140,15 @@ other = "Paramètres"
 
 [cache_artwork]
 hash = "sha1-1cb834b429143507648837792190c647a34f64ab"
-other = "Artwork Cache"
+other = "Cache des Artworks"
 
 [cache_games]
 hash = "sha1-1e7dbd606b8bad53986d06fd58c9d73dcad67d64"
-other = "Games Cache"
+other = "Cache des Jeux"
 
 [clear_cache_title]
 hash = "sha1-522175083f0bf50b4584d1dd8dbed60ae22535be"
-other = "Clear Cache"
+other = "Vider le Cache"
 
 [collection_platform_no_mapped]
 hash = "sha1-423fa43d1088dbfa790bd41466ee1193947902cd"
@@ -168,7 +168,7 @@ other = "Unifiée"
 
 [common_default]
 hash = "sha1-808d7dca8a74d84af27a2d6602c3d786de45fe1e"
-other = "Default"
+other = "Par défaut"
 
 [common_false]
 hash = "sha1-97cdbdc7feff827efb082a6b6dd2727237cd49fd"
@@ -276,11 +276,11 @@ other = "Type"
 
 [game_options_save_directory]
 hash = "sha1-fc8701ec896ff0a049c9b2e9028122c196123bcc"
-other = "Save Directory"
+other = "Dossier de sauvegarde"
 
 [game_options_title]
 hash = "sha1-7ce298bd6c51841a35d3983c23dae2d00f50b6af"
-other = "Game Options"
+other = "Options du jeu"
 
 [games_list_filtered_out]
 hash = "sha1-211fbb3fb7df0619367d403f5cef6534484992d2"
@@ -476,7 +476,7 @@ other = "Analyse des fichiers de sauvegarde..."
 
 [save_sync_settings_title]
 hash = "sha1-d3cc05947f3967eb75f60603d7fe6d6d88dbcf7f"
-other = "Save Sync Mappings"
+other = "Mappages de Synchronisation"
 
 [save_sync_skipped]
 hash = "sha1-5a000ad7bd1b8f7f50a72ac16d1da0d16e542d91"
@@ -550,6 +550,9 @@ other = "Jeux téléchargés"
 hash = "sha1-b03742e94a46dd9476e23dd8a3486b38dda3ae3c"
 other = "Les associations de dossiers"
 
+[settings_general]
+other = "Général"
+
 [settings_info]
 hash = "sha1-539fd998d1d49832e77eec5bf350485f054da400"
 other = "Informations sur Grout"
@@ -600,7 +603,7 @@ other = "Synchronisation des Sauvegardes"
 
 [settings_save_sync_settings]
 hash = "sha1-d3cc05947f3967eb75f60603d7fe6d6d88dbcf7f"
-other = "Save Sync Mappings"
+other = "Mappages de Synchronisation"
 
 [settings_show_collections]
 hash = "sha1-4bbb632f02fd69807705c0179999c17d35c93b0f"

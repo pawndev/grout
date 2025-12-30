@@ -141,8 +141,8 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 
 	title := displayName
 	if input.SearchFilter != "" {
-		message := i18n.Localize(&goi18n.Message{ID: "games_list_search_prefix", Other: "[Search: \\\"{{.Query}}\\\"]"}, map[string]interface{}{"Query": input.SearchFilter})
-		title = fmt.Sprintf("%s | %s", message, displayName)
+		message := i18n.Localize(&goi18n.Message{ID: "games_list_search_prefix", Other: "[Search: \"{{.Query}}\"]"}, map[string]interface{}{"Query": input.SearchFilter})
+		title = fmt.Sprintf("%s %s", message, displayName)
 		displayGames = filterList(displayGames, input.SearchFilter)
 	}
 
@@ -384,7 +384,7 @@ func getQueryForFetch(id int, ft fetchType) romm.GetRomsQuery {
 func (s *GameListScreen) showEmptyMessage(platformName, searchFilter string) {
 	var message string
 	if searchFilter != "" {
-		message = i18n.Localize(&goi18n.Message{ID: "games_list_no_results", Other: "No results found for \\\"{{.Query}}\\\""}, map[string]interface{}{"Query": searchFilter})
+		message = i18n.Localize(&goi18n.Message{ID: "games_list_no_results", Other: "No results found for \"{{.Query}}\""}, map[string]interface{}{"Query": searchFilter})
 	} else {
 		message = i18n.Localize(&goi18n.Message{ID: "games_list_no_games", Other: "No games found for {{.Name}}"}, map[string]interface{}{"Name": platformName})
 	}

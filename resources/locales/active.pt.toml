@@ -112,7 +112,7 @@ other = "Menu"
 
 [button_options]
 hash = "sha1-6bf5da9c080bee3a8142586c412aa39971137eee"
-other = "Options"
+other = "Opções"
 
 [button_quit]
 hash = "sha1-1a2285d8881f226e13430515a9dd2b9fb6294200"
@@ -140,15 +140,15 @@ other = "Configurações"
 
 [cache_artwork]
 hash = "sha1-1cb834b429143507648837792190c647a34f64ab"
-other = "Artwork Cache"
+other = "Cache de Artwork"
 
 [cache_games]
 hash = "sha1-1e7dbd606b8bad53986d06fd58c9d73dcad67d64"
-other = "Games Cache"
+other = "Cache de Jogos"
 
 [clear_cache_title]
 hash = "sha1-522175083f0bf50b4584d1dd8dbed60ae22535be"
-other = "Clear Cache"
+other = "Limpar Cache"
 
 [collection_platform_no_mapped]
 hash = "sha1-423fa43d1088dbfa790bd41466ee1193947902cd"
@@ -168,7 +168,7 @@ other = "Unificada"
 
 [common_default]
 hash = "sha1-808d7dca8a74d84af27a2d6602c3d786de45fe1e"
-other = "Default"
+other = "Padrão"
 
 [common_false]
 hash = "sha1-97cdbdc7feff827efb082a6b6dd2727237cd49fd"
@@ -476,7 +476,7 @@ other = "Escaneando arquivos de save..."
 
 [save_sync_settings_title]
 hash = "sha1-d3cc05947f3967eb75f60603d7fe6d6d88dbcf7f"
-other = "Save Sync Mappings"
+other = "Mapeamentos de Sincronização"
 
 [save_sync_skipped]
 hash = "sha1-5a000ad7bd1b8f7f50a72ac16d1da0d16e542d91"
@@ -550,6 +550,9 @@ other = "Jogos Baixados"
 hash = "sha1-b03742e94a46dd9476e23dd8a3486b38dda3ae3c"
 other = "Mapeamentos de Diretório"
 
+[settings_general]
+other = "Geral"
+
 [settings_info]
 hash = "sha1-539fd998d1d49832e77eec5bf350485f054da400"
 other = "Info do Grout"
@@ -600,7 +603,7 @@ other = "Sincronização de Saves"
 
 [settings_save_sync_settings]
 hash = "sha1-d3cc05947f3967eb75f60603d7fe6d6d88dbcf7f"
-other = "Save Sync Mappings"
+other = "Mapeamentos de Sincronização"
 
 [settings_show_collections]
 hash = "sha1-4bbb632f02fd69807705c0179999c17d35c93b0f"

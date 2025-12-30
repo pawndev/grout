@@ -243,15 +243,19 @@ func scanRomDirectory(slug, romDir string, saveFileMap map[string]*localSave) []
 			continue
 		}
 
-		hash, err := calculateSHA1(romPath)
-		if err != nil {
-			logger.Warn("Failed to calculate SHA1 for ROM", "path", romPath, "error", err)
-		}
-
 		baseName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
 		var saveFile *localSave
 		if sf, found := saveFileMap[baseName]; found {
 			saveFile = sf
+		}
+
+		// Only calculate SHA1 for ROMs that have save files (saves significant time)
+		var hash string
+		if saveFile != nil {
+			hash, err = calculateSHA1(romPath)
+			if err != nil {
+				logger.Warn("Failed to calculate SHA1 for ROM", "path", romPath, "error", err)
+			}
 		}
 
 		rom := localRomFile{

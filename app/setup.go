@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"grout/constants"
 	"grout/constants/cfw/muos"
 	"grout/resources"
@@ -12,7 +11,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
@@ -61,19 +59,14 @@ func showStartupError(errorMsg string) bool {
 }
 
 func setup() SetupResult {
-	setupStart := time.Now()
-
 	cfw := utils.GetCFW()
 
-	// Set up input mapping for muOS with auto-detection
 	if cfw == constants.MuOS && !utils.IsDevelopment() {
 		if cwd, err := os.Getwd(); err == nil {
 			cwdMappingPath := filepath.Join(cwd, "input_mapping.json")
 			if _, err := os.Stat(cwdMappingPath); err == nil {
-				// User-provided mapping takes priority
 				os.Setenv("INPUT_MAPPING_PATH", cwdMappingPath)
 			} else {
-				// Use embedded mapping with auto-detection
 				if mappingBytes, err := muos.GetInputMappingBytes(); err == nil {
 					gaba.SetInputMappingBytes(mappingBytes)
 				}
@@ -113,7 +106,6 @@ func setup() SetupResult {
 		}
 		logger.Debug("Language selected", "language", selectedLanguage)
 
-		// Set the language immediately
 		if err := i18n.SetWithCode(selectedLanguage); err != nil {
 			logger.Error("Failed to set language", "error", err, "language", selectedLanguage)
 		}
@@ -206,8 +198,6 @@ func setup() SetupResult {
 		}
 		logger.Info("User chose to retry connection")
 	}
-
-	logger.Info("Setup complete", "totalSeconds", fmt.Sprintf("%.2f", time.Since(setupStart).Seconds()))
 
 	return SetupResult{
 		Config:    config,

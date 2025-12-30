@@ -28,7 +28,6 @@ func main() {
 
 	fsm := buildFSM(config, cfw, platforms, quitOnBack, showCollections, appStart)
 
-	logger.Info("Starting FSM.Run()")
 	if err := fsm.Run(); err != nil {
 		logger.Error("FSM error", "error", err)
 	}

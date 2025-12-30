@@ -3,13 +3,10 @@ package utils
 import (
 	"grout/romm"
 	"sync/atomic"
-	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
 )
-
-const syncIconDelay = 400 * time.Millisecond
 
 type AutoSync struct {
 	host       romm.Host
@@ -65,7 +62,6 @@ func (a *AutoSync) run() {
 	}()
 
 	a.icon.SetText(icons.CloudRefresh)
-	time.Sleep(syncIconDelay)
 	logger.Debug("AutoSync: Starting save sync scan")
 
 	syncs, _, err := FindSaveSyncs(a.host)
@@ -91,11 +87,9 @@ func (a *AutoSync) run() {
 		switch s.Action {
 		case Upload:
 			a.icon.SetText(icons.CloudUpload)
-			time.Sleep(syncIconDelay)
 			logger.Debug("AutoSync: Uploading", "game", s.GameBase)
 		case Download:
 			a.icon.SetText(icons.CloudDownload)
-			time.Sleep(syncIconDelay)
 			logger.Debug("AutoSync: Downloading", "game", s.GameBase)
 		case Skip:
 			continue

@@ -132,7 +132,6 @@ func (c *CacheRefresh) validateAndPrefetchPlatform(platform romm.Platform) {
 	c.freshnessMu.Unlock()
 
 	if isFresh {
-		logger.Debug("CacheRefresh: Cache is fresh, skipping prefetch", "platform", platform.Name)
 		return
 	}
 

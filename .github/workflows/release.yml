@@ -117,7 +117,7 @@ jobs:
           files: |
             build/Grout.pak.zip
             build/Grout.muxapp
-            build/Grout.spruce.zip
+            build/Grout.spruce
             build/Grout-Knulli.zip
             build/grout
           draft: false

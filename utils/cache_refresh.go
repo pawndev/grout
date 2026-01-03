@@ -66,6 +66,9 @@ func (c *CacheRefresh) start(platforms []romm.Platform) {
 func (c *CacheRefresh) run(platforms []romm.Platform) {
 	logger := gaba.GetLogger()
 	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("CacheRefresh: Panic recovered", "panic", r)
+		}
 		c.running = false
 		close(c.done)
 	}()

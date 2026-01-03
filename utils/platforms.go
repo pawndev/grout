@@ -2,12 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"time"
 
 	"grout/romm"
 )
 
-func GetMappedPlatforms(host romm.Host, mappings map[string]DirectoryMapping) ([]romm.Platform, error) {
-	c := GetRommClient(host)
+func GetMappedPlatforms(host romm.Host, mappings map[string]DirectoryMapping, timeout ...time.Duration) ([]romm.Platform, error) {
+	c := GetRommClient(host, timeout...)
 
 	rommPlatforms, err := c.GetPlatforms()
 	if err != nil {

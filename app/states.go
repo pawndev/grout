@@ -664,7 +664,7 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 			utils.SaveConfig(config)
 			gaba.Set(ctx, config)
 
-			platforms, err := utils.GetMappedPlatforms(host, output.Mappings)
+			platforms, err := utils.GetMappedPlatforms(host, output.Mappings, config.ApiTimeout)
 			if err != nil {
 				gaba.GetLogger().Error("Failed to load platforms", "error", err)
 				return err
@@ -749,7 +749,7 @@ func buildFSM(config *utils.Config, cfw constants.CFW, platforms []romm.Platform
 				}
 			}
 
-			platforms, err := utils.GetMappedPlatforms(config.Hosts[0], config.DirectoryMappings)
+			platforms, err := utils.GetMappedPlatforms(config.Hosts[0], config.DirectoryMappings, config.ApiTimeout)
 			if err != nil {
 				gaba.GetLogger().Error("Failed to load platforms after re-login", "error", err)
 				return err

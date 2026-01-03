@@ -67,6 +67,10 @@ func (a *AutoSync) Host() romm.Host {
 func (a *AutoSync) run() {
 	logger := gaba.GetLogger()
 	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("AutoSync: Panic recovered", "panic", r)
+			a.icon.SetText(icons.CloudAlert)
+		}
 		a.running.Store(false)
 		close(a.done)
 	}()
@@ -74,7 +78,7 @@ func (a *AutoSync) run() {
 	a.icon.SetText(icons.CloudRefresh)
 	logger.Debug("AutoSync: Starting save sync scan")
 
-	syncs, _, err := FindSaveSyncs(a.host)
+	syncs, _, err := FindSaveSyncs(a.host, a.config)
 	if err != nil {
 		logger.Error("AutoSync: Failed to find save syncs", "error", err)
 		a.icon.SetText(icons.CloudAlert)

@@ -109,7 +109,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 				gaba.ProcessMessageOptions{ShowThemeBackground: true},
 				func() (interface{}, error) {
 					// Fetch from API
-					rc := utils.GetRommClient(input.Host)
+					rc := utils.GetRommClient(input.Host, input.Config.ApiTimeout)
 					res, err := rc.GetRoms(opt)
 					if err != nil {
 						logger.Error("Error downloading game list", "error", err)

@@ -177,7 +177,7 @@ func setup() SetupResult {
 			ImageHeight: 540,
 		}, func() (interface{}, error) {
 			var err error
-			platforms, err = utils.GetMappedPlatforms(config.Hosts[0], config.DirectoryMappings)
+			platforms, err = utils.GetMappedPlatforms(config.Hosts[0], config.DirectoryMappings, config.ApiTimeout)
 			if err != nil {
 				loadErr = err
 				return nil, err

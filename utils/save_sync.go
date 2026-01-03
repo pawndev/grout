@@ -69,7 +69,7 @@ func (s *SaveSync) Execute(host romm.Host, config *Config) SyncResult {
 	var err error
 	switch s.Action {
 	case Upload:
-		result.FilePath, err = s.upload(host)
+		result.FilePath, err = s.upload(host, config)
 		logger.Debug("Upload complete", "filePath", result.FilePath, "err", err)
 	case Download:
 		if s.Local != nil {
@@ -96,7 +96,10 @@ func (s *SaveSync) Execute(host romm.Host, config *Config) SyncResult {
 
 func (s *SaveSync) download(host romm.Host, config *Config) (string, error) {
 	logger := gaba.GetLogger()
-	rc := GetRommClient(host)
+	if config == nil {
+		return "", fmt.Errorf("config is nil")
+	}
+	rc := GetRommClient(host, config.ApiTimeout)
 
 	logger.Debug("Downloading save", "saveID", s.Remote.ID, "downloadPath", s.Remote.DownloadPath)
 
@@ -142,12 +145,15 @@ func (s *SaveSync) download(host romm.Host, config *Config) (string, error) {
 	return destPath, nil
 }
 
-func (s *SaveSync) upload(host romm.Host) (string, error) {
+func (s *SaveSync) upload(host romm.Host, config *Config) (string, error) {
 	if s.Local == nil {
 		return "", fmt.Errorf("cannot upload: no local save file")
 	}
+	if config == nil {
+		return "", fmt.Errorf("config is nil")
+	}
 
-	rc := GetRommClient(host)
+	rc := GetRommClient(host, config.ApiTimeout)
 
 	ext := normalizeExt(filepath.Ext(s.Local.Path))
 
@@ -205,13 +211,16 @@ func lookupRomID(romFile *localRomFile, romsByFilename map[string]romm.Rom) (int
 	return 0, ""
 }
 
-func FindSaveSyncs(host romm.Host) ([]SaveSync, []UnmatchedSave, error) {
-	return FindSaveSyncsFromScan(host, ScanRoms())
+func FindSaveSyncs(host romm.Host, config *Config) ([]SaveSync, []UnmatchedSave, error) {
+	return FindSaveSyncsFromScan(host, config, ScanRoms())
 }
 
-func FindSaveSyncsFromScan(host romm.Host, scanLocal LocalRomScan) ([]SaveSync, []UnmatchedSave, error) {
+func FindSaveSyncsFromScan(host romm.Host, config *Config, scanLocal LocalRomScan) ([]SaveSync, []UnmatchedSave, error) {
 	logger := gaba.GetLogger()
-	rc := GetRommClient(host)
+	if config == nil {
+		return nil, nil, fmt.Errorf("config is nil")
+	}
+	rc := GetRommClient(host, config.ApiTimeout)
 
 	logger.Debug("FindSaveSyncs: Scanned local ROMs", "platformCount", len(scanLocal))
 

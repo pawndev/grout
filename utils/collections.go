@@ -5,11 +5,14 @@ import (
 )
 
 func ShowCollections(config *Config, host romm.Host) bool {
+	if config == nil {
+		return false
+	}
 	if !config.ShowCollections && !config.ShowSmartCollections && !config.ShowVirtualCollections {
 		return false
 	}
 
-	rc := GetRommClient(host)
+	rc := GetRommClient(host, config.ApiTimeout)
 
 	if config.ShowCollections {
 		col, err := rc.GetCollections()

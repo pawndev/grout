@@ -45,7 +45,7 @@ func (s *SaveSyncScreen) Draw(input SaveSyncInput) (ScreenResult[SaveSyncOutput]
 			return nil, nil
 		}
 
-		syncs, unmatched, err := utils.FindSaveSyncsFromScan(input.Host, localRoms)
+		syncs, unmatched, err := utils.FindSaveSyncsFromScan(input.Host, input.Config, localRoms)
 		if err != nil {
 			gaba.GetLogger().Error("Unable to scan save files!", "error", err)
 			return nil, nil

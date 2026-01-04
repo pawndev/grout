@@ -73,7 +73,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Package
-        run: task build extract package-next package-muos package-knulli package-spruce
+        run: task build extract package-next package-muos package-knulli package-spruce package-crossmix
 
       - name: Create NextUI distribution
         run: |
@@ -97,6 +97,12 @@ jobs:
           zip -r Grout.spruce.zip Grout
           mv Grout.spruce.zip ../Grout.spruce.zip
 
+      - name: Create crossmix distribution
+        run: |
+          cd build/CrossMix
+          zip -r Grout.crossmix.zip Grout
+          mv Grout.crossmix.zip ../Grout.crossmix.zip
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -112,6 +118,7 @@ jobs:
             build/Grout.pak.zip
             build/Grout.muxapp
             build/Grout.spruce.zip
+            build/Grout.crossmix.zip
             build/Grout-Knulli.zip
             build/grout
           draft: false

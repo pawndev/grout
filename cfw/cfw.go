@@ -12,10 +12,11 @@ import (
 type CFW string
 
 const (
-	NextUI CFW = "NEXTUI"
-	MuOS   CFW = "MUOS"
-	Knulli CFW = "KNULLI"
-	Spruce CFW = "SPRUCE"
+	NextUI   CFW = "NEXTUI"
+	MuOS     CFW = "MUOS"
+	Knulli   CFW = "KNULLI"
+	Spruce   CFW = "SPRUCE"
+	CrossMix CFW = "CROSSMIX"
 )
 
 var (
@@ -29,6 +30,9 @@ var (
 	SprucePlatforms       = mustLoadJSONMap[string, []string]("spruce/platforms.json")
 	SpruceSaveDirectories = mustLoadJSONMap[string, []string]("spruce/save_directories.json")
 
+	CrossMixPlatforms       = mustLoadJSONMap[string, []string]("crossmix/platforms.json")
+	CrossMixSaveDirectories = mustLoadJSONMap[string, []string]("crossmix/save_directories.json")
+
 	KnulliPlatforms = mustLoadJSONMap[string, []string]("knulli/platforms.json")
 )
 
@@ -41,11 +45,11 @@ func GetCFW() CFW {
 	cfw := CFW(cfwEnv)
 
 	switch cfw {
-	case MuOS, NextUI, Knulli, Spruce:
+	case MuOS, NextUI, Knulli, Spruce, CrossMix:
 		return cfw
 	default:
 		log.SetOutput(os.Stderr)
-		log.Fatalf("Unsupported CFW: '%s'. Valid options: NextUI, muOS, Knulli, Spruce", cfwEnv)
+		log.Fatalf("Unsupported CFW: '%s'. Valid options: NextUI, muOS, Knulli, Spruce, CrossMix", cfwEnv)
 		return ""
 	}
 }
@@ -66,6 +70,8 @@ func GetRomDirectory() string {
 		return filepath.Join(getBasePath(Knulli), "roms")
 	case Spruce:
 		return filepath.Join(getBasePath(Spruce), "Roms")
+	case CrossMix:
+		return filepath.Join(getBasePath(CrossMix), "Roms")
 	}
 
 	return ""
@@ -83,6 +89,8 @@ func GetBIOSDirectory() string {
 		return filepath.Join(getBasePath(Knulli), "bios")
 	case Spruce:
 		return filepath.Join(getBasePath(Spruce), "BIOS")
+	case CrossMix:
+		return filepath.Join(getBasePath(CrossMix), "BIOS")
 	}
 
 	return ""
@@ -117,6 +125,8 @@ func GetPlatformMap(c CFW) map[string][]string {
 		return KnulliPlatforms
 	case Spruce:
 		return SprucePlatforms
+	case CrossMix:
+		return CrossMixPlatforms
 	default:
 		return nil
 	}
@@ -132,6 +142,8 @@ func EmulatorFolderMap(c CFW) map[string][]string {
 		return KnulliPlatforms
 	case Spruce:
 		return SpruceSaveDirectories
+	case CrossMix:
+		return CrossMixSaveDirectories
 	default:
 		return nil
 	}
@@ -192,6 +204,9 @@ func getBasePath(cfw CFW) string {
 
 	case Spruce:
 		return "/mnt/SDCARD"
+
+	case CrossMix:
+		return "/mnt/SDCARD"
 	default:
 		return ""
 	}
@@ -212,6 +227,8 @@ func BaseSavePath() string {
 		return filepath.Join(getBasePath(cfw), "saves")
 	case Spruce:
 		return filepath.Join(getBasePath(cfw), "Saves", "saves")
+	case CrossMix:
+		return filepath.Join(getBasePath(cfw), "RetroArch", ".retroarch", "saves")
 	}
 
 	return ""
@@ -230,13 +247,16 @@ func GetPlatformRomDirectory(relativePath, platformSlug string) string {
 
 // GetArtDirectory returns the artwork directory for a platform.
 func GetArtDirectory(romDir string, platformSlug, platformName string) string {
-	switch GetCFW() {
+	cfw := GetCFW()
+	switch cfw {
 	case NextUI:
 		return filepath.Join(romDir, ".media")
 	case Knulli:
 		return filepath.Join(romDir, "images")
 	case Spruce:
 		return filepath.Join(romDir, "Imgs")
+	case CrossMix:
+		return filepath.Join(getBasePath(cfw), "Imgs", platformSlug)
 	case MuOS:
 		systemName, exists := MuOSArtDirectory[platformSlug]
 		if !exists {

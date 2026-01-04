@@ -25,6 +25,7 @@ tasks:
       - task: package-muos
       - task: package-knulli
       - task: package-spruce
+      - task: package-crossmix
 
   all-local:
     desc: Build (with local gabagool via go work) and package for all platforms
@@ -36,6 +37,7 @@ tasks:
       - task: muxapp
       - task: package-knulli
       - task: package-spruce
+      - task: package-crossmix
 
   extract:
     desc: Extract binary and libraries from Docker image
@@ -83,6 +85,16 @@ tasks:
       - cp scripts/Spruce/* README.md LICENSE build/Spruce/Grout
       - cp build/grout build/Spruce/Grout/grout
       - cp -R build/lib/* build/Spruce/Grout/grout/lib/
+    silent: true
+
+  package-crossmix:
+    desc: Package for Spruce
+    cmds:
+      - rm -rf build/CrossMix || true
+      - mkdir -p build/CrossMix/Grout/grout/lib
+      - cp scripts/CrossMix/* README.md LICENSE build/CrossMix/Grout
+      - cp build/grout build/CrossMix/Grout/grout
+      - cp -R build/lib/* build/CrossMix/Grout/grout/lib/
     silent: true
 
   muxapp:

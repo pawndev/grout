@@ -3,7 +3,6 @@ package ui
 import (
 	"errors"
 	"grout/internal"
-	"grout/utils"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
@@ -34,7 +33,7 @@ func (s *GeneralSettingsScreen) Draw(input GeneralSettingsInput) (ScreenResult[G
 		i18n.Localize(&goi18n.Message{ID: "settings_general", Other: "General"}, nil),
 		gaba.OptionListSettings{
 			FooterHelpItems: OptionsListFooter(),
-			StatusBar:       utils.StatusBar(),
+			StatusBar:       StatusBar(),
 			SmallTitle:      true,
 		},
 		items,

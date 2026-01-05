@@ -5,7 +5,6 @@ import (
 	"grout/cfw"
 	"grout/internal"
 	"grout/romm"
-	"grout/utils"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,7 +47,7 @@ func (s *GameOptionsScreen) Draw(input GameOptionsInput) (ScreenResult[GameOptio
 		gaba.OptionListSettings{
 			FooterHelpItems:      OptionsListFooter(),
 			InitialSelectedIndex: 0,
-			StatusBar:            utils.StatusBar(),
+			StatusBar:            StatusBar(),
 			SmallTitle:           true,
 		},
 		items,

@@ -9,7 +9,6 @@ import (
 	"grout/internal"
 	"grout/internal/stringutil"
 	"grout/romm"
-	"grout/utils"
 	"slices"
 	"strings"
 	"sync"
@@ -215,7 +214,7 @@ func (s *GameListScreen) Draw(input GameListInput) (ScreenResult[GameListOutput]
 
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
-	options.StatusBar = utils.StatusBar()
+	options.StatusBar = StatusBar()
 
 	res, err := gaba.List(options)
 	if err != nil {

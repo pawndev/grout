@@ -1,4 +1,4 @@
-package utils
+package ui
 
 import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -20,6 +20,6 @@ func StatusBar() gaba.StatusBarOptions {
 	return defaultStatusBar
 }
 
-func AddIcon(icon gaba.StatusBarIcon) {
+func AddStatusBarIcon(icon gaba.StatusBarIcon) {
 	defaultStatusBar.Icons = append([]gaba.StatusBarIcon{icon}, defaultStatusBar.Icons...)
 }

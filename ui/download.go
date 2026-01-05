@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"grout/cache"
 	"grout/cfw"
+	"grout/cfw/muos"
 	"grout/constants"
 	"grout/internal"
 	"grout/internal/fileutil"
 	"grout/internal/imageutil"
 	"grout/romm"
-	"grout/utils"
 	_ "image/gif"
 	_ "image/jpeg"
 	"io"
@@ -182,7 +182,7 @@ func (s *DownloadScreen) draw(input downloadInput) (ScreenResult[downloadOutput]
 				}
 
 				if cfw.GetCFW() == cfw.MuOS {
-					if err := utils.OrganizeMultiFileRomForMuOS(extractDir, romDirectory, g.FsNameNoExt); err != nil {
+					if err := muos.OrganizeMultiFileRom(extractDir, romDirectory, g.FsNameNoExt); err != nil {
 						logger.Error("Failed to organize multi-file ROM for muOS", "game", g.FsNameNoExt, "error", err)
 						os.Remove(tmpZipPath)
 						os.RemoveAll(extractDir)

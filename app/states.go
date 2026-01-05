@@ -10,7 +10,6 @@ import (
 	"grout/sync"
 	"grout/ui"
 	"grout/update"
-	"grout/utils"
 	"os"
 	gosync "sync"
 	"sync/atomic"
@@ -117,7 +116,7 @@ func buildFSM(config *internal.Config, c cfw.CFW, platforms []romm.Platform, qui
 			autoSyncOnce.Do(func() {
 				host, _ := gaba.Get[romm.Host](ctx)
 				autoSync = sync.NewAutoSync(host, config)
-				utils.AddIcon(autoSync.Icon())
+				ui.AddStatusBarIcon(autoSync.Icon())
 				autoSync.Start()
 			})
 		}
@@ -126,7 +125,7 @@ func buildFSM(config *internal.Config, c cfw.CFW, platforms []romm.Platform, qui
 		if currentCFW != cfw.NextUI {
 			autoUpdateOnce.Do(func() {
 				autoUpdate = update.NewAutoUpdate(currentCFW)
-				utils.AddIcon(autoUpdate.Icon())
+				ui.AddStatusBarIcon(autoUpdate.Icon())
 				autoUpdate.Start()
 			})
 		}

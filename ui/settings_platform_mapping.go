@@ -7,7 +7,6 @@ import (
 	"grout/internal"
 	"grout/internal/fileutil"
 	"grout/internal/stringutil"
-	"grout/utils"
 	"os"
 	"path/filepath"
 	"slices"
@@ -70,7 +69,7 @@ func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (ScreenResult[P
 		gaba.OptionListSettings{
 			FooterHelpItems:   footerItems,
 			DisableBackButton: input.HideBackButton,
-			StatusBar:         utils.StatusBar(),
+			StatusBar:         StatusBar(),
 		},
 		mappingOptions,
 	)

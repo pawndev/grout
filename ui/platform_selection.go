@@ -5,7 +5,6 @@ import (
 	"grout/constants"
 	"grout/internal"
 	"grout/romm"
-	"grout/utils"
 	"sync/atomic"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -108,7 +107,7 @@ func (s *PlatformSelectionScreen) Draw(input PlatformSelectionInput) (ScreenResu
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
 
-	options.StatusBar = utils.StatusBar()
+	options.StatusBar = StatusBar()
 
 	sel, err := gaba.List(options)
 

@@ -1,4 +1,4 @@
-package utils
+package bios
 
 import (
 	"crypto/md5"
@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func SaveBIOSFile(biosFile constants.BIOSFile, platformFSSlug string, data []byte) error {
+func SaveFile(biosFile constants.BIOSFile, platformFSSlug string, data []byte) error {
 	filePaths := cfw.GetBIOSFilePaths(biosFile.RelativePath, platformFSSlug)
 
 	for _, filePath := range filePaths {
@@ -29,7 +29,7 @@ func SaveBIOSFile(biosFile constants.BIOSFile, platformFSSlug string, data []byt
 	return nil
 }
 
-func VerifyBIOSFileMD5(data []byte, expectedMD5 string) (bool, string) {
+func VerifyFileMD5(data []byte, expectedMD5 string) (bool, string) {
 	if expectedMD5 == "" {
 		// No MD5 hash to verify against
 		return true, ""
@@ -41,7 +41,7 @@ func VerifyBIOSFileMD5(data []byte, expectedMD5 string) (bool, string) {
 	return actualMD5 == expectedMD5, actualMD5
 }
 
-func GetBIOSFileInfo(biosFile constants.BIOSFile, platformFSSlug string) (exists bool, size int64, md5Hash string, err error) {
+func GetFileInfo(biosFile constants.BIOSFile, platformFSSlug string) (exists bool, size int64, md5Hash string, err error) {
 	filePaths := cfw.GetBIOSFilePaths(biosFile.RelativePath, platformFSSlug)
 
 	for _, filePath := range filePaths {
@@ -72,7 +72,7 @@ func GetBIOSFileInfo(biosFile constants.BIOSFile, platformFSSlug string) (exists
 	return false, 0, "", nil
 }
 
-func GetBIOSFilesForPlatform(platformFSSlug string) []constants.BIOSFile {
+func GetFilesForPlatform(platformFSSlug string) []constants.BIOSFile {
 	var biosFiles []constants.BIOSFile
 
 	coreNames, ok := constants.PlatformToLibretroCores[platformFSSlug]
@@ -99,33 +99,33 @@ func GetBIOSFilesForPlatform(platformFSSlug string) []constants.BIOSFile {
 	return biosFiles
 }
 
-type BIOSStatus string
+type Status string
 
 const (
-	BIOSStatusMissing        BIOSStatus = "missing"
-	BIOSStatusValid          BIOSStatus = "valid"
-	BIOSStatusInvalidHash    BIOSStatus = "invalid_hash"
-	BIOSStatusNoHashToVerify BIOSStatus = "no_hash"
+	StatusMissing        Status = "missing"
+	StatusValid          Status = "valid"
+	StatusInvalidHash    Status = "invalid_hash"
+	StatusNoHashToVerify Status = "no_hash"
 )
 
-type BIOSFileStatus struct {
+type FileStatus struct {
 	File        constants.BIOSFile
-	Status      BIOSStatus
+	Status      Status
 	Exists      bool
 	Size        int64
 	ActualMD5   string
 	ExpectedMD5 string
 }
 
-func CheckBIOSFileStatus(biosFile constants.BIOSFile, platformFSSlug string) BIOSFileStatus {
-	status := BIOSFileStatus{
+func CheckFileStatus(biosFile constants.BIOSFile, platformFSSlug string) FileStatus {
+	status := FileStatus{
 		File:        biosFile,
 		ExpectedMD5: biosFile.MD5Hash,
 	}
 
-	exists, size, actualMD5, err := GetBIOSFileInfo(biosFile, platformFSSlug)
+	exists, size, actualMD5, err := GetFileInfo(biosFile, platformFSSlug)
 	if err != nil {
-		status.Status = BIOSStatusMissing
+		status.Status = StatusMissing
 		return status
 	}
 
@@ -134,19 +134,19 @@ func CheckBIOSFileStatus(biosFile constants.BIOSFile, platformFSSlug string) BIO
 	status.ActualMD5 = actualMD5
 
 	if !exists {
-		status.Status = BIOSStatusMissing
+		status.Status = StatusMissing
 		return status
 	}
 
 	if biosFile.MD5Hash == "" {
-		status.Status = BIOSStatusNoHashToVerify
+		status.Status = StatusNoHashToVerify
 		return status
 	}
 
 	if actualMD5 == biosFile.MD5Hash {
-		status.Status = BIOSStatusValid
+		status.Status = StatusValid
 	} else {
-		status.Status = BIOSStatusInvalidHash
+		status.Status = StatusInvalidHash
 	}
 
 	return status

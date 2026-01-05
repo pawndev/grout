@@ -6,7 +6,6 @@ import (
 	"grout/cache"
 	"grout/internal"
 	"grout/romm"
-	"grout/utils"
 	"slices"
 	"strings"
 	"time"
@@ -214,7 +213,7 @@ func (s *CollectionPlatformSelectionScreen) Draw(input CollectionPlatformSelecti
 	options.FooterHelpItems = footerItems
 	options.SelectedIndex = input.LastSelectedIndex
 	options.VisibleStartIndex = max(0, input.LastSelectedIndex-input.LastSelectedPosition)
-	options.StatusBar = utils.StatusBar()
+	options.StatusBar = StatusBar()
 
 	sel, err := gaba.List(options)
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 	"grout/constants"
 	"grout/internal"
 	"grout/romm"
-	"grout/utils"
 	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -52,7 +51,7 @@ func (s *AdvancedSettingsScreen) Draw(input AdvancedSettingsInput) (ScreenResult
 			},
 			InitialSelectedIndex: input.LastSelectedIndex,
 			VisibleStartIndex:    input.LastVisibleStartIndex,
-			StatusBar:            utils.StatusBar(),
+			StatusBar:            StatusBar(),
 			SmallTitle:           true,
 		},
 		items,

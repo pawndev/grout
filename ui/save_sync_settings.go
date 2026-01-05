@@ -4,7 +4,6 @@ import (
 	"errors"
 	"grout/cfw"
 	"grout/internal"
-	"grout/utils"
 	"sort"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -47,7 +46,7 @@ func (s *SaveSyncSettingsScreen) Draw(input SaveSyncSettingsInput) (ScreenResult
 				FooterSave(),
 			},
 			InitialSelectedIndex: 0,
-			StatusBar:            utils.StatusBar(),
+			StatusBar:            StatusBar(),
 			SmallTitle:           true,
 		},
 		items,

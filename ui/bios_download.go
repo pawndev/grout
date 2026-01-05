@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"grout/bios"
 	"grout/internal"
 	"grout/internal/fileutil"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"grout/cfw"
 	"grout/constants"
 	"grout/romm"
-	"grout/utils"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
@@ -83,7 +83,7 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 	logger.Debug("Fetched firmware from RomM", "count", len(firmwareList), "platform_id", input.Platform.ID)
 
 	// Try to get BIOS metadata to enrich the firmware list (optional)
-	biosFiles := utils.GetBIOSFilesForPlatform(input.Platform.FSSlug)
+	biosFiles := bios.GetFilesForPlatform(input.Platform.FSSlug)
 
 	// Build metadata lookup by filename for enrichment (case-insensitive)
 	biosMetadataByFileName := make(map[string]constants.BIOSFile)
@@ -135,17 +135,17 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 
 		if item.metadata != nil {
 			// We have metadata - show enriched information
-			status := utils.CheckBIOSFileStatus(*item.metadata, input.Platform.FSSlug)
+			status := bios.CheckFileStatus(*item.metadata, input.Platform.FSSlug)
 
 			var statusText string
 			switch status.Status {
-			case utils.BIOSStatusValid:
+			case bios.StatusValid:
 				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_ready", Other: "Ready"}, nil)
-			case utils.BIOSStatusInvalidHash:
+			case bios.StatusInvalidHash:
 				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_wrong_version", Other: "Wrong Version"}, nil)
-			case utils.BIOSStatusNoHashToVerify:
+			case bios.StatusNoHashToVerify:
 				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_unverified", Other: "Installed (Unverified)"}, nil)
-			case utils.BIOSStatusMissing:
+			case bios.StatusMissing:
 				statusText = i18n.Localize(&goi18n.Message{ID: "bios_status_not_installed", Other: "Not Installed"}, nil)
 			}
 
@@ -155,7 +155,7 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 			}
 
 			displayText = fmt.Sprintf("%s%s - %s", fw.FileName, optionalText, statusText)
-			shouldSelect = status.Status == utils.BIOSStatusMissing || status.Status == utils.BIOSStatusInvalidHash
+			shouldSelect = status.Status == bios.StatusMissing || status.Status == bios.StatusInvalidHash
 		} else {
 			// No metadata - check if file exists and show basic status
 			biosDir := cfw.GetBIOSDirectory()
@@ -200,7 +200,7 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 		FooterBack(),
 		{ButtonName: icons.Start, HelpText: i18n.Localize(&goi18n.Message{ID: "button_download", Other: "Download"}, nil), IsConfirmButton: true},
 	}
-	options.StatusBar = utils.StatusBar()
+	options.StatusBar = StatusBar()
 
 	sel, err := gaba.List(options)
 	if err != nil {
@@ -269,7 +269,7 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 
 		// Verify MD5 if we have metadata
 		if info.metadata != nil && info.metadata.MD5Hash != "" {
-			isValid, actualHash := utils.VerifyBIOSFileMD5(data, info.metadata.MD5Hash)
+			isValid, actualHash := bios.VerifyFileMD5(data, info.metadata.MD5Hash)
 			if !isValid {
 				logger.Warn("MD5 hash mismatch for BIOS file",
 					"file", info.metadata.FileName,
@@ -281,8 +281,8 @@ func (s *BIOSDownloadScreen) draw(input BIOSDownloadInput) (ScreenResult[BIOSDow
 
 		// Save the file
 		if info.metadata != nil {
-			// We have metadata - use SaveBIOSFile to handle subdirectories
-			if err := utils.SaveBIOSFile(*info.metadata, input.Platform.FSSlug, data); err != nil {
+			// We have metadata - use SaveFile to handle subdirectories
+			if err := bios.SaveFile(*info.metadata, input.Platform.FSSlug, data); err != nil {
 				logger.Error("Failed to save BIOS file", "file", info.metadata.FileName, "error", err)
 				continue
 			}

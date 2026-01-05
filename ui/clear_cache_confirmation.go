@@ -4,7 +4,6 @@ import (
 	"errors"
 	"grout/artwork"
 	"grout/cache"
-	"grout/utils"
 	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -69,7 +68,7 @@ func (s *ClearCacheScreen) Draw() (ScreenResult[ClearCacheOutput], error) {
 		{ButtonName: icons.Start, HelpText: i18n.Localize(&goi18n.Message{ID: "button_confirm", Other: "Confirm"}, nil), IsConfirmButton: true},
 	}
 	options.StartInMultiSelectMode = true
-	options.StatusBar = utils.StatusBar()
+	options.StatusBar = StatusBar()
 	options.SmallTitle = true
 
 	result, err := gaba.List(options)

@@ -1,6 +1,12 @@
 version: '3'
 
 tasks:
+  build-base:
+    desc: Build the base Docker image with Go and SDL2 (run once or when deps change)
+    cmds:
+      - docker buildx build --platform=linux/arm64 -t grout-base:latest -f Dockerfile.base .
+    silent: true
+
   build:
     desc: Build for ARM64 using remote gabagool
     cmds:
@@ -19,6 +25,7 @@ tasks:
   all:
     desc: Build and package for all platforms
     cmds:
+      - task: build-base
       - task: build
       - task: extract
       - task: package-next
@@ -29,6 +36,7 @@ tasks:
   all-local:
     desc: Build (with local gabagool via go work) and package for all platforms
     cmds:
+      - task: build-base
       - task: build-local
       - task: extract
       - task: package-next

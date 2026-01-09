@@ -224,9 +224,11 @@
     "Philips CDi"
   ],
   "pico": [
-    "Sega Pico"
+    "pico8",
+    "PICO-8"
   ],
   "pico-8": [
+    "pico8",
     "PICO-8"
   ],
   "pokemon-mini": [

@@ -56,12 +56,19 @@ You can change your language later from the Settings menu.
 3. **Port (optional)** – If your RomM instance runs on a non-standard port, enter it here.
 4. **Username** - Your RomM username.
 5. **Password** - Your RomM password.
+6. **SSL Certificates** (HTTPS only) – Choose whether to verify SSL certificates:
+   - **Verify** – Validate SSL certificates (recommended for production servers)
+   - **Skip Verification** – Skip SSL certificate validation (useful for self-signed certificates or internal CAs)
 
 Use the left and right buttons to cycle through options for Protocol. For the text fields (Hostname, Username,
 Password), pressing `A` will open an on-screen keyboard.
 
 Press `Start` to login. If your credentials are correct and Grout can reach your server, you'll move
 to the next step. If something goes wrong, you'll get a message telling you what happened, and you can try again.
+
+> [!TIP]
+> If you're using a self-signed certificate or a certificate from an internal Certificate Authority, set
+> **SSL Certificates** to **Skip Verification** to avoid connection errors.
 
 > [!NOTE]
 > **OIDC Users:** If your RomM instance uses OIDC authentication, you can still use Grout by setting a password for your

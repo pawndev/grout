@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"grout/romm"
@@ -42,14 +43,26 @@ func newLoginScreen() *LoginScreen {
 func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) {
 	host := input.ExistingHost
 
+	// SSL option visibility - only show when HTTPS is selected
+	sslVisible := &atomic.Bool{}
+	sslVisible.Store(strings.Contains(host.RootURI, "https"))
+
 	items := []gabagool.ItemWithOptions{
 		{
 			Item: gabagool.MenuItem{
 				Text: i18n.Localize(&goi18n.Message{ID: "login_protocol", Other: "Protocol"}, nil),
 			},
 			Options: []gabagool.Option{
-				{DisplayName: i18n.Localize(&goi18n.Message{ID: "login_protocol_http", Other: "HTTP"}, nil), Value: "http://"},
-				{DisplayName: i18n.Localize(&goi18n.Message{ID: "login_protocol_https", Other: "HTTPS"}, nil), Value: "https://"},
+				{
+					DisplayName: i18n.Localize(&goi18n.Message{ID: "login_protocol_http", Other: "HTTP"}, nil),
+					Value:       "http://",
+					OnUpdate:    func(v interface{}) { sslVisible.Store(false) },
+				},
+				{
+					DisplayName: i18n.Localize(&goi18n.Message{ID: "login_protocol_https", Other: "HTTPS"}, nil),
+					Value:       "https://",
+					OnUpdate:    func(v interface{}) { sslVisible.Store(true) },
+				},
 			},
 			SelectedOption: func() int {
 				if strings.Contains(host.RootURI, "https") {
@@ -137,11 +150,11 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 		},
 		{
 			Item: gabagool.MenuItem{
-				Text: i18n.Localize(&goi18n.Message{ID: "login_skip_ssl_verify", Other: "Skip SSL Verification"}, nil),
+				Text: i18n.Localize(&goi18n.Message{ID: "login_ssl_certificates", Other: "SSL Certificates"}, nil),
 			},
 			Options: []gabagool.Option{
-				{DisplayName: i18n.Localize(&goi18n.Message{ID: "option_disabled", Other: "Disabled"}, nil), Value: false},
-				{DisplayName: i18n.Localize(&goi18n.Message{ID: "option_enabled", Other: "Enabled"}, nil), Value: true},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "login_ssl_verify", Other: "Verify"}, nil), Value: false},
+				{DisplayName: i18n.Localize(&goi18n.Message{ID: "login_ssl_skip", Other: "Skip Verification"}, nil), Value: true},
 			},
 			SelectedOption: func() int {
 				if host.InsecureSkipVerify {
@@ -149,6 +162,7 @@ func (s *LoginScreen) draw(input loginInput) (ScreenResult[loginOutput], error) 
 				}
 				return 0
 			}(),
+			VisibleWhen: sslVisible,
 		},
 	}
 

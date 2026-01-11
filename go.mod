@@ -3,8 +3,8 @@ module grout
 go 1.24.2
 
 require (
+	github.com/BrandonKowalski/certifiable v1.3.0
 	github.com/BrandonKowalski/gabagool/v2 v2.6.1
-	github.com/UncleJunVIP/certifiable v1.2.0
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/piglig/go-qr v0.2.6
 	github.com/sonh/qs v0.6.4
@@ -15,6 +15,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
+	github.com/UncleJunVIP/certifiable v1.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/holoplot/go-evdev v0.0.0-20250804134636-ab1d56a1fe83 // indirect

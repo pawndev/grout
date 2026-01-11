@@ -257,6 +257,17 @@ func logLevelToIndex(level string) int {
 	}
 }
 
+func releaseChannelToIndex(releaseChannel internal.ReleaseChannel) int {
+	switch releaseChannel {
+	case internal.ReleaseChannelStable:
+		return 0
+	case internal.ReleaseChannelBeta:
+		return 1
+	default:
+		return 0
+	}
+}
+
 func languageToIndex(lang string) int {
 	switch lang {
 	case "en":

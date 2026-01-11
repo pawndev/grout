@@ -146,7 +146,7 @@ func buildFSM(config *internal.Config, c cfw.CFW, platforms []romm.Platform, qui
 		// Start auto-update check on first platform menu view
 		if currentCFW != cfw.NextUI {
 			autoUpdateOnce.Do(func() {
-				autoUpdate = update.NewAutoUpdate(currentCFW)
+				autoUpdate = update.NewAutoUpdate(currentCFW, config.ReleaseChannel)
 				ui.AddStatusBarIcon(autoUpdate.Icon())
 				autoUpdate.Start()
 			})
@@ -967,7 +967,8 @@ func buildFSM(config *internal.Config, c cfw.CFW, platforms []romm.Platform, qui
 
 		screen := ui.NewUpdateScreen()
 		result, err := screen.Draw(ui.UpdateInput{
-			CFW: currentCFW,
+			CFW:            currentCFW,
+			ReleaseChannel: config.ReleaseChannel,
 		})
 
 		if err != nil {

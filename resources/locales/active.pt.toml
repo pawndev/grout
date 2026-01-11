@@ -30,6 +30,42 @@ other = "Todo artwork já está em cache!"
 hash = "sha1-447a12c1a94ffbcefafc528ff6de40d16b247a7d"
 other = "Nenhum artwork disponível para download."
 
+[orphan_match_complete]
+other = "Combinadas %d de %d ROMs órfãs."
+
+[orphan_match_confirm]
+other = "Encontradas %d ROMs órfãs. Combinar por hash?"
+
+[orphan_match_finding]
+other = "Procurando ROMs órfãs..."
+
+[orphan_match_no_cache]
+other = "Cache não disponível."
+
+[orphan_match_no_matches]
+other = "Nenhuma ROM órfã pôde ser combinada. Elas podem não existir na sua biblioteca RomM."
+
+[orphan_match_no_roms]
+other = "Nenhuma ROM local encontrada."
+
+[orphan_match_none_found]
+other = "Nenhuma ROM órfã encontrada. Todas as ROMs já estão combinadas!"
+
+[orphan_match_processing]
+other = "Processando %d/%d: %s"
+
+[orphan_match_scanning]
+other = "Escaneando ROMs locais..."
+
+[save_sync_orphan_rom_error]
+other = "ROM não combinada. Use 'Combinar órfãs por hash' nas configurações avançadas"
+
+[settings_match_orphans]
+other = "Combinar órfãs por hash"
+
+[settings_refresh_cache]
+other = "Atualizar cache"
+
 [auto_sync_waiting]
 hash = "sha1-c005f14e70da37982e2152d3af9d29a58ea8f01c"
 other = "Aguardando a sincronização terminar..."

@@ -30,6 +30,42 @@ other = "¡Todo el artwork ya está en caché!"
 hash = "sha1-447a12c1a94ffbcefafc528ff6de40d16b247a7d"
 other = "No hay artwork disponible para descargar."
 
+[orphan_match_complete]
+other = "Se emparejaron %d de %d ROMs huérfanas."
+
+[orphan_match_confirm]
+other = "Se encontraron %d ROMs huérfanas. ¿Emparejar por hash?"
+
+[orphan_match_finding]
+other = "Buscando ROMs huérfanas..."
+
+[orphan_match_no_cache]
+other = "Caché no disponible."
+
+[orphan_match_no_matches]
+other = "No se pudieron emparejar ROMs huérfanas. Es posible que no existan en tu biblioteca de RomM."
+
+[orphan_match_no_roms]
+other = "No se encontraron ROMs locales."
+
+[orphan_match_none_found]
+other = "No se encontraron ROMs huérfanas. ¡Todas las ROMs ya están emparejadas!"
+
+[orphan_match_processing]
+other = "Procesando %d/%d: %s"
+
+[orphan_match_scanning]
+other = "Escaneando ROMs locales..."
+
+[save_sync_orphan_rom_error]
+other = "ROM no emparejada. Use 'Emparejar huérfanas por hash' en Configuración avanzada"
+
+[settings_match_orphans]
+other = "Emparejar huérfanas por hash"
+
+[settings_refresh_cache]
+other = "Actualizar caché"
+
 [auto_sync_waiting]
 hash = "sha1-c005f14e70da37982e2152d3af9d29a58ea8f01c"
 other = "Esperando a que finalice la sincronización..."

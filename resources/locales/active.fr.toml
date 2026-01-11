@@ -30,6 +30,42 @@ other = "Toutes les illustrations sont déjà en cache !"
 hash = "sha1-447a12c1a94ffbcefafc528ff6de40d16b247a7d"
 other = "Aucune illustration disponible à télécharger."
 
+[orphan_match_complete]
+other = "%d ROMs orphelines sur %d associées."
+
+[orphan_match_confirm]
+other = "%d ROMs orphelines trouvées. Associer par hash ?"
+
+[orphan_match_finding]
+other = "Recherche des ROMs orphelines..."
+
+[orphan_match_no_cache]
+other = "Cache non disponible."
+
+[orphan_match_no_matches]
+other = "Aucune ROM orpheline n'a pu être associée. Elles n'existent peut-être pas dans votre bibliothèque RomM."
+
+[orphan_match_no_roms]
+other = "Aucune ROM locale trouvée."
+
+[orphan_match_none_found]
+other = "Aucune ROM orpheline trouvée. Toutes les ROMs sont déjà associées !"
+
+[orphan_match_processing]
+other = "Traitement %d/%d : %s"
+
+[orphan_match_scanning]
+other = "Analyse des ROMs locales..."
+
+[save_sync_orphan_rom_error]
+other = "ROM non associée. Utilisez 'Associer orphelines par hash' dans les paramètres avancés"
+
+[settings_match_orphans]
+other = "Associer orphelines par hash"
+
+[settings_refresh_cache]
+other = "Actualiser le cache"
+
 [auto_sync_waiting]
 hash = "sha1-c005f14e70da37982e2152d3af9d29a58ea8f01c"
 other = "En attente de la fin de la synchronisation..."

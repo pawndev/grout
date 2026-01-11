@@ -29,6 +29,42 @@ other = "Kein Artwork zum Herunterladen verfügbar."
 hash = "sha1-ef880c0f2577f0a9fb8ca21f2ed3710e5aef1376"
 other = "Alles Artwork ist bereits zwischengespeichert!"
 
+[orphan_match_complete]
+other = "%d von %d verwaisten ROMs zugeordnet."
+
+[orphan_match_confirm]
+other = "%d verwaiste ROMs gefunden. Per Hash zuordnen?"
+
+[orphan_match_finding]
+other = "Suche verwaiste ROMs..."
+
+[orphan_match_no_cache]
+other = "Cache nicht verfügbar."
+
+[orphan_match_no_matches]
+other = "Keine verwaisten ROMs konnten zugeordnet werden. Sie existieren möglicherweise nicht in Ihrer RomM-Bibliothek."
+
+[orphan_match_no_roms]
+other = "Keine lokalen ROMs gefunden."
+
+[orphan_match_none_found]
+other = "Keine verwaisten ROMs gefunden. Alle ROMs sind bereits zugeordnet!"
+
+[orphan_match_processing]
+other = "Verarbeite %d/%d: %s"
+
+[orphan_match_scanning]
+other = "Scanne lokale ROMs..."
+
+[save_sync_orphan_rom_error]
+other = "ROM nicht zugeordnet. Verwenden Sie 'Verwaiste per Hash zuordnen' in den erweiterten Einstellungen"
+
+[settings_match_orphans]
+other = "Verwaiste per Hash zuordnen"
+
+[settings_refresh_cache]
+other = "Cache aktualisieren"
+
 [auto_sync_waiting]
 hash = "sha1-c005f14e70da37982e2152d3af9d29a58ea8f01c"
 other = "Warten auf Abschluss der Synchronisierung..."

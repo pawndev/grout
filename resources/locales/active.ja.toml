@@ -30,6 +30,42 @@ other = "すべてのアートワークは既にキャッシュされていま�
 hash = "sha1-447a12c1a94ffbcefafc528ff6de40d16b247a7d"
 other = "ダウンロード可能なアートワークがありません。"
 
+[orphan_match_complete]
+other = "%d個中%d個の孤立ROMをマッチしました。"
+
+[orphan_match_confirm]
+other = "%d個の孤立ROMが見つかりました。ハッシュでマッチしますか？"
+
+[orphan_match_finding]
+other = "孤立ROMを検索中..."
+
+[orphan_match_no_cache]
+other = "キャッシュが利用できません。"
+
+[orphan_match_no_matches]
+other = "マッチできる孤立ROMがありませんでした。RomMライブラリに存在しない可能性があります。"
+
+[orphan_match_no_roms]
+other = "ローカルROMが見つかりません。"
+
+[orphan_match_none_found]
+other = "孤立ROMが見つかりません。すべてのROMは既にマッチしています！"
+
+[orphan_match_processing]
+other = "処理中 %d/%d: %s"
+
+[orphan_match_scanning]
+other = "ローカルROMをスキャン中..."
+
+[save_sync_orphan_rom_error]
+other = "ROMがマッチしていません。詳細設定の「ハッシュで孤立ROMをマッチ」を使用してください"
+
+[settings_match_orphans]
+other = "ハッシュで孤立ROMをマッチ"
+
+[settings_refresh_cache]
+other = "キャッシュを更新"
+
 [auto_sync_waiting]
 hash = "sha1-c005f14e70da37982e2152d3af9d29a58ea8f01c"
 other = "同期の完了を待っています..."

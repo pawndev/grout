@@ -30,6 +30,42 @@ other = "Все обложки уже в кэше!"
 hash = "sha1-447a12c1a94ffbcefafc528ff6de40d16b247a7d"
 other = "Нет доступных обложек для загрузки."
 
+[orphan_match_complete]
+other = "Сопоставлено %d из %d осиротевших ROM."
+
+[orphan_match_confirm]
+other = "Найдено %d осиротевших ROM. Сопоставить по хэшу?"
+
+[orphan_match_finding]
+other = "Поиск осиротевших ROM..."
+
+[orphan_match_no_cache]
+other = "Кэш недоступен."
+
+[orphan_match_no_matches]
+other = "Не удалось сопоставить осиротевшие ROM. Возможно, их нет в вашей библиотеке RomM."
+
+[orphan_match_no_roms]
+other = "Локальные ROM не найдены."
+
+[orphan_match_none_found]
+other = "Осиротевшие ROM не найдены. Все ROM уже сопоставлены!"
+
+[orphan_match_processing]
+other = "Обработка %d/%d: %s"
+
+[orphan_match_scanning]
+other = "Сканирование локальных ROM..."
+
+[save_sync_orphan_rom_error]
+other = "ROM не сопоставлен. Используйте «Сопоставить осиротевшие по хэшу» в расширенных настройках"
+
+[settings_match_orphans]
+other = "Сопоставить осиротевшие по хэшу"
+
+[settings_refresh_cache]
+other = "Обновить кэш"
+
 [auto_sync_waiting]
 hash = "sha1-c005f14e70da37982e2152d3af9d29a58ea8f01c"
 other = "Ожидание завершения синхронизации..."

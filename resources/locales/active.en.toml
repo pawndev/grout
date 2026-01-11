@@ -58,6 +58,7 @@ error_loading_platforms = "Error loading platforms!\nPlease check the logs for m
 game_details_average_rating = "Average Rating"
 game_details_companies = "Companies"
 game_details_file_size = "File Size"
+game_details_file_version = "File Version"
 game_details_game = "Game"
 game_details_game_modes = "Game Modes"
 game_details_genres = "Genres"

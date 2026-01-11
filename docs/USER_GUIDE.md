@@ -11,6 +11,8 @@ This guide walks you through using Grout to download games from your RomM instan
 - [Game List](#game-list)
 - [Search](#search)
 - [Game Details](#game-details)
+    - [File Version Selection](#file-version-selection)
+    - [Game Options](#game-options)
 - [Downloading Games](#downloading-games)
 - [BIOS Files](#bios-files)
 - [Settings](#settings)
@@ -204,6 +206,7 @@ To clear a search and return to the full list, press `B`.
 You'll see:
 
 - **Cover art** – The game's box art (if available)
+- **File Version dropdown** – If the game has multiple file versions (like different regions or revisions), use this dropdown to select which version to download. Already-downloaded versions are marked with a download icon.
 - **Summary** – A description of the game
 - **Metadata** – Release date, genres, developers/publishers, game modes, regions, languages, and file size
 - **Multi-file indicator** – If the game has multiple files (like multi-disc PlayStation games)
@@ -211,9 +214,19 @@ You'll see:
 
 From here:
 
-- `A` to download the game
-- `X` to open Game Options
+- `A` to download the game (or `X` if a file version dropdown is present)
+- `Y` to open Game Options
 - `B` to go back without downloading
+
+### File Version Selection
+
+Some games in RomM may have multiple file versions – for example, different regional releases (USA, Europe, Japan) or different revisions (Rev A, Rev B). When a game has multiple versions available:
+
+1. A **File Version** dropdown appears on the game details screen
+2. Use `Up/Down` to scroll to the dropdown, then press `A` to expand it
+3. Select the version you want to download
+4. Versions you've already downloaded are marked with a download icon prefix
+5. Press `X` to download the selected version
 
 ### Game Options
 

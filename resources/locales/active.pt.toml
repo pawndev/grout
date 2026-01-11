@@ -236,6 +236,10 @@ other = "Empresas"
 hash = "sha1-0fce4167b52045abc782cbeb524a9ba741979663"
 other = "Tamanho do Arquivo"
 
+[game_details_file_version]
+hash = "sha1-2acb3a5112a48467b62c3f3410fdc82c8da28655"
+other = "Versão do Arquivo"
+
 [game_details_game]
 hash = "sha1-e3e82846c32567811615378f30240185871e08e5"
 other = "Jogo"

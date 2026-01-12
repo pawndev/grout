@@ -518,6 +518,14 @@ other = "Sammlungen"
 hash = "sha1-820f6b0deff7fdc081825ab624ce289175235630"
 other = "Cache aktualisieren"
 
+[release_beta]
+hash = "sha1-f03b60f7e52b7ce49ed1e4f9fa511c452a2185bb"
+other = "Beta"
+
+[release_stable]
+hash = "sha1-d96e5b2dd07c1733b2b013bd82922c22baade37d"
+other = "Stabil"
+
 [save_sync_downloaded]
 hash = "sha1-c6197029254600e042230dbe5880e70c4b842e07"
 other = "Heruntergeladen"
@@ -539,7 +547,7 @@ hash = "sha1-e3de5ab0ca4c69dbf00e86d2558843e8d806bb49"
 other = "Aus"
 
 [save_sync_rom_not_found]
-hash = "sha1-521ae5ed1a41ca10426f850f1c029b77ba1e075d"
+hash = "sha1-87d49e3909864beb606127edfc23062674d52829"
 other = "{{.Name}} (Nicht in RomM gefunden)"
 
 [save_sync_scanning]
@@ -693,6 +701,10 @@ other = "Log-Level"
 [settings_refresh_cache]
 hash = "sha1-820f6b0deff7fdc081825ab624ce289175235630"
 other = "Cache aktualisieren"
+
+[settings_release_channel]
+hash = "sha1-ddb05bbae80d35657c69e0ff93b186f6c7c92ce2"
+other = "Veröffentlichungskanal"
 
 [settings_save_sync]
 hash = "sha1-3caa02c76bc2b97f136e706433de562fd060f48d"

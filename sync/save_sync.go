@@ -350,7 +350,7 @@ func lookupRomByFuzzyTitle(romFile *LocalRomFile) *PendingFuzzyMatch {
 }
 
 func FindSaveSyncs(host romm.Host, config *internal.Config) ([]SaveSync, []UnmatchedSave, []PendingFuzzyMatch, error) {
-	return FindSaveSyncsFromScan(host, config, ScanRoms())
+	return FindSaveSyncsFromScan(host, config, ScanRoms(config))
 }
 
 func FindSaveSyncsFromScan(host romm.Host, config *internal.Config, scanLocal LocalRomScan) ([]SaveSync, []UnmatchedSave, []PendingFuzzyMatch, error) {

@@ -292,6 +292,10 @@ func lookupRomByFuzzyTitle(romFile *LocalRomFile) *PendingFuzzyMatch {
 		return nil
 	}
 
+	logger.Debug("Starting fuzzy title search",
+		"file", romFile.FileName,
+		"fsSlug", romFile.FSSlug)
+
 	games, err := cache.GetGamesForPlatform(romFile.FSSlug)
 	if err != nil || len(games) == 0 {
 		logger.Debug("No games in cache for fuzzy matching", "fsSlug", romFile.FSSlug, "error", err)
@@ -303,6 +307,11 @@ func lookupRomByFuzzyTitle(romFile *LocalRomFile) *PendingFuzzyMatch {
 		return nil
 	}
 
+	logger.Debug("Fuzzy search comparing against cached games",
+		"file", romFile.FileName,
+		"normalized", localNormalized,
+		"candidateCount", len(games))
+
 	var bestMatch *PendingFuzzyMatch
 	var bestSimilarity float64
 
@@ -312,7 +321,7 @@ func lookupRomByFuzzyTitle(romFile *LocalRomFile) *PendingFuzzyMatch {
 			continue
 		}
 
-		similarity := stringutil.Similarity(localNormalized, remoteNormalized)
+		similarity := stringutil.BestSimilarity(localNormalized, remoteNormalized)
 		if similarity >= FuzzyMatchThreshold && similarity > bestSimilarity {
 			bestSimilarity = similarity
 			bestMatch = &PendingFuzzyMatch{
@@ -327,10 +336,14 @@ func lookupRomByFuzzyTitle(romFile *LocalRomFile) *PendingFuzzyMatch {
 	}
 
 	if bestMatch != nil {
-		logger.Debug("Fuzzy match found",
+		logger.Info("Fuzzy match found",
 			"local", romFile.FileName,
 			"matched", bestMatch.MatchedName,
 			"similarity", fmt.Sprintf("%.0f%%", bestMatch.Similarity*100))
+	} else {
+		logger.Debug("No fuzzy match found above threshold",
+			"file", romFile.FileName,
+			"threshold", fmt.Sprintf("%.0f%%", FuzzyMatchThreshold*100))
 	}
 
 	return bestMatch
@@ -440,6 +453,9 @@ func FindSaveSyncsFromScan(host romm.Host, config *internal.Config, scanLocal Lo
 			}
 
 			if romID == 0 && romFile.SaveFile != nil {
+				logger.Debug("Attempting fuzzy title match",
+					"file", romFile.FileName,
+					"fsSlug", romFile.FSSlug)
 				fuzzyMatch := lookupRomByFuzzyTitle(romFile)
 				if fuzzyMatch != nil {
 					fuzzyMatch.SavePath = romFile.SaveFile.Path
@@ -483,13 +499,15 @@ func FindSaveSyncsFromScan(host romm.Host, config *internal.Config, scanLocal Lo
 			if r.PendingFuzzyMatch {
 				continue
 			}
-			if r.RomID > 0 {
-				logger.Debug("Evaluating ROM for sync",
-					"romName", r.RomName,
-					"romID", r.RomID,
-					"hasLocalSave", r.SaveFile != nil,
-					"remoteSaveCount", len(r.RemoteSaves))
+			// Skip unmatched ROMs - they're already in the unmatched list
+			if r.RomID == 0 {
+				continue
 			}
+			logger.Debug("Evaluating ROM for sync",
+				"romName", r.RomName,
+				"romID", r.RomID,
+				"hasLocalSave", r.SaveFile != nil,
+				"remoteSaveCount", len(r.RemoteSaves))
 			action := r.syncAction()
 			if action == Upload || action == Download {
 				baseName := strings.TrimSuffix(r.FileName, filepath.Ext(r.FileName))

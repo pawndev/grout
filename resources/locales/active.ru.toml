@@ -538,13 +538,9 @@ other = "Вручную"
 hash = "sha1-e3de5ab0ca4c69dbf00e86d2558843e8d806bb49"
 other = "Выкл"
 
-[save_sync_orphan_rom_error]
-hash = "sha1-f6f88b4e23fb2f16a1b1339d9b29da430fc41707"
-other = "ROM не сопоставлен. Используйте «Сопоставить осиротевшие по хэшу» в расширенных настройках"
-
 [save_sync_rom_not_found]
 hash = "sha1-521ae5ed1a41ca10426f850f1c029b77ba1e075d"
-other = "{{.Name}} (ROM не найден в RomM)"
+other = "{{.Name}} (Не найдено в RomM)"
 
 [save_sync_scanning]
 hash = "sha1-6e0e349d1314bd7909fa32d8c46698b412601d19"

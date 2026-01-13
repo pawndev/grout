@@ -251,11 +251,6 @@ func lookupRomByHash(rc *romm.Client, romFile *LocalRomFile, matchResult *MatchA
 
 	shouldAttempt, nextRetry := cache.ShouldAttemptLookupWithNextRetry(romFile.FSSlug, romFile.FileName)
 	if !shouldAttempt {
-		logger.Info("Skipping hash lookup (cooldown active)",
-			"file", romFile.FileName,
-			"fsSlug", romFile.FSSlug,
-			"retriesAt", nextRetry.Format(time.RFC3339),
-			"retriesIn", time.Until(nextRetry).Round(time.Minute).String())
 		if matchResult != nil {
 			matchResult.CooldownActive = true
 			matchResult.CooldownExpiresAt = nextRetry

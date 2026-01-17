@@ -5,14 +5,19 @@ import (
 )
 
 const (
-	NameElement     = "name"
-	DescElement     = "desc"
-	ImageElement    = "image"
-	PlayersElement  = "players"
-	GenreElement    = "genre"
-	PathElement     = "path"
-	GameListElement = "gameList"
-	GameElement     = "game"
+	NameElement        = "name"
+	DescElement        = "desc"
+	ImageElement       = "image"
+	PlayersElement     = "players"
+	GenreElement       = "genre"
+	PathElement        = "path"
+	GameListElement    = "gameList"
+	GameElement        = "game"
+	ReleaseDateElement = "releasedate"
+	DeveloperElement   = "developer"
+	PublisherElement   = "publisher"
+	RatingElement      = "rating"
+	MD5Element         = "md5"
 )
 
 type GameList struct {
@@ -55,7 +60,7 @@ func (gl *GameList) Contains(element, value string) bool {
 }
 
 func (gl *GameList) Save(filepath string) error {
-	gl.document.Indent(2)
+	gl.document.Indent(4)
 	if err := gl.document.WriteToFile(filepath); err != nil {
 		return err
 	}

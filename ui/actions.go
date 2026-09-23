@@ -10,7 +10,6 @@ const (
 	PlatformSelectionActionCollections
 	PlatformSelectionActionSettings
 	PlatformSelectionActionSaveSync
-	PlatformSelectionActionDownloadMissing
 	PlatformSelectionActionQuit
 )
 

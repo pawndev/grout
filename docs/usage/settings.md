@@ -50,6 +50,8 @@ Controls how already-downloaded games appear in game lists:
 - **Mark** - Downloaded games are marked with a download icon
 - **Filter** - Downloaded games are hidden from the list entirely
 
+To change this for one list only, use the Downloaded Games filter (`Y` in a game list).
+
 ### Download Art
 
 When enabled, Grout downloads box art for games after downloading the ROMs. The art goes into your

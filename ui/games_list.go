@@ -114,14 +114,8 @@ func (s *GameListScreen) Draw(input GameListInput) (GameListOutput, error) {
 	title := listTitle(list.Title, input.GameFilter, input.SearchFilter)
 	menuItems := menuItemsFor(list.Entries, *input.Config)
 
-	// With nothing to filter on the Filters screen would open empty and close
-	// again, so the Y hint and the Y action are hidden together. A unified
-	// collection always has its platform picker to offer.
-	showFilters := catalog.HasFilterableMetadata(games) || (catalog.IsCollection(input.Collection) && input.Platform.ID == 0)
-
 	options := s.listOptions(title, menuItems, listChrome{
 		Config:           *input.Config,
-		ShowFilters:      showFilters,
 		ShowBIOS:         hasBIOS && !settings.IsKidModeEnabled(),
 		SelectedIndex:    input.LastSelectedIndex,
 		SelectedPosition: input.LastSelectedPosition,
@@ -366,8 +360,7 @@ func entryText(entry catalog.GameEntry) string {
 
 // listChrome is what the games list offers beyond the games themselves.
 type listChrome struct {
-	Config      settings.Config
-	ShowFilters bool
+	Config settings.Config
 	// ShowBIOS gates the BIOS shortcut, which kid mode hides.
 	ShowBIOS         bool
 	SelectedIndex    int
@@ -388,9 +381,7 @@ func (s *GameListScreen) listOptions(title string, items []gaba.MenuItem, chrome
 	options.VisibleStartIndex = max(0, chrome.SelectedIndex-chrome.SelectedPosition)
 	options.StatusBar = StatusBar()
 
-	if chrome.ShowFilters {
-		options.SecondaryActionButton = gabaconst.VirtualButtonY
-	}
+	options.SecondaryActionButton = gabaconst.VirtualButtonY
 	if chrome.ShowBIOS {
 		options.TertiaryActionButton = gabaconst.VirtualButtonMenu
 	}
@@ -411,11 +402,9 @@ func gameListFooter(chrome listChrome) []gaba.FooterHelpItem {
 		items = append(items, gaba.FooterHelpItem{ButtonName: name, HelpText: localize("button_bios", "BIOS")})
 	}
 
-	if chrome.ShowFilters {
-		items = append(items, gaba.FooterHelpItem{
-			ButtonName: "Y", HelpText: localize("button_filters", "Filters"), Group: gaba.FooterGroupRight,
-		})
-	}
+	items = append(items, gaba.FooterHelpItem{
+		ButtonName: "Y", HelpText: localize("button_filters", "Filters"), Group: gaba.FooterGroupRight,
+	})
 
 	return append(items, gaba.FooterHelpItem{
 		ButtonName: "X", HelpText: localize("button_search", "Search"), Group: gaba.FooterGroupRight,

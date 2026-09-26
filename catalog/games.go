@@ -107,24 +107,6 @@ func FilterByName(games []romm.Rom, filter string) []romm.Rom {
 	return matched
 }
 
-// HasFilterableMetadata reports whether any game carries metadata a filter can
-// narrow by.
-//
-// It mirrors the categories the filter screen offers, so the Filters button
-// appears exactly when that screen would have something to show.
-func HasFilterableMetadata(games []romm.Rom) bool {
-	for i := range games {
-		g := &games[i]
-		if len(g.Metadatum.Genres) > 0 || len(g.Metadatum.Franchises) > 0 ||
-			len(g.Metadatum.Companies) > 0 || len(g.Metadatum.GameModes) > 0 ||
-			len(g.Metadatum.AgeRatings) > 0 || len(g.Regions) > 0 ||
-			len(g.Languages) > 0 || len(g.Tags) > 0 {
-			return true
-		}
-	}
-	return false
-}
-
 // Games returns a source's games, asking the server only when the cache has
 // none.
 func Games(source GameSource) ([]romm.Rom, error) {

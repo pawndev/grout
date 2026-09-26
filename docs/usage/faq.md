@@ -55,7 +55,9 @@ Can't find what you're looking for? [Open an issue](https://github.com/rommapp/g
 > [!NOTE]
 > **Can I filter the games list?**
 >
-> Yes. Press `Y` from any game list to filter by genre, franchise, company, game mode, region, language, age rating, or tag. Only categories with available values for the current platform are shown. Press `B` to clear all filters.
+> Yes. Press `Y` from any game list to show or hide downloaded games, or to filter by genre, franchise, company, game mode, region, language, age rating, or tag. Only metadata categories with available values for the current platform are shown. Press `B` to clear all filters.
+>
+> To grab every game you do not have yet, hide downloaded games, then press `Select` and `R1` to select everything left and download it.
 
 > [!NOTE]
 > **Can I download multiple games at once?**

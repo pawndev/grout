@@ -777,10 +777,19 @@ type GameFilter struct {
 	MinSizeBytes         int64
 	MaxSizeBytes         int64
 	NameSearch           string
+
+	// HideDownloaded overrides the Downloaded Games setting for one browse; nil
+	// follows it. The cache never queries on it.
+	HideDownloaded *bool
 }
 
 // HasActiveFilters returns true if any filter criteria are set.
 func (f GameFilter) HasActiveFilters() bool {
+	return f.HasMetadataFilters() || f.HideDownloaded != nil
+}
+
+// HasMetadataFilters reports whether any criterion the cache can query on is set.
+func (f GameFilter) HasMetadataFilters() bool {
 	return len(f.PlatformSlugs) > 0 || len(f.Genres) > 0 || len(f.Franchises) > 0 || len(f.Companies) > 0 ||
 		len(f.GameModes) > 0 || len(f.AgeRatings) > 0 || len(f.Regions) > 0 ||
 		len(f.Languages) > 0 || len(f.Tags) > 0 ||

@@ -16,6 +16,9 @@ type GameFiltersInput struct {
 	Collection     romm.Collection
 	CurrentFilters cache.GameFilter
 	SearchQuery    string
+	// HideDownloadedByDefault is what the Downloaded Games setting does, so
+	// the row opens on it and only a change from it is kept.
+	HideDownloadedByDefault bool
 }
 
 type GameFiltersOutput struct {
@@ -129,30 +132,31 @@ func (s *GameFiltersScreen) Draw(input GameFiltersInput) (GameFiltersOutput, err
 		Filters:  input.CurrentFilters,
 	}
 
-	manager := cache.GetCacheManager()
-	if manager == nil {
-		return output, nil
-	}
+	// The downloaded row is about the device rather than the library, so it
+	// is there even when the cache has nothing to offer.
+	items := []gaba.ItemWithOptions{downloadedItem(input.CurrentFilters, input.HideDownloadedByDefault)}
 
-	source := filterSource{
-		manager:    manager,
-		platformID: input.Platform.ID,
-		collection: input.Collection,
-		unified:    catalog.IsCollection(input.Collection) && input.Platform.ID == 0,
-	}
-
+	var source filterSource
 	base := cache.GameFilter{NameSearch: input.SearchQuery}
-	if catalog.IsCollection(input.Collection) {
-		if id, err := manager.ResolveCollectionID(input.Collection); err == nil {
-			base.CollectionInternalID = id
+	if manager := cache.GetCacheManager(); manager != nil {
+		source = filterSource{
+			manager:    manager,
+			platformID: input.Platform.ID,
+			collection: input.Collection,
+			unified:    catalog.IsCollection(input.Collection) && input.Platform.ID == 0,
 		}
-	}
 
-	rows, items := s.buildItems(source, base, input.CurrentFilters)
-	if len(items) == 0 {
-		return output, nil
+		if catalog.IsCollection(input.Collection) {
+			if id, err := manager.ResolveCollectionID(input.Collection); err == nil {
+				base.CollectionInternalID = id
+			}
+		}
+
+		rows, metadata := s.buildItems(source, base, input.CurrentFilters)
+		items = append(items, metadata...)
+		// A subslice, so the narrowing edits the rows the screen draws.
+		wireNarrowing(source, base, rows, items[1:])
 	}
-	wireNarrowing(source, base, rows, items)
 
 	result, err := gaba.OptionsList(
 		localize("game_filters_title", "Filters"),
@@ -177,6 +181,7 @@ func (s *GameFiltersScreen) Draw(input GameFiltersInput) (GameFiltersOutput, err
 	filters.NameSearch = base.NameSearch
 	filters.CollectionInternalID = base.CollectionInternalID
 	filters.PlatformID = source.platformID
+	filters.HideDownloaded = downloadedOverride(result.Items, input.HideDownloadedByDefault)
 
 	output.Filters = filters
 	output.Action = GameFiltersActionApply
@@ -350,4 +355,42 @@ func keepSelection(item *gaba.ItemWithOptions, options []gaba.Option) {
 	if current != "" {
 		item.SelectedOption = optionIndex(options, current)
 	}
+}
+
+const downloadedKey = "downloaded"
+
+// downloadedItem is the row that shows or hides games already on the device,
+// opened on the override if there is one and on the setting if not.
+func downloadedItem(current cache.GameFilter, hideByDefault bool) gaba.ItemWithOptions {
+	hide := hideByDefault
+	if current.HideDownloaded != nil {
+		hide = *current.HideDownloaded
+	}
+
+	options := showHide()
+	return gaba.ItemWithOptions{
+		Item:           gaba.MenuItem{Text: localize("filter_downloaded", "Downloaded Games"), Metadata: downloadedKey},
+		Options:        options,
+		SelectedOption: optionIndex(options, !hide),
+	}
+}
+
+// downloadedOverride reads the downloaded row back. It is nil when the row
+// matches the setting, so an untouched row filters nothing.
+func downloadedOverride(items []gaba.ItemWithOptions, hideByDefault bool) *bool {
+	for _, item := range items {
+		if key, _ := item.Item.Metadata.(string); key != downloadedKey {
+			continue
+		}
+		if item.SelectedOption < 0 || item.SelectedOption >= len(item.Options) {
+			return nil
+		}
+		show, ok := item.Options[item.SelectedOption].Value.(bool)
+		if !ok || !show == hideByDefault {
+			return nil
+		}
+		hide := !show
+		return &hide
+	}
+	return nil
 }

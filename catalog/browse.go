@@ -58,11 +58,11 @@ func IsCollection(c romm.Collection) bool {
 func Browse(request BrowseRequest) GameList {
 	games := sortedByName(request.Games)
 
-	if request.Filter.HasActiveFilters() {
+	if request.Filter.HasMetadataFilters() {
 		games = applyMetadataFilter(games, request)
 	}
 
-	if request.Config.DownloadedGames == settings.DownloadedGamesModeFilter {
+	if HidesDownloaded(request.Config, request.Filter) {
 		// Only a game that is entirely on the card is hidden. Hiding one whose
 		// later discs are still missing would leave no way to finish it.
 		games = slices.DeleteFunc(games, func(game romm.Rom) bool {
@@ -248,4 +248,13 @@ func Reordered(original, shown []romm.Platform) []romm.Platform {
 	}
 
 	return slices.Clone(shown)
+}
+
+// HidesDownloaded reports whether a browse leaves out games already on the
+// device: the filters screen's choice if one was made, else the setting.
+func HidesDownloaded(config settings.Config, filter cache.GameFilter) bool {
+	if filter.HideDownloaded != nil {
+		return *filter.HideDownloaded
+	}
+	return config.DownloadedGames == settings.DownloadedGamesModeFilter
 }

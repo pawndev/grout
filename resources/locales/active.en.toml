@@ -63,6 +63,7 @@ error_loading_platforms = "Error loading platforms!\nPlease check the logs for m
 filter_age_rating = "Age Rating"
 filter_all = "All"
 filter_company = "Company"
+filter_downloaded = "Downloaded Games"
 filter_franchise = "Franchise"
 filter_game_mode = "Game Mode"
 filter_genre = "Genre"

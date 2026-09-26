@@ -181,3 +181,43 @@ func TestChosenValue(t *testing.T) {
 		t.Errorf("chosenValue = %q, want nothing for a multi-value filter", got)
 	}
 }
+
+// The downloaded row opens on the setting, or on the override once there is
+// one, and only a change from the setting comes back as an override.
+func TestDownloadedRow(t *testing.T) {
+	hide, show := true, false
+
+	for _, tc := range []struct {
+		name          string
+		hideByDefault bool
+		current       *bool
+		pick          bool // true picks Show
+		wantOpen      bool // true opens on Show
+		wantOverride  *bool
+	}{
+		{"untouched, setting shows", false, nil, true, true, nil},
+		{"untouched, setting hides", true, nil, false, false, nil},
+		{"hide while the setting shows", false, nil, false, true, &hide},
+		{"show while the setting hides", true, nil, true, false, &show},
+		{"reopens on the override", false, &hide, false, false, &hide},
+		{"back to the setting drops the override", false, &hide, true, false, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			item := downloadedItem(cache.GameFilter{HideDownloaded: tc.current}, tc.hideByDefault)
+
+			if opened := item.Options[item.SelectedOption].Value.(bool); opened != tc.wantOpen {
+				t.Errorf("opened on show=%v, want %v", opened, tc.wantOpen)
+			}
+
+			item.SelectedOption = optionIndex(item.Options, tc.pick)
+			got := downloadedOverride([]gaba.ItemWithOptions{item}, tc.hideByDefault)
+
+			switch {
+			case tc.wantOverride == nil && got != nil:
+				t.Errorf("override = %v, want none", *got)
+			case tc.wantOverride != nil && (got == nil || *got != *tc.wantOverride):
+				t.Errorf("override = %v, want hide=%v", got, *tc.wantOverride)
+			}
+		})
+	}
+}

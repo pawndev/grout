@@ -275,6 +275,7 @@ While in multi-select mode:
 
 Press `Y` from any game list to open the filters screen. You can filter games by:
 
+- Downloaded Games: show or hide games already on your device, whatever the [Downloaded Games](settings.md#downloaded-games) setting says, for as long as you browse that list
 - Genre
 - Franchise
 - Company
@@ -284,7 +285,7 @@ Press `Y` from any game list to open the filters screen. You can filter games by
 - Age Rating
 - Tag
 
-Only filter categories that have values for the current platform are shown. On the filters screen, use `Left/Right` to
+Downloaded Games is always there; the other categories only show when they have values for the current platform. On the filters screen, use `Left/Right` to
 cycle a filter's values (or press `A` to open a list picker), then press `Start` to apply or `B` to cancel.
 
 When a filter is active, the title bar displays `[Filtered]`. Pressing `B` in the game list clears the active search

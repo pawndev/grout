@@ -385,10 +385,11 @@ func transitionGameList(ctx *transitionContext, result any) (router.Screen, any)
 	case ui.GameListActionFilters:
 		ctx.stack.Push(ScreenGameList, pushInput, r)
 		return ScreenGameFilters, ui.GameFiltersInput{
-			Platform:       r.Platform,
-			Collection:     r.Collection,
-			CurrentFilters: r.GameFilter,
-			SearchQuery:    r.SearchFilter,
+			Platform:                r.Platform,
+			Collection:              r.Collection,
+			CurrentFilters:          r.GameFilter,
+			SearchQuery:             r.SearchFilter,
+			HideDownloadedByDefault: catalog.HidesDownloaded(*ctx.state.Config, cache.GameFilter{}),
 		}
 
 	case ui.GameListActionBIOS:

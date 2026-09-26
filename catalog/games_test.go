@@ -66,31 +66,6 @@ func TestFilterByName_DoesNotMutateInput(t *testing.T) {
 	}
 }
 
-func TestHasFilterableMetadata(t *testing.T) {
-	tests := []struct {
-		name  string
-		games []romm.Rom
-		want  bool
-	}{
-		{"no games", nil, false},
-		{"no metadata", games("Tetris"), false},
-		{"genre", []romm.Rom{{Metadatum: romm.RomMetadata{Genres: []string{"Puzzle"}}}}, true},
-		{"region", []romm.Rom{{Regions: []string{"USA"}}}, true},
-		{"language", []romm.Rom{{Languages: []string{"English"}}}, true},
-		{"only the second game has any", []romm.Rom{
-			{Name: "Tetris"},
-			{Name: "Sonic", Regions: []string{"USA"}},
-		}, true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := HasFilterableMetadata(tt.games); got != tt.want {
-				t.Errorf("got %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestGameSource_IsCollection(t *testing.T) {
 	platform := GameSource{Platform: romm.Platform{ID: 1, Name: "Game Boy"}}
 	collection := GameSource{Collection: romm.Collection{ID: 7, Name: "Favourites"}}

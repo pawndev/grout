@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"grout/cache"
 	"grout/cfw"
 	"grout/romm"
 	"grout/settings"
@@ -108,5 +109,39 @@ func TestBrowse_FilterKeepsPartlyDownloadedGames(t *testing.T) {
 	}
 	if _, ok := entryFor(list, partial.ID); !ok {
 		t.Error("a game still missing a disc must stay listed so it can be finished")
+	}
+}
+
+// The filters screen can hide or show downloaded games for one browse,
+// whichever way the setting points.
+func TestBrowse_FilterOverrideBeatsTheSetting(t *testing.T) {
+	complete, partial := romsOnCard(t)
+	hide, show := true, false
+
+	for _, tc := range []struct {
+		name       string
+		mode       settings.DownloadedGamesMode
+		override   *bool
+		wantHidden bool
+	}{
+		{"hide while the setting shows", settings.DownloadedGamesModeDoNothing, &hide, true},
+		{"hide while the setting marks", settings.DownloadedGamesModeMark, &hide, true},
+		{"show while the setting hides", settings.DownloadedGamesModeFilter, &show, false},
+		{"no override follows the setting", settings.DownloadedGamesModeFilter, nil, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			list := Browse(BrowseRequest{
+				Games:  []romm.Rom{complete, partial},
+				Config: settings.Config{DownloadedGames: tc.mode},
+				Filter: cache.GameFilter{HideDownloaded: tc.override},
+			})
+
+			if _, listed := entryFor(list, complete.ID); listed == tc.wantHidden {
+				t.Errorf("complete game listed = %v, want %v", listed, !tc.wantHidden)
+			}
+			if _, listed := entryFor(list, partial.ID); !listed {
+				t.Error("a game still missing a disc must stay listed either way")
+			}
+		})
 	}
 }

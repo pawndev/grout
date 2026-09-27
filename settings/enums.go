@@ -30,3 +30,18 @@ const (
 	LogLevelInfo  LogLevel = "INFO"
 	LogLevelError LogLevel = "ERROR"
 )
+
+// RomStorage pins muOS roms to one card. Empty means automatic. The values
+// are muOS's own names for each storage.
+type RomStorage string
+
+const (
+	RomStorageAuto RomStorage = ""
+	RomStorageSD1  RomStorage = "rom"
+	RomStorageSD2  RomStorage = "sdcard"
+	RomStorageUSB  RomStorage = "usb"
+)
+
+// RomStorageEnvVar carries the choice to the firmware layer, which reads the
+// environment rather than the config, as it does for BASE_PATH.
+const RomStorageEnvVar = "GROUT_MUOS_ROM_STORAGE"

@@ -288,6 +288,16 @@ your device. The mapping is saved to `input_mapping.json`, and Grout restarts to
 Deletes the custom input mapping and restores default controls. Only shown when a custom mapping exists. Grout exits
 after resetting so the change takes effect on the next launch.
 
+### ROM Storage (muOS)
+
+Newer muOS mounts each card on its own instead of merging them, so your ROMs could be on SD1, SD2 or a USB drive. This
+picks the one Grout downloads to and reads from.
+
+- **Auto** - The first of USB, SD2 and SD1 that has a `ROMS` folder, the order muOS used to write in
+- **SD1** / **SD2** / **USB** - That card, as long as it has a `ROMS` folder. If it does not, Grout falls back to Auto.
+
+Only shown on muOS versions without the merged `/mnt/union` library.
+
 ---
 
 ## Saving Settings

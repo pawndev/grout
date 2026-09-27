@@ -79,6 +79,8 @@ type Config struct {
 	// GamelistOmitsRegion leaves the region out of the name written to an
 	// EmulationStation gamelist. Off by default, so false is the zero value.
 	GamelistOmitsRegion bool `json:"gamelist_omits_region,omitempty"`
+	// MuOSRomStorage pins roms to one card on muOS without the union mount.
+	MuOSRomStorage RomStorage `json:"muos_rom_storage,omitempty"`
 
 	SwapFaceButtons       bool              `json:"swap_face_buttons,omitempty"`
 	PlatformOrder         []string          `json:"platform_order,omitempty"`

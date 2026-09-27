@@ -3,6 +3,7 @@ package ui
 import (
 	"errors"
 	"fmt"
+	"grout/cfw"
 	"os"
 	"time"
 
@@ -160,6 +161,23 @@ func advancedRows() []settingRow {
 			def:     settings.LogLevelError,
 		},
 		clickableRow("input_mapping", "settings_input_mapping", "Input Mapping"),
+	}
+
+	// Newer muOS mounts each card on its own, so the roms could be on any of
+	// them. Auto takes the first with a ROMS folder: USB, then SD2, then SD1.
+	if cfw.OffersRomStorageChoice() {
+		rows = append(rows, settingRow{
+			key: "rom_storage", label: localize("settings_rom_storage", "ROM Storage"),
+			options: []gaba.Option{
+				{DisplayName: localize("settings_rom_storage_auto", "Auto"), Value: settings.RomStorageAuto},
+				{DisplayName: "SD1", Value: settings.RomStorageSD1},
+				{DisplayName: "SD2", Value: settings.RomStorageSD2},
+				{DisplayName: "USB", Value: settings.RomStorageUSB},
+			},
+			get: func(c settings.Config) any { return c.MuOSRomStorage },
+			set: assign(func(c *settings.Config, v settings.RomStorage) { c.MuOSRomStorage = v }),
+			def: settings.RomStorageAuto,
+		})
 	}
 
 	// Only worth offering when there is a saved mapping to undo.

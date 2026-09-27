@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"grout/cfw"
 	"grout/settings"
 )
 
@@ -139,5 +140,21 @@ func TestAdvancedSettings_UnrepresentableValueFallsBackToTheDefault(t *testing.T
 
 	if row.options[index].Value != row.def {
 		t.Errorf("opened on %v, want the %v default", row.options[index].Value, row.def)
+	}
+}
+
+// The ROM Storage row is offered on muOS without the union mount, and a card
+// chosen on it is what gets saved.
+func TestAdvancedRows_RomStorageOnMuOS(t *testing.T) {
+	t.Setenv(cfw.EnvVar, string(cfw.MuOS))
+	t.Setenv("BASE_PATH", t.TempDir())
+
+	row := advancedRow(t, "rom_storage")
+
+	before := settings.Config{MuOSRomStorage: settings.RomStorageSD2}
+	after := before
+	applySettingRows([]settingRow{row}, &after, settingItems([]settingRow{row}, before))
+	if after.MuOSRomStorage != settings.RomStorageSD2 {
+		t.Errorf("round trip changed the storage to %q", after.MuOSRomStorage)
 	}
 }

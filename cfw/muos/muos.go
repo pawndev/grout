@@ -2,6 +2,7 @@ package muos
 
 import (
 	"embed"
+	"grout/settings"
 	"grout/tables"
 	"os"
 	"path/filepath"
@@ -33,7 +34,71 @@ func GetRomDirectory() string {
 	if basePath := os.Getenv("BASE_PATH"); basePath != "" {
 		return filepath.Join(basePath, "ROMS")
 	}
-	return RomsFolderUnion
+	return romDirectory("/", settings.RomStorage(os.Getenv(settings.RomStorageEnvVar)))
+}
+
+// UsesUnion reports an older muOS that merges every card into one library,
+// where there is no card to choose.
+func UsesUnion() bool {
+	return os.Getenv("BASE_PATH") == "" && isDir(RomsFolderUnion)
+}
+
+// storageConfigDir is where muOS keeps each storage's mount point.
+const storageConfigDir = "/opt/muos/device/config/storage"
+
+// unionOrder is the order the union mount took writes in, and so where a
+// library is looked for now that there is no union.
+var unionOrder = []struct {
+	storage  settings.RomStorage
+	fallback string
+}{
+	{settings.RomStorageUSB, "/mnt/usb"},
+	{settings.RomStorageSD2, "/mnt/sdcard"},
+	{settings.RomStorageSD1, "/mnt/mmc"},
+}
+
+// romDirectory finds the library under root. Older muOS merges every card at
+// /mnt/union; newer muOS dropped that in March 2026 and mounts each card on
+// its own, so the chosen card is used if it has a ROMS folder and the union
+// order otherwise.
+func romDirectory(root string, preferred settings.RomStorage) string {
+	if isDir(filepath.Join(root, RomsFolderUnion)) {
+		return filepath.Join(root, RomsFolderUnion)
+	}
+
+	candidates := make([]string, 0, len(unionOrder)+1)
+	for _, entry := range unionOrder {
+		roms := filepath.Join(root, mountPoint(root, entry.storage, entry.fallback), "ROMS")
+		if entry.storage == preferred {
+			candidates = append([]string{roms}, candidates...)
+		} else {
+			candidates = append(candidates, roms)
+		}
+	}
+
+	for _, roms := range candidates {
+		if isDir(roms) {
+			return roms
+		}
+	}
+	return filepath.Join(root, mountPoint(root, settings.RomStorageSD1, "/mnt/mmc"), "ROMS")
+}
+
+// mountPoint reads where muOS mounts a storage, falling back to its default.
+func mountPoint(root string, storage settings.RomStorage, fallback string) string {
+	data, err := os.ReadFile(filepath.Join(root, storageConfigDir, string(storage), "mount"))
+	if err != nil {
+		return fallback
+	}
+	if mount := strings.TrimSpace(string(data)); mount != "" {
+		return mount
+	}
+	return fallback
+}
+
+func isDir(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
 }
 
 func GetBIOSDirectory() string {

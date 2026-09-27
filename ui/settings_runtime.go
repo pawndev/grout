@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"os"
+
 	"grout/settings"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -14,6 +16,8 @@ import (
 // not require a display, which is what kept romm from cross-compiling.
 func ApplyRuntimeSettings(config *settings.Config) {
 	gaba.SetRawLogLevel(string(config.LogLevel))
+	// The firmware layer finds the rom folder through the environment.
+	os.Setenv(settings.RomStorageEnvVar, string(config.MuOSRomStorage))
 	if err := i18n.SetWithCode(config.Language); err != nil {
 		gaba.GetLogger().Error("Failed to set language", "error", err, "language", config.Language)
 	}

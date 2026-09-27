@@ -1,6 +1,9 @@
 package cfw
 
-import "path/filepath"
+import (
+	"grout/cfw/muos"
+	"path/filepath"
+)
 
 // GetRomDirectory returns the ROM directory for the current CFW.
 func GetRomDirectory() string {
@@ -58,4 +61,10 @@ func joinPath(base, rel string) string {
 // firmwares that want a layout the archive does not already have.
 func OrganizeExtractedRom(extractDir, romDir, baseName string) error {
 	return ActiveFirmware().OrganizeExtracted(extractDir, romDir, baseName)
+}
+
+// OffersRomStorageChoice reports whether the user can pick which card holds
+// the roms: muOS without its old union mount, which merged them all.
+func OffersRomStorageChoice() bool {
+	return GetCFW() == MuOS && !muos.UsesUnion()
 }

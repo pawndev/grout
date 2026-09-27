@@ -30,7 +30,10 @@ func CreateTempQRCode(content string, size int) (string, error) {
 	}
 	tempFile.Close()
 
-	config := goqr.NewQrCodeImgConfig(size/10, qrQuietZone)
+	// Whole pixels per module, as many as fit in size with the quiet zone. A
+	// size too small for one pixel each gives a scale of 0, which PNG rejects.
+	scale := size / (qr.Size() + 2*qrQuietZone)
+	config := goqr.NewQrCodeImgConfig(scale, qrQuietZone)
 	if err := qr.PNG(config, tempFile.Name()); err != nil {
 		// The caller has no path to clean up after a failure, so the empty
 		// file this leaves behind would never be removed.

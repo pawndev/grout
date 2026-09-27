@@ -84,3 +84,36 @@ func qrFilesInTemp(t *testing.T) int {
 	}
 	return count
 }
+
+// The image has to come out at about the size asked for. It came out ten times
+// too big for a pairing URL, past the 800x600 texture limit on the Miyoo, which
+// drew nothing at all (issue #273).
+func TestCreateTempQRCode_FitsTheRequestedSize(t *testing.T) {
+	const content = "https://romm.example/pair/device?user_code=ABCD-1234"
+
+	for _, size := range []int{256, 300, 320} {
+		path, err := CreateTempQRCode(content, size)
+		if err != nil {
+			t.Fatalf("size %d: %v", size, err)
+		}
+		defer os.Remove(path)
+
+		f, err := os.Open(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		img, _, err := image.Decode(f)
+		f.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		width := img.Bounds().Dx()
+		if width > size || width < size/2 {
+			t.Errorf("size %d: image is %dpx wide, want no more than %d and not under half", size, width, size)
+		}
+		if decoded, err := goqr.Decode(img); err != nil || decoded != content {
+			t.Errorf("size %d: decoded %q, %v", size, decoded, err)
+		}
+	}
+}

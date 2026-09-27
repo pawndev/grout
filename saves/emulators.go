@@ -40,7 +40,7 @@ func EmulatorChoices(config settings.Config) []EmulatorChoice {
 
 	var choices []EmulatorChoice
 	for fsSlug := range config.DirectoryMappings {
-		directories := folders[config.ResolveFSSlug(fsSlug)]
+		directories := cfw.SaveFolders(config, fsSlug)
 		if len(directories) < 2 {
 			continue
 		}

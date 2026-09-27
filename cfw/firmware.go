@@ -62,6 +62,11 @@ type Firmware struct {
 	// savesBesideRoms means the platform table doubles as the save table.
 	savesBesideRoms bool
 
+	// extraSaveFolders adds save folders that depend on the rom folder, and
+	// says whether new saves belong in them. muOS's Pickles keeps saves per
+	// core and rom folder.
+	extraSaveFolders func(romFolder string) ([]string, bool)
+
 	// groutGamelist, when set, is where the launcher shortcut entry goes.
 	groutGamelist func() string
 	// groutLauncherPath is the command that entry runs; it follows the
@@ -252,6 +257,7 @@ var firmwares = map[CFW]*Firmware{
 		platforms:         muos.Platforms,
 		saveDirectories:   muos.SaveDirectories,
 		emulatorLabel:     muos.EmulatorLabel,
+		extraSaveFolders:  muos.PicklesSaveFolders,
 		gamelist:          GamelistMuOSText,
 		inputMapping:      muos.GetInputMappingBytes,
 		packaging:         Packaging{Asset: "Grout.muxapp", LaunchScript: "Grout/mux_launch.sh", InstallDepth: 2},

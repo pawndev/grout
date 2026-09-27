@@ -12,6 +12,9 @@ func TestEmulatorLabel_MuOS(t *testing.T) {
 		"file/FinalBurn Neo": "FinalBurn Neo",
 		"PPSSPP":             "PPSSPP",
 		"file/mgba/backup":   "mgba",
+		// Pickles saves live under the core and then the rom folder.
+		"pickles/sram/mgba/gba":              "Pickles (mgba)",
+		"pickles/sram/gpsp/Game Boy Advance": "Pickles (gpsp)",
 	}
 
 	for dir, want := range tests {

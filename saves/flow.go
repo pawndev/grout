@@ -14,6 +14,7 @@ import (
 	"grout/version"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -23,7 +24,6 @@ import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 )
 
-// maxConcurrentRequests bounds the per-ROM save fetches in the discovery fallback.
 // maxConcurrentRequests bounds the per-ROM save fetches in the discovery fallback.
 // Kept low: grout typically talks to a RomM instance on the same LAN (often a Pi/NAS)
 // over Wi-Fi, where a burst of parallel requests gives little benefit and can trip
@@ -763,6 +763,12 @@ func ScanSaves(config *settings.Config) []LocalSave {
 	}
 
 	var saves []LocalSave
+
+	// Folders that depend on the rom folder, like muOS Pickles', only exist
+	// for mapped platforms.
+	if config != nil {
+		emulatorMap = withMappedSaveFolders(emulatorMap, *config)
+	}
 
 	logger.Debug("Starting save scan", "baseSavePath", baseSavePath, "platformCount", len(emulatorMap))
 
@@ -1573,6 +1579,9 @@ func extractPSPGameID(dirName string) string {
 }
 
 func ResolveSaveDirectory(fsSlug string, config *settings.Config) string {
+	if dir := preferredSaveDirectory(fsSlug, config); dir != "" {
+		return dir
+	}
 	if config != nil && config.SaveDirectoryMappings != nil {
 		if mapped, ok := config.SaveDirectoryMappings[fsSlug]; ok && mapped != "" {
 			baseSavePath := cfw.BaseSavePath()
@@ -1594,6 +1603,9 @@ func resolveDiscoveredSaveDirectory(rom cfw.LocalRomFile, config *settings.Confi
 	if rom.FilePath == "" {
 		return ""
 	}
+	if dir := preferredSaveDirectory(rom.FSSlug, config); dir != "" {
+		return dir
+	}
 
 	effectiveFSSlug := rom.FSSlug
 	if config != nil {
@@ -1601,4 +1613,36 @@ func resolveDiscoveredSaveDirectory(rom cfw.LocalRomFile, config *settings.Confi
 	}
 
 	return cfw.GetSaveDirectoryForRomPath(effectiveFSSlug, rom.FilePath)
+}
+
+// preferredSaveDirectory is where the firmware insists new saves go, such as
+// muOS Pickles for a folder it runs, or "" to follow the save mapping.
+func preferredSaveDirectory(fsSlug string, config *settings.Config) string {
+	if config == nil {
+		return ""
+	}
+	folder := cfw.PreferredSaveFolder(*config, fsSlug)
+	base := cfw.BaseSavePath()
+	if folder == "" || base == "" {
+		return ""
+	}
+	return filepath.Join(base, folder)
+}
+
+// withMappedSaveFolders adds each mapped platform's full list of save folders
+// to the firmware's table, without changing the table it was given.
+func withMappedSaveFolders(folders map[string][]string, config settings.Config) map[string][]string {
+	merged := make(map[string][]string, len(folders))
+	for fsSlug, dirs := range folders {
+		merged[fsSlug] = dirs
+	}
+	for rommSlug := range config.DirectoryMappings {
+		fsSlug := config.ResolveFSSlug(rommSlug)
+		for _, dir := range cfw.SaveFolders(config, rommSlug) {
+			if !slices.Contains(merged[fsSlug], dir) {
+				merged[fsSlug] = append(slices.Clone(merged[fsSlug]), dir)
+			}
+		}
+	}
+	return merged
 }

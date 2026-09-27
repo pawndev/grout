@@ -170,6 +170,11 @@ To choose which emulator's save directory a platform syncs with:
 Only platforms with more than one emulator save directory are listed. Selecting the
 default entry clears the override.
 
+On muOS versions with the Pickles frontend, muOS decides per ROM folder whether Pickles or
+RetroArch runs it, and Grout follows that. A folder on Pickles syncs with Pickles' save
+directory for its core, listed as **Pickles (core)**. To use RetroArch for a folder, assign it
+a RetroArch core in muOS.
+
 > [!IMPORTANT]
 > **Kid Mode Impact:** When Kid Mode is enabled, the Settings and Game Options
 > screens are hidden, so save mappings and save slots can't be changed while it

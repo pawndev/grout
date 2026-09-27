@@ -330,6 +330,12 @@ func connectAndLoadPlatforms(config *settings.Config, logger *slog.Logger) []rom
 				return nil, nil
 			}
 			platforms = catalog.SortByOrder(platforms, config.PlatformOrder)
+			if len(platforms) == 0 {
+				// A mapping only counts once its slug matches a server
+				// platform that has games, so this is what a stale or
+				// mistyped mapping looks like.
+				logger.Warn("No mapped platform has games on the server", "mappings", len(config.DirectoryMappings))
+			}
 			return nil, nil
 		})
 

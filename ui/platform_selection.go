@@ -40,10 +40,15 @@ func (s *PlatformSelectionScreen) Draw(input PlatformSelectionInput) (PlatformSe
 		LastSelectedPosition: input.LastSelectedPosition,
 	}
 
-	if input.Platforms == nil || len(*input.Platforms) == 0 {
+	// With collections there is still something to list.
+	if (input.Platforms == nil || len(*input.Platforms) == 0) && !input.ShowCollections {
+		output.Action = s.explainNoPlatforms(input)
 		return output, nil
 	}
-	platforms := *input.Platforms
+	var platforms []romm.Platform
+	if input.Platforms != nil {
+		platforms = *input.Platforms
+	}
 
 	var menuItems []gaba.MenuItem
 
@@ -166,4 +171,30 @@ func shownPlatforms(items []gaba.MenuItem) []romm.Platform {
 		}
 	}
 	return platforms
+}
+
+// explainNoPlatforms says why the list is empty rather than quitting on an
+// empty screen, and offers Settings, where the mappings are.
+func (s *PlatformSelectionScreen) explainNoPlatforms(input PlatformSelectionInput) PlatformSelectionAction {
+	logger := gaba.GetLogger()
+	logger.Debug("No platforms to list")
+
+	message := localize("platform_selection_none", "None of your mapped platforms have games in RomM.")
+	offerSettings := input.QuitOnBack && !settings.IsKidModeEnabled()
+	if !offerSettings {
+		gaba.ConfirmationMessage(message, []gaba.FooterHelpItem{FooterQuit()}, gaba.MessageOptions{})
+		return PlatformSelectionActionQuit
+	}
+
+	_, err := gaba.ConfirmationMessage(
+		message+"\n"+localize("platform_selection_none_hint", "Check your directory mappings in Settings."),
+		[]gaba.FooterHelpItem{FooterQuit(), {ButtonName: "X", HelpText: localize("button_settings", "Settings")}},
+		gaba.MessageOptions{ConfirmButton: buttons.VirtualButtonX},
+	)
+	if err != nil {
+		return PlatformSelectionActionQuit
+	}
+
+	logger.Debug("No platforms, opening settings")
+	return PlatformSelectionActionSettings
 }

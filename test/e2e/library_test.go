@@ -48,3 +48,22 @@ func TestEveryFirmwareReachesTheServer(t *testing.T) {
 		})
 	}
 }
+
+// A card whose mappings match nothing the server has games for used to quit
+// on launch without a word (issue #267). It says why, and X opens Settings,
+// where the mapping can be fixed.
+func TestNoMappedPlatformsExplainsItself(t *testing.T) {
+	s := start(t, options{
+		CFW:       "MUOS",
+		Server:    romm(t),
+		Platforms: []string{"3do"},
+	})
+
+	s.awaitLog("No mapped platform has games on the server")
+	s.awaitLog("No platforms to list")
+	s.screenshot("no-platforms")
+
+	s.press("x")
+	s.awaitLog("No platforms, opening settings")
+	s.screenshot("settings")
+}

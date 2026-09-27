@@ -138,7 +138,13 @@ task deploy:muos-sd2
 task deploy:knulli
 ```
 
-These tasks will remove any existing installation and push the freshly built package to the device.
+These tasks push the freshly built package over the existing installation, so the device keeps its `config.json`, cache
+and other state. A device with no config gets `config-platformless.json`. To start clean, pass `--fresh`, which removes
+the installation first:
+
+```shell
+task deploy:next -- --fresh
+```
 
 ### Local Gabagool Development
 

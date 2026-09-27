@@ -145,3 +145,29 @@ func TestBrowse_FilterOverrideBeatsTheSetting(t *testing.T) {
 		})
 	}
 }
+
+// Hiding downloaded games can empty a list the user just finished, which is
+// not the same as a platform with no games and needs its own message.
+func TestBrowse_AllDownloadedIsReported(t *testing.T) {
+	complete, partial := romsOnCard(t)
+	hide := true
+	request := BrowseRequest{
+		Config: settings.Config{},
+		Filter: cache.GameFilter{HideDownloaded: &hide},
+	}
+
+	request.Games = []romm.Rom{complete}
+	if list := Browse(request); len(list.Entries) != 0 || !list.AllDownloaded {
+		t.Errorf("entries=%d AllDownloaded=%v, want an empty list reported as all downloaded", len(list.Entries), list.AllDownloaded)
+	}
+
+	request.Games = []romm.Rom{complete, partial}
+	if list := Browse(request); list.AllDownloaded {
+		t.Error("a list with a game still to finish is not all downloaded")
+	}
+
+	request.Games = nil
+	if list := Browse(request); list.AllDownloaded {
+		t.Error("an empty platform is not all downloaded")
+	}
+}

@@ -99,9 +99,12 @@ func (s *GameListScreen) Draw(input GameListInput) (GameListOutput, error) {
 	})
 
 	if len(list.Entries) == 0 {
-		if list.AllMappedOut {
+		switch {
+		case list.AllMappedOut:
 			s.showFilteredOutMessage(list.Title)
-		} else {
+		case list.AllDownloaded:
+			s.showAllDownloadedMessage(list.Title)
+		default:
 			s.showEmptyMessage(list.Title, input.SearchFilter)
 		}
 		if clearLastFilter(&output, input.LastApplied) {
@@ -220,6 +223,21 @@ func (s *GameListScreen) showEmptyMessage(platformName, searchFilter string) {
 
 func (s *GameListScreen) showFilteredOutMessage(collectionName string) {
 	message := localizeWith("games_list_filtered_out", "No games in {{.Name}} match your platform mappings", map[string]any{"Name": collectionName})
+
+	gaba.ProcessMessage(
+		message,
+		gaba.ProcessMessageOptions{ShowThemeBackground: true},
+		func() (interface{}, error) {
+			time.Sleep(time.Second * 1)
+			return nil, nil
+		},
+	)
+}
+
+// showAllDownloadedMessage explains a list emptied by hiding downloaded games,
+// which is what finishing a platform looks like.
+func (s *GameListScreen) showAllDownloadedMessage(name string) {
+	message := localizeWith("games_list_all_downloaded", "Every game in {{.Name}} is downloaded", map[string]any{"Name": name})
 
 	gaba.ProcessMessage(
 		message,

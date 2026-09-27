@@ -37,6 +37,8 @@ type GameList struct {
 	// platform the user has mapped a folder for. That needs its own message,
 	// since "no games" would be misleading.
 	AllMappedOut bool
+	// AllDownloaded means hiding downloaded games is what emptied the list.
+	AllDownloaded bool
 }
 
 // BrowseRequest asks for the list of games to show.
@@ -62,15 +64,17 @@ func Browse(request BrowseRequest) GameList {
 		games = applyMetadataFilter(games, request)
 	}
 
+	list := GameList{Title: request.Platform.Name}
+
 	if HidesDownloaded(request.Config, request.Filter) {
 		// Only a game that is entirely on the card is hidden. Hiding one whose
 		// later discs are still missing would leave no way to finish it.
+		before := len(games)
 		games = slices.DeleteFunc(games, func(game romm.Rom) bool {
 			return DownloadStateOf(request.Config, game) == FullyDownloaded
 		})
+		list.AllDownloaded = before > 0 && len(games) == 0
 	}
-
-	list := GameList{Title: request.Platform.Name}
 
 	if IsCollection(request.Collection) {
 		before := len(games)

@@ -511,9 +511,11 @@ func transitionGameOptions(ctx *transitionContext, result any) (router.Screen, a
 
 	if r.Action == ui.GameOptionsActionShowQR {
 		ctx.stack.Push(ScreenGameOptions, ui.GameOptionsInput{
-			Config: ctx.state.Config,
-			Host:   r.Host,
-			Game:   r.Game,
+			Config:      ctx.state.Config,
+			Host:        r.Host,
+			Game:        r.Game,
+			SlotNames:   r.SlotNames,
+			SlotsLoaded: r.SlotsLoaded,
 		}, nil)
 		return ScreenGameQR, ui.GameQRInput{
 			Host: r.Host,

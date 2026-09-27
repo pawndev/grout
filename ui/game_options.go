@@ -13,6 +13,10 @@ type GameOptionsInput struct {
 	Config *settings.Config
 	Host   settings.Host
 	Game   romm.Rom
+	// SlotNames, once SlotsLoaded, is the server's slots from an earlier draw
+	// of this panel, so coming back from the QR code does not fetch them again.
+	SlotNames   []string
+	SlotsLoaded bool
 }
 
 type GameOptionsOutput struct {
@@ -21,6 +25,8 @@ type GameOptionsOutput struct {
 	Host        settings.Host
 	Game        romm.Rom
 	NewSlotName string // Set when a new slot is created (for targeted upload)
+	SlotNames   []string
+	SlotsLoaded bool
 }
 
 type GameOptionsScreen struct{}
@@ -34,8 +40,8 @@ func (s *GameOptionsScreen) Draw(input GameOptionsInput) (GameOptionsOutput, err
 	output := GameOptionsOutput{Action: GameOptionsActionBack, Config: config, Host: input.Host, Game: input.Game}
 
 	// Fetch save summary to determine available slots
-	var slotNames []string
-	if input.Host.DeviceID != "" {
+	slotNames := input.SlotNames
+	if input.Host.DeviceID != "" && !input.SlotsLoaded {
 		client := romm.NewClientFromHost(input.Host, config.ApiTimeout.Duration())
 		gaba.ProcessMessage(
 			localize("synced_games_loading_detail", "Loading save details..."),
@@ -49,6 +55,8 @@ func (s *GameOptionsScreen) Draw(input GameOptionsInput) (GameOptionsOutput, err
 			},
 		)
 	}
+
+	output.SlotNames, output.SlotsLoaded = slotNames, true
 
 	oldSlotPref := config.GetSlotPreference(input.Game.ID)
 

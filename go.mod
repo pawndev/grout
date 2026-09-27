@@ -4,7 +4,7 @@ go 1.25.6
 
 require (
 	github.com/BrandonKowalski/certifiable v1.3.0
-	github.com/BrandonKowalski/gabagool/v2 v2.26.0
+	github.com/BrandonKowalski/gabagool/v2 v2.26.2
 	github.com/beevik/etree v1.7.0
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/holoplot/go-evdev v0.0.0-20260504100651-66d1748fe847

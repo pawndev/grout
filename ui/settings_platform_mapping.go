@@ -317,7 +317,7 @@ func (s *PlatformMappingScreen) filterMenu(platforms []romm.Platform, current ca
 					FooterCancel(),
 					FooterCycle(),
 					{ButtonName: "X", HelpText: localize("button_reset", "Reset")},
-					FooterSave(),
+					FooterApply(),
 				},
 				StatusBar:        StatusBar(),
 				ListPickerButton: constants.VirtualButtonA,

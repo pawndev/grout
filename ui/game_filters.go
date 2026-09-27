@@ -161,7 +161,7 @@ func (s *GameFiltersScreen) Draw(input GameFiltersInput) (GameFiltersOutput, err
 	result, err := gaba.OptionsList(
 		localize("game_filters_title", "Filters"),
 		gaba.OptionListSettings{
-			FooterHelpItems:  OptionsListFooter(),
+			FooterHelpItems:  []gaba.FooterHelpItem{FooterCancel(), FooterCycle(), FooterApply()},
 			StatusBar:        StatusBar(),
 			UseSmallTitle:    true,
 			ListPickerButton: gabaconst.VirtualButtonA,

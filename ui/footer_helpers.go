@@ -23,6 +23,11 @@ func FooterSave() gaba.FooterHelpItem {
 	return footerItem(icons.Start, "button_save", "Save")
 }
 
+// FooterApply is Start on a filters screen, which applies rather than saves.
+func FooterApply() gaba.FooterHelpItem {
+	return footerItem(icons.Start, "button_apply", "Apply")
+}
+
 func FooterCycle() gaba.FooterHelpItem {
 	return footerItem(icons.LeftRight, "button_cycle", "Cycle")
 }

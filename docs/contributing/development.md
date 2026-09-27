@@ -106,7 +106,7 @@ After building, you can package for individual platforms:
 | `task package:next`           | NextUI (TrimUI)           | `dist/Grout.pak/`                       |
 | `task package:muos`           | muOS                      | `dist/muOS/Grout/`, `dist/Grout.muxapp` |
 | `task package:knulli`         | Knulli                    | `dist/Knulli/Grout/`                    |
-| `task package:spruce`         | Spruce / SprigUI / TwigUI | `dist/Spruce/Grout/`                    |
+| `task package:spruce`         | spruce / sprigUI / twigUI | `dist/Spruce/Grout/`                    |
 | `task package:rocknix`        | ROCKNIX                   | `dist/ROCKNIX/`                         |
 | `task package:arkos`          | ArkOS / dArkOS            | `dist/ArkOS/`                           |
 | `task package:trimui`         | TrimUI                    | `dist/Trimui/Grout/`                    |
@@ -171,7 +171,7 @@ dist/
 ├── Grout.muxapp       # muOS archive (ready to install)
 ├── muOS/Grout/        # muOS package (unpacked)
 ├── Knulli/Grout/      # Knulli package
-├── Spruce/Grout/      # Spruce package
+├── Spruce/Grout/      # spruce package
 └── ...                # one directory per remaining CFW
 ```
 

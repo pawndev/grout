@@ -78,7 +78,7 @@ nav:
       - Koriki: getting-started/install-koriki.md
       - Onion: getting-started/install-onion.md
       - ROCKNIX: getting-started/install-rocknix.md
-      - Spruce: getting-started/install-spruce.md
+      - spruce: getting-started/install-spruce.md
       - TrimUI: getting-started/install-trimui.md
   - Usage:
       - User Guide: usage/guide.md
@@ -97,7 +97,7 @@ nav:
           - NextUI: platforms/nextui.md
           - Onion: platforms/onion.md
           - ROCKNIX: platforms/rocknix.md
-          - Spruce: platforms/spruce.md
+          - spruce: platforms/spruce.md
           - TrimUI: platforms/trimui.md
   - Contributing:
       - contributing/index.md

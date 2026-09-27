@@ -1,8 +1,8 @@
-# Spruce Platform Mappings
+# spruce Platform Mappings
 
-This page covers [Spruce][spruce], [SprigUI][sprigui], and [TwigUI][twigui], which share the same Grout build.
+This page covers [spruce][spruce], [sprigUI][sprigui], and [twigUI][twigui], which share the same Grout build.
 
-This table shows the mappings of RomM Fs Slug to Spruce's platform folders.
+This table shows the mappings of RomM Fs Slug to spruce's platform folders.
 
 | Platform Name                 | RomM Fs Slug               | Folder(s)           |
 |-------------------------------|----------------------------|---------------------|

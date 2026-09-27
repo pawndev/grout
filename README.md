@@ -11,7 +11,7 @@
 
 [Allium][allium] · [Anbernic Stock OS][anbernic] · [ArkOS][arkos] · [Batocera][batocera] · [dArkOS][darkos] · [Knulli][knulli] · [Koriki][koriki] · [MinUI][minui]
 
-[muOS][muos] · [NextUI][nextui] · [Onion][onion] · [ROCKNIX][rocknix] · [Spruce][spruce] · [SprigUI][sprigui] · [TwigUI][twigui] · [TrimUI][trimui]
+[muOS][muos] · [NextUI][nextui] · [Onion][onion] · [ROCKNIX][rocknix] · [spruce][spruce] · [sprigUI][sprigui] · [twigUI][twigui] · [TrimUI][trimui]
 
 <br>
 

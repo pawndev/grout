@@ -172,6 +172,13 @@ func (s *BIOSDownloadScreen) fetch(input BIOSDownloadInput, chosen []bios.Requir
 	logger.Debug("Download results", "completed", len(result.Completed), "failed", len(result.Failed))
 	failed = len(result.Failed)
 
+	// Logged as errors, since grout only logs errors by default and the
+	// count alone never says why (#275).
+	for _, failure := range result.Failed {
+		logger.Error("BIOS file failed to download", "file", failure.Download.DisplayName,
+			"url", failure.Download.URL, "error", failure.Error)
+	}
+
 	for _, download := range result.Completed {
 		requirement := staged[download.Location]
 

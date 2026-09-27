@@ -62,7 +62,7 @@ var artSpecs = []artSpec{
 	{
 		slot:      cfw.ArtCover,
 		wanted:    func(settings.Config) bool { return true },
-		sourceURL: func(g romm.Rom, c settings.Config, h settings.Host) string { return g.GetArtworkURL(c.ArtKind, h) },
+		sourceURL: func(g romm.Rom, c settings.Config, h settings.Host) string { return g.GetFullArtworkURL(c.ArtKind, h) },
 		record:    func(p *library.ArtPaths, path string, _ bool) { p.Cover = path },
 	},
 	{

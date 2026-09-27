@@ -271,7 +271,19 @@ func (r *Rom) MaxPlayerCount() int {
 	return maxPlayers
 }
 
+// GetArtworkURL is the cover for grout's own lists, where the small one is
+// plenty.
 func (r *Rom) GetArtworkURL(kind library.ArtKind, host settings.Host) string {
+	return r.artworkURL(kind, host, false)
+}
+
+// GetFullArtworkURL is the cover written for the frontend, which shows it far
+// bigger than grout does, so the large one wins when there is a choice.
+func (r *Rom) GetFullArtworkURL(kind library.ArtKind, host settings.Host) string {
+	return r.artworkURL(kind, host, true)
+}
+
+func (r *Rom) artworkURL(kind library.ArtKind, host settings.Host, preferLarge bool) string {
 	var (
 		coverURL string
 		boxPath  string
@@ -312,12 +324,16 @@ func (r *Rom) GetArtworkURL(kind library.ArtKind, host settings.Host) string {
 	}
 
 	if kind == library.ArtKindDefault || coverURL == "" {
-		if r.PathCoverSmall != "" {
-			coverURL, err = joinPathWithQuery(host.URL(), r.PathCoverSmall)
-			boxPath = r.PathCoverSmall
-		} else if r.PathCoverLarge != "" {
-			coverURL, err = joinPathWithQuery(host.URL(), r.PathCoverLarge)
-			boxPath = r.PathCoverLarge
+		first, second := r.PathCoverSmall, r.PathCoverLarge
+		if preferLarge {
+			first, second = second, first
+		}
+		if first != "" {
+			coverURL, err = joinPathWithQuery(host.URL(), first)
+			boxPath = first
+		} else if second != "" {
+			coverURL, err = joinPathWithQuery(host.URL(), second)
+			boxPath = second
 		} else if r.URLCover != "" {
 			coverURL = r.URLCover
 			boxPath = r.URLCover

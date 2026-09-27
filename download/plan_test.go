@@ -272,3 +272,27 @@ func TestBuildPlan_GamelistNameRegion(t *testing.T) {
 		}
 	}
 }
+
+// The cover written for the frontend is the large one when RomM has both. The
+// small one is for grout's own lists and looked soft on the device (#257).
+func TestBuildPlan_CoverArtIsTheLargeOne(t *testing.T) {
+	game := romm.Rom{
+		ID: 42, Name: "Test Game", FsName: "test.nds", FsNameNoExt: "test",
+		PathCoverSmall: "/covers/small.png",
+		PathCoverLarge: "/covers/large.png",
+		Files:          []romm.RomFile{{ID: 100, FileName: "test.nds"}},
+	}
+	config := settings.Config{DownloadArt: true, ArtKind: library.ArtKindDefault}
+
+	plan, _ := BuildPlan(config, testHost(), testPlatform(), []romm.Rom{game}, 0)
+	if len(plan.Art) == 0 || !strings.Contains(plan.Art[0].URL, "/covers/large.png") {
+		t.Fatalf("cover art = %+v, want the large cover", plan.Art)
+	}
+
+	// With only the small one, that is still better than none.
+	game.PathCoverLarge = ""
+	plan, _ = BuildPlan(config, testHost(), testPlatform(), []romm.Rom{game}, 0)
+	if len(plan.Art) == 0 || !strings.Contains(plan.Art[0].URL, "/covers/small.png") {
+		t.Fatalf("cover art = %+v, want the small cover when it is all there is", plan.Art)
+	}
+}

@@ -24,9 +24,15 @@ func NewDevicePairingScreen() *DevicePairingScreen {
 	return &DevicePairingScreen{}
 }
 
-// qrDrawSize is both the size the QR is rendered at and the size it is drawn,
-// so it stays sharp on the small screens these devices have.
-const qrDrawSize = 320
+// maxPairingQRSize is the largest the QR is drawn. It is rendered at the size
+// it is drawn, so it stays sharp on the small screens these devices have.
+const maxPairingQRSize = 320
+
+// pairingQRSize is half the screen's height, up to maxPairingQRSize, which
+// leaves room for the instructions and the footer below it.
+func pairingQRSize(screenHeight int32) int {
+	return min(maxPairingQRSize, int(screenHeight)/2)
+}
 
 // Execute shows a QR code for the user to scan and waits for them to approve
 // the device in RomM.
@@ -42,7 +48,8 @@ func (s *DevicePairingScreen) Execute(input DevicePairingInput) auth.PairingResu
 	// The QR encodes the verification URL with the code already in it, so
 	// scanning is the whole approval. Without one the user is stuck, but the
 	// poll still runs and a second device can approve it.
-	qrPath, err := imaging.CreateTempQRCode(pairing.VerificationURL, qrDrawSize)
+	qrSize := pairingQRSize(gaba.GetWindow().GetHeight())
+	qrPath, err := imaging.CreateTempQRCode(pairing.VerificationURL, qrSize)
 	if err != nil {
 		logger.Warn("Unable to generate pairing QR code", "error", err)
 		qrPath = ""
@@ -59,8 +66,8 @@ func (s *DevicePairingScreen) Execute(input DevicePairingInput) auth.PairingResu
 		localize("device_pairing_instructions", "Scan the QR Code to Pair"),
 		gaba.ProcessMessageOptions{
 			Image:        qrPath,
-			ImageWidth:   qrDrawSize,
-			ImageHeight:  qrDrawSize,
+			ImageWidth:   int32(qrSize),
+			ImageHeight:  int32(qrSize),
 			CancelButton: constants.VirtualButtonB,
 			FooterHelpItems: []gaba.FooterHelpItem{
 				{ButtonName: "B", HelpText: localize("button_cancel", "Cancel")},

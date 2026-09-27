@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"time"
+
 	"grout/saves"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -34,8 +36,10 @@ func (s *SyncHistoryScreen) Draw(input SyncHistoryInput) (SyncHistoryOutput, err
 		return output, nil
 	}
 
+	gaba.GetLogger().Debug("Showing sync history", "days", len(days))
+
 	options := gaba.DefaultInfoScreenOptions()
-	options.Sections = historySections(days)
+	options.Sections = historySections(days, time.Now())
 	options.ShowThemeBackground = false
 	options.ShowScrollbar = true
 	options.ConfirmButton = buttons.VirtualButtonUnassigned
@@ -71,29 +75,48 @@ func actionIcon(action string) string {
 	}
 }
 
-func historySections(days []saves.SyncDay) []gaba.Section {
+// historySections is a table per day and platform. The platform names are
+// the widest text in the history, so moving them from a column into the title
+// leaves the games and times room to fit on one line.
+func historySections(days []saves.SyncDay, now time.Time) []gaba.Section {
 	headers := []string{
 		cloudOutline,
 		localize("sync_history_col_game", "Game"),
-		localize("sync_history_col_platform", "Platform"),
 		localize("sync_history_col_time", "Time"),
 	}
 
-	sections := make([]gaba.Section, 0, len(days))
+	var sections []gaba.Section
 	for _, day := range days {
-		rows := make([]gaba.TableRow, len(day.Events))
-		for i, event := range day.Events {
-			rows[i] = gaba.TableRow{Cells: []string{
+		// Events are newest first, so platforms come out in the order they
+		// were last synced.
+		var platforms []string
+		rows := map[string][]gaba.TableRow{}
+		for _, event := range day.Events {
+			if _, seen := rows[event.Platform]; !seen {
+				platforms = append(platforms, event.Platform)
+			}
+			rows[event.Platform] = append(rows[event.Platform], gaba.TableRow{Cells: []string{
 				actionIcon(event.Action),
 				event.RomName,
-				event.Platform,
 				event.At.Format("15:04"),
-			}}
+			}})
 		}
 
-		sections = append(sections, gaba.NewTableSection(
-			day.Date.Format("January 2, 2006"), headers, rows, gaba.TableGridRowDividers))
+		date := historyDate(day.Date, now)
+		for _, platform := range platforms {
+			sections = append(sections, gaba.NewTableSection(
+				date+" · "+platform, headers, rows[platform], gaba.TableGridRowDividers))
+		}
 	}
 
 	return sections
+}
+
+// historyDate keeps section titles short enough to fit beside a platform
+// name: the year only when it is not this one.
+func historyDate(date, now time.Time) string {
+	if date.Year() == now.Year() {
+		return date.Format("Jan 2")
+	}
+	return date.Format("Jan 2, 2006")
 }

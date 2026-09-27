@@ -4,10 +4,12 @@ package e2e
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 // Knulli keeps saves in one folder per platform, which makes it the clearest
@@ -94,4 +96,29 @@ func serverSaves(t *testing.T, s *server) []serverSave {
 		t.Fatalf("reading the server's saves: %v\n%s", err, body)
 	}
 	return saves
+}
+
+// History lists what was synced, with an icon for which way it went.
+func TestSyncHistoryShowsWhatSynced(t *testing.T) {
+	s := start(t, options{
+		CFW: "KNULLI", Server: romm(t), Platforms: []string{"snes"},
+		Existing: []string{"roms/tools"},
+	})
+	s.awaitLog("Configuration Loaded!")
+	// The server is shared with the other tests, which upload a save for the
+	// same game. Contents of its own make this one an upload, which is what
+	// puts it in the history.
+	s.putSave(knulliSave, fmt.Sprintf("a saved game at %d", time.Now().UnixNano()))
+
+	s.press("y") // the sync menu
+	s.press("a") // Sync Now
+	// The result only takes a press once the sync is done. Starting the scan
+	// is too early: a slow run was still scanning when the press landed.
+	s.awaitLog("Sync execution complete")
+	s.awaitStill()
+	s.press("a") // dismiss the result, back to the sync menu
+
+	s.press("Down", "Down", "a") // View History
+	s.awaitLog("Showing sync history")
+	s.screenshot("history")
 }

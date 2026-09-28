@@ -53,11 +53,15 @@ func matchAgainst(knownFiles []File, firmware []romm.Firmware) []Requirement {
 
 	requirements := make([]Requirement, 0, len(firmware))
 	for _, entry := range firmware {
+		name := SafeFileName(entry.FileName)
+		if name == "" {
+			continue
+		}
 		requirement := Requirement{
 			Firmware: entry,
 			// Falling back to the server's name means every later step has one
 			// path to work with instead of two branches.
-			File: File{FileName: entry.FileName, RelativePath: entry.FileName},
+			File: File{FileName: name, RelativePath: name},
 		}
 
 		for _, candidate := range []string{
@@ -79,4 +83,15 @@ func matchAgainst(knownFiles []File, firmware []romm.Firmware) []Requirement {
 	}
 
 	return requirements
+}
+
+// SafeFileName is the server's name for a file reduced to a plain name, so it
+// cannot point outside the folder it is saved into. A name that is nothing but
+// path, such as "..", comes back empty.
+func SafeFileName(name string) string {
+	base := filepath.Base(strings.ReplaceAll(name, "\\", "/"))
+	if base == "." || base == ".." || base == "/" {
+		return ""
+	}
+	return base
 }

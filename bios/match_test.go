@@ -130,3 +130,23 @@ func TestMatch_UnknownPlatform(t *testing.T) {
 		t.Errorf("RelativePath = %q, want it still downloadable under the server's name", got.File.RelativePath)
 	}
 }
+
+// A firmware file grout does not recognise is saved under the server's name,
+// which must stay a plain name inside the BIOS folder. A name that climbs out
+// of it could overwrite any file on the card.
+func TestMatch_ServerNameCannotLeaveTheBIOSFolder(t *testing.T) {
+	requirements := matchAgainst(nil, []romm.Firmware{
+		{FileName: "../../../Roms/evil.bin"},
+		{FileName: "sub/dir/plain.bin"},
+		{FileName: ".."},
+	})
+
+	if len(requirements) != 2 {
+		t.Fatalf("got %d requirements, want the one made only of '..' left out", len(requirements))
+	}
+	for i, want := range []string{"evil.bin", "plain.bin"} {
+		if got := requirements[i].File.RelativePath; got != want {
+			t.Errorf("requirement %d saves to %q, want %q", i, got, want)
+		}
+	}
+}

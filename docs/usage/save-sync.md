@@ -198,6 +198,9 @@ We have this filter in place as some CFWs place the save files alongside the ROM
 
 If you notice that a save that is not being synced has an extension not in this list, please [create an issue on GitHub](https://github.com/rommapp/grout/issues/new?template=bug-report.md).
 
+On NextUI, a downloaded save is named the way the **Save format** setting says, whatever it was called on the server:
+`Game.gba.sav` for MinUI (the default), `Game.srm` for RetroArch, and `Game.sav` for Generic.
+
 ### Syncs can be obscured by autoload { data-toc-label="Autoload Warning" }
 
 If you use save states with autoload enabled, the emulator will load the state instead of the save file. To use synced

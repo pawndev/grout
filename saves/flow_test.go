@@ -999,3 +999,37 @@ func TestBuildClientSaveStates_ExplicitAutosaveOverridesRecorded(t *testing.T) {
 		t.Fatalf("explicit autosave must override recorded 'default': got %+v", states)
 	}
 }
+
+// On NextUI a downloaded save is named the way its Save format setting says,
+// whatever extension it had on the server. A .srm from a RetroArch device
+// written as Game.sfc.srm was never loaded under the default format.
+func TestDownloadSaveName_FollowsNextUISaveFormat(t *testing.T) {
+	base := t.TempDir()
+	t.Setenv("BASE_PATH", base)
+	t.Setenv(cfw.EnvVar, string(cfw.NextUI))
+
+	name := downloadSaveName("Game (USA).sfc", "Game (USA) [2026-01-01_00-00-00].srm", "srm", t.TempDir())
+	if name != "Game (USA).sfc.sav" {
+		t.Errorf("default format: %q, want Game (USA).sfc.sav", name)
+	}
+
+	dir := filepath.Join(base, ".userdata", "shared")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "minuisettings.txt"), []byte("saveFormat=2\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if name := downloadSaveName("Game (USA).sfc", "x.srm", "srm", t.TempDir()); name != "Game (USA).sav" {
+		t.Errorf("generic format: %q, want Game (USA).sav", name)
+	}
+}
+
+// Elsewhere the style is still read off the saves already there, and the
+// server's extension is kept.
+func TestDownloadSaveName_OtherFirmwaresUnchanged(t *testing.T) {
+	t.Setenv(cfw.EnvVar, string(cfw.Knulli))
+	if name := downloadSaveName("Game (USA).sfc", "x.srm", "srm", t.TempDir()); name != "Game (USA).srm" {
+		t.Errorf("knulli: %q, want Game (USA).srm", name)
+	}
+}

@@ -700,6 +700,17 @@ func downloadSaveFileName(romFileName, serverFileName, serverExt string, keepRom
 	return cfw.SaveBasename(keepRomExt, romFileName) + "." + serverExt
 }
 
+// downloadSaveName is the name a downloaded save is written under. A firmware
+// that says how its emulator names saves, like NextUI's Save format setting,
+// decides both the style and the extension. Elsewhere the style is read off the
+// saves already in saveDir and the server's extension is kept.
+func downloadSaveName(romFileName, serverFileName, serverExt, saveDir string) string {
+	if keep, ext, ok := cfw.ActiveFirmware().SaveNaming(); ok {
+		return downloadSaveFileName(romFileName, serverFileName, ext, keep)
+	}
+	return downloadSaveFileName(romFileName, serverFileName, serverExt, detectSaveNameStyle(saveDir))
+}
+
 // saveDirKeepsRomExt infers whether the emulator that owns saveDir names saves after the
 // full ROM filename (keep) or the bare ROM basename (strip), by inspecting existing save
 // filenames: a save whose name (minus its save extension) still ends in a ROM-looking
@@ -1408,8 +1419,7 @@ func download(client *romm.Client, config *settings.Config, deviceID string, ite
 			saveDir = ResolveSaveDirectory(item.LocalSave.FSSlug, config)
 		}
 		if saveDir != "" {
-			keepRomExt := detectSaveNameStyle(saveDir)
-			fileName := downloadSaveFileName(item.LocalSave.RomFileName, item.RemoteSave.FileName, item.RemoteSave.FileExtension, keepRomExt)
+			fileName := downloadSaveName(item.LocalSave.RomFileName, item.RemoteSave.FileName, item.RemoteSave.FileExtension, saveDir)
 			savePath = filepath.Join(saveDir, fileName)
 		}
 	}

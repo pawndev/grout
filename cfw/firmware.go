@@ -98,6 +98,10 @@ type Firmware struct {
 	// stripping the extension as RetroArch does. Fallback only, when the
 	// convention cannot be read off saves already on the device (issue #245).
 	keepsRomExtInSaves bool
+	// saveNaming, when set, is how the firmware's emulator names a save, read
+	// from its own settings: whether the rom's extension stays and the save's
+	// extension. It overrides inferring the style from saves on the card.
+	saveNaming func() (keepRomExt bool, ext string)
 }
 
 func (f *Firmware) IsBasedOnEmulationStation() bool {
@@ -105,6 +109,15 @@ func (f *Firmware) IsBasedOnEmulationStation() bool {
 }
 
 func (f *Firmware) KeepsRomExtInSaves() bool { return f != nil && f.keepsRomExtInSaves }
+
+// SaveNaming reports how the firmware names saves, when it says so itself.
+func (f *Firmware) SaveNaming() (keepRomExt bool, ext string, ok bool) {
+	if f == nil || f.saveNaming == nil {
+		return false, "", false
+	}
+	keepRomExt, ext = f.saveNaming()
+	return keepRomExt, ext, true
+}
 
 // EmulatorLabel is what to call a save folder on screen. Firmwares that keep
 // the emulator's name as the last path segment need nothing done to it.
@@ -273,6 +286,7 @@ var firmwares = map[CFW]*Firmware{
 		platforms:          nextui.Platforms,
 		saveDirectories:    nextui.SaveDirectories,
 		keepsRomExtInSaves: true,
+		saveNaming:         nextui.SaveNaming,
 		packaging:          Packaging{Asset: "Grout.pak.zip", LaunchScript: "launch.sh", InstallDepth: 1},
 		display:            nextuiDisplay,
 	},

@@ -12,6 +12,7 @@ import (
 	"grout/gamelist"
 	"grout/library"
 	"grout/romm"
+	"grout/settings"
 )
 
 // zipOf writes an archive holding the named files, each with a byte in it so
@@ -196,5 +197,25 @@ func TestPlan_SetGamePath(t *testing.T) {
 	}
 	if got := plan.Entries[0].Game.Path; got != "/roms/snes/Mario.zip" {
 		t.Errorf("Mario moved to %q, but only Zelda was unpacked", got)
+	}
+}
+
+// A game with no fs_name has its metadata entry named after its first file.
+// Unpacking has to find the entry by that same name, or the entry keeps
+// pointing at the archive that unpacking just deleted.
+func TestPlan_SetGamePathWithoutFsName(t *testing.T) {
+	game := romm.Rom{
+		ID: 7, Name: "Zelda", FsNameNoExt: "Zelda",
+		Files: []romm.RomFile{{ID: 1, FileName: "Zelda.zip"}},
+	}
+	plan, _ := BuildPlan(settings.Config{}, testHost(), testPlatform(), []romm.Rom{game}, 0)
+	if len(plan.Entries) != 1 {
+		t.Fatalf("entries = %d, want 1", len(plan.Entries))
+	}
+
+	plan.SetGamePath(game.EntryFileName(), "/roms/nds/Zelda.nds")
+
+	if got := plan.Entries[0].Game.Path; got != "/roms/nds/Zelda.nds" {
+		t.Errorf("entry path = %q, want the unpacked file", got)
 	}
 }

@@ -185,7 +185,7 @@ func (s *DownloadScreen) unpack(input DownloadInput, plan download.Plan, downloa
 				logger.Error("Failed to unpack multi-file ROM", "game", game.Name, "error", err)
 				continue
 			}
-			plan.SetGamePath(game.FsName, path)
+			plan.SetGamePath(game.EntryFileName(), path)
 
 		case input.Config.UnzipDownloads && download.IsArchive(location):
 			path, err := s.extracting(game.Name, func(progress *atomic.Float64) (string, error) {
@@ -195,7 +195,7 @@ func (s *DownloadScreen) unpack(input DownloadInput, plan download.Plan, downloa
 				logger.Warn("Failed to unpack ROM, keeping the archive", "game", game.Name, "error", err)
 				continue
 			}
-			plan.SetGamePath(game.FsName, path)
+			plan.SetGamePath(game.EntryFileName(), path)
 		}
 	}
 }

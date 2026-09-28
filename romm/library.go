@@ -9,11 +9,18 @@ import (
 // ToGame converts a rom into the domain type. The caller supplies what RomM
 // cannot know: how the name should read, where the rom landed, and where its
 // artwork went.
-func (r Rom) ToGame(displayName, path string, art library.ArtPaths) library.Game {
-	fileName := r.FsName
-	if fileName == "" && len(r.Files) > 0 {
-		fileName = r.Files[0].FileName
+// EntryFileName is the name a game's metadata entry goes by: fs_name, or its
+// first file's name when a cached row has none. Anything looking an entry up
+// again has to use the same name.
+func (r Rom) EntryFileName() string {
+	if r.FsName == "" && len(r.Files) > 0 {
+		return r.Files[0].FileName
 	}
+	return r.FsName
+}
+
+func (r Rom) ToGame(displayName, path string, art library.ArtPaths) library.Game {
+	fileName := r.EntryFileName()
 
 	developers := r.Metadatum.Companies
 	if len(developers) == 0 {

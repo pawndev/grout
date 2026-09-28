@@ -12,5 +12,10 @@ export CFW=NEXTUI
 # This $PLATFORM is automatically set by NextUI, we map it another variable just to remember where it comes from.
 export NEXTUI_DEVICE="$PLATFORM"
 export LD_LIBRARY_PATH=$CUR_DIR/lib:$LD_LIBRARY_PATH
+# NextUI's h700 SDL_ttf predates characters above U+FFFF, which is where the
+# icons are, so a newer one goes first.
+if [ "$PLATFORM" = "h700" ]; then
+    export LD_LIBRARY_PATH=$CUR_DIR/lib/h700:$LD_LIBRARY_PATH
+fi
 
 ./grout

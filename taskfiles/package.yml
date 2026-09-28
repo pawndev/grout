@@ -15,6 +15,7 @@ tasks:
       - mkdir -p dist/Grout.pak/lib
       - cp build64/grout scripts/NextUI/launch.sh README.md LICENSE pak.json dist/Grout.pak
       - cp -R build64/lib/* dist/Grout.pak/lib/
+      - mkdir -p dist/Grout.pak/lib/h700 && cp build64/lib-h700/* dist/Grout.pak/lib/h700/
       - chmod a+x dist/Grout.pak/grout dist/Grout.pak/launch.sh
     silent: true
 

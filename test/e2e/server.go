@@ -3,11 +3,14 @@
 package e2e
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 // server is the RomM the tests run against.
@@ -36,6 +39,12 @@ func romm(t *testing.T) *server {
 
 	once.Do(func() { provisiond, provisionErr = provision() })
 	if provisionErr != nil {
+		// Compose sets ROMM_URL, so a run that was promised a server fails
+		// when it cannot have one. Skipping there let a broken RomM pass as
+		// a green run. A plain go test with no server still skips.
+		if os.Getenv("ROMM_URL") != "" {
+			t.Fatalf("RomM could not be provisioned: %v", provisionErr)
+		}
 		t.Skipf("no RomM to test against: %v", provisionErr)
 	}
 	return provisiond
@@ -62,11 +71,19 @@ func provision() (*server, error) {
 		}, nil
 	}
 
-	cmd := exec.Command("python3", "/provision.py")
+	// A server that never answers would otherwise hold the run until go
+	// test's own timeout, half an hour later, with nothing said about why.
+	ctx, cancel := context.WithTimeout(context.Background(), provisionTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "python3", "/provision.py")
 	cmd.Env = append(os.Environ(), "ROMM_URL="+url)
 	cmd.Stderr = os.Stderr
 
 	out, err := cmd.Output()
+	if ctx.Err() != nil {
+		return nil, fmt.Errorf("provisioning did not finish within %s", provisionTimeout)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +95,10 @@ func provision() (*server, error) {
 
 	return &server{URL: url, Username: "e2e", Token: lines[0], DeviceID: lines[1]}, nil
 }
+
+// provisionTimeout bounds setting up RomM: a scan of the test library takes
+// seconds.
+const provisionTimeout = 5 * time.Minute
 
 type provisionFailure string
 

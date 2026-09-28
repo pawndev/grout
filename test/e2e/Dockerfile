@@ -7,7 +7,7 @@ FROM golang:1.25-bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-gfx-dev \
       xvfb x11-utils xdotool imagemagick openbox \
-      python3 python3-requests python3-socketio \
+      python3 python3-requests python3-socketio python3-websocket \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src

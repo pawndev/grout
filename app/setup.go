@@ -209,15 +209,11 @@ func handleFirstLaunch(config *settings.Config, isFirstLaunch bool, logger *slog
 }
 
 func applyConfig(config *settings.Config, isFirstLaunch bool, currentCFW cfw.CFW, logger *slog.Logger) *settings.Config {
-	if config.LogLevel != "" {
-		gaba.SetRawLogLevel(string(config.LogLevel))
-	}
-
-	if config.Language != "" && !isFirstLaunch {
-		if err := i18n.SetWithCode(config.Language); err != nil {
-			logger.Error("Failed to set language", "error", err, "language", config.Language)
-		}
-	}
+	// Everything the running app takes from the settings, the muOS ROM
+	// Storage choice included, before anything looks for the rom folder.
+	// Setting only the log level and language here left that choice unset
+	// on every launch after the first.
+	ui.ApplyRuntimeSettings(config)
 
 	settings.InitKidMode(config)
 	gaba.SetFlipFaceButtons(config.SwapFaceButtons)

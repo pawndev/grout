@@ -100,9 +100,11 @@ func layerOf(importPath string) (Layer, bool) {
 	return layer, true
 }
 
-// isExempt excludes developer tools, which never ship to a device.
+// isExempt excludes developer tools and test helpers, which never ship to a
+// device. The e2e keyboard helper is Linux-only, so it only showed up here on
+// CI.
 func isExempt(importPath string) bool {
-	return strings.HasPrefix(importPath, "grout/tools/")
+	return strings.HasPrefix(importPath, "grout/tools/") || strings.HasPrefix(importPath, "grout/test/")
 }
 
 // toolkitPrefix is the UI toolkit. Importing it links SDL, so the package

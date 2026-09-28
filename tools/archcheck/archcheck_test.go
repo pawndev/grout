@@ -397,6 +397,9 @@ func TestReadAllowFile_MissingFileIsEmpty(t *testing.T) {
 }
 
 func TestIsExempt(t *testing.T) {
+	if !isExempt("grout/test/e2e/groutkeys") {
+		t.Error("test helpers never ship and should be exempt")
+	}
 	if !isExempt("grout/tools/archcheck") {
 		t.Error("developer tools should be exempt")
 	}

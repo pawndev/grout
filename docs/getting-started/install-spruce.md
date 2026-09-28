@@ -1,15 +1,15 @@
-# Installation Guide for Spruce / SprigUI / TwigUI
+# Installation Guide for spruce / sprigUI / twigUI
 
-This guide will help you install Grout on devices running [Spruce][spruce] v4,
-[SprigUI][sprigui], or [TwigUI][twigui].
+This guide will help you install Grout on devices running [spruce][spruce] v4,
+[sprigUI][sprigui], or [twigUI][twigui].
 
 > [!NOTE]
-> SprigUI and TwigUI are alternative operating systems developed by the Spruce team.
-> All three are fully supported by the same Grout package for Spruce.
+> sprigUI and twigUI are alternative operating systems developed by the spruce team.
+> All three are fully supported by the same Grout package for spruce.
 
 ## Tested Devices
 
-Grout has been tested on the following devices running Spruce:
+Grout has been tested on the following devices running spruce:
 
 | Manufacturer | Device    |
 |--------------|-----------|
@@ -22,14 +22,14 @@ Grout has been tested on the following devices running Spruce:
 
 ## Prerequisites
 
-- Device with Spruce (v4/nightlies) installed on an SD card
+- Device with spruce (v4/nightlies) installed on an SD card
 - Device connected to a Wi-Fi network
 
 ## Installation Steps
 
 ### Manual Installation
 
-1. Download the [latest Grout release](https://github.com/rommapp/grout/releases/latest/download/Grout.spruce.zip) for Spruce.
+1. Download the [latest Grout release](https://github.com/rommapp/grout/releases/latest/download/Grout.spruce.zip) for spruce.
 2. Unzip the downloaded archive.
 3. Place the `Grout` directory into `SD_ROOT/App/`.
 4. Launch Grout from the `App` menu and enjoy!

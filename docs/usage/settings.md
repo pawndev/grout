@@ -25,7 +25,7 @@ See [Directory Mappings](#directory-mappings) below.
 **Advanced** - Opens a sub-menu for advanced configuration options. See [Advanced Settings](#advanced-settings) below.
 
 **Grout Info** - View version information, build details, server connection info (including your API token name and
-expiry), and the GitHub repository QR code. Press `X` on this screen to log out — the
+expiry), and the GitHub repository QR code. Press `X` on this screen to log out. The
 confirmation screen also uses `X` to confirm (`B` cancels), so you can't log out by accident.
 
 **Check for Updates** - Check for and install Grout updates.
@@ -49,6 +49,8 @@ Controls how already-downloaded games appear in game lists:
 - **Do Nothing** - No special treatment for downloaded games
 - **Mark** - Downloaded games are marked with a download icon
 - **Filter** - Downloaded games are hidden from the list entirely
+
+To change this for one list only, use the Downloaded Games filter (`Y` in a game list).
 
 ### Download Art
 
@@ -87,6 +89,13 @@ options:
 - **Download Game Manual** - True / False
 - **Download Game Box back** - True / False
 - **Download Game Fan Art** - True / False
+
+### Region in Gamelist Names
+
+_EmulationStation-based firmwares only._ Whether the name written to the gamelist keeps the game's region:
+
+- **Include** - `Super Mario World (USA)`
+- **Omit** - `Super Mario World`
 
 ### Archived Downloads
 
@@ -230,7 +239,7 @@ Note that this artwork is only displayed within Grout's interface - it does not 
 Completely rebuilds the local cache from scratch. This deletes the SQLite database and re-downloads all platform
 and game data from RomM. Use this if you're experiencing cache issues or want a clean slate.
 
-Use `Left/Right` to choose what to rebuild — **Metadata**, **Artwork**, or **All** — then press `A` to continue or
+Use `Left/Right` to choose what to rebuild (**Metadata**, **Artwork**, or **All**), then press `A` to continue or
 `B` to cancel.
 
 > [!NOTE]
@@ -278,6 +287,16 @@ your device. The mapping is saved to `input_mapping.json`, and Grout restarts to
 
 Deletes the custom input mapping and restores default controls. Only shown when a custom mapping exists. Grout exits
 after resetting so the change takes effect on the next launch.
+
+### ROM Storage (muOS)
+
+Newer muOS mounts each card on its own instead of merging them, so your ROMs could be on SD1, SD2 or a USB drive. This
+picks the one Grout downloads to and reads from.
+
+- **Auto** - The first of USB, SD2 and SD1 that has a `ROMS` folder, the order muOS used to write in
+- **SD1** / **SD2** / **USB** - That card, as long as it has a `ROMS` folder. If it does not, Grout falls back to Auto.
+
+Only shown on muOS versions without the merged `/mnt/union` library.
 
 ---
 

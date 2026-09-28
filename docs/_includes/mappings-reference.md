@@ -1,4 +1,5 @@
 - [Allium](../platforms/allium.md) - Uppercase short codes (e.g., `GB`, `GBA`, `PS`)
+- [Anbernic Stock OS](../platforms/anbernic.md) - Uppercase short codes (e.g., `GB`, `GBA`, `PS`)
 - [ArkOS / dArkOS](../platforms/arkos.md) - ES-DE style folder names (e.g., `gb`, `snes`, `psx`)
 - [Batocera](../platforms/batocera.md) - ES-DE style folder names (e.g., `gb`, `megadrive`, `psx`)
 - [KNULLI](../platforms/knulli.md) - ES-DE style folder names (e.g., `gb`, `snes`, `psx`)
@@ -8,5 +9,5 @@
 - [NextUI](../platforms/nextui.md) - Descriptive names with tags (e.g., `Game Boy (GB)`)
 - [Onion](../platforms/onion.md) - Uppercase short codes (e.g., `GB`, `GBA`, `PS`)
 - [ROCKNIX](../platforms/rocknix.md) - ES-DE style folder names (e.g., `gb`, `snes`, `psx`)
-- [Spruce / SprigUI / TwigUI](../platforms/spruce.md) - Uppercase short codes (e.g., `GB`, `SFC`, `PS`)
+- [spruce / sprigUI / twigUI](../platforms/spruce.md) - Uppercase short codes (e.g., `GB`, `SFC`, `PS`)
 - [TrimUI](../platforms/trimui.md) - Uppercase short codes (e.g., `GB`, `GBA`, `PS`)

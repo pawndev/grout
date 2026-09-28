@@ -54,9 +54,11 @@ tasks:
       - task: package:next
       - task: package:muos
       - task: package:knulli
-      - task: package:spruce
       - task: package:rocknix
       - task: package:trimui
+      - task: package:arkos
+      - task: package:batocera
+      - task: package:anbernic
     silent: true
 
   all-arm32:
@@ -66,4 +68,13 @@ tasks:
       - task: package:allium
       - task: package:onion
       - task: package:koriki
+    silent: true
+
+  all-universal:
+    desc: Build and package the platforms that ship both ARM64 and ARM32 binaries
+    cmds:
+      - task: build:arm64
+      - task: build:arm32
+      - task: package:spruce
+      - task: package:minui
     silent: true

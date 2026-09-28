@@ -950,10 +950,6 @@ other = "Your API token is invalid or expired.\nPlease set up a new one."
 hash = "sha1-e3e82846c32567811615378f30240185871e08e5"
 other = "Game"
 
-[sync_history_col_platform]
-hash = "sha1-123a7f2fcc9ae7cbbbd7c7627a483853a9708dab"
-other = "Platform"
-
 [sync_history_col_time]
 hash = "sha1-6c82e6dd86807ee3db07e3c82bec1ae1ce00b08b"
 other = "Time"

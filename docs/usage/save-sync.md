@@ -8,10 +8,10 @@ Save Sync keeps your game saves synchronized between your RomM server and your h
 
 Save Sync needs a device registered with your RomM server so it can track which saves belong to which device.
 
-If you signed in with **Device Pairing** (RomM 5.0+), your device is registered automatically as part of pairing —
+If you signed in with **Device Pairing** (RomM 5.0+), your device is registered automatically as part of pairing:
 there's no separate step, and the **Sync** button (`Y`) is available on the main menu right away.
 
-If your device isn't registered yet — for example, you signed in with a **Pairing Code** — open **Save Sync** from
+If your device isn't registered yet (for example, you signed in with a **Pairing Code**), open **Save Sync** from
 Settings and choose **Register Device**, then enter a device name. The **Sync** button (`Y`) then appears on the main
 menu, giving you quick access to the Sync Menu.
 
@@ -68,8 +68,8 @@ save an **upload**, a **download**, a **conflict**, or nothing to do.
 
 ### Uploads
 
-Local saves the server doesn't have yet — or whose content changed since the last
-sync — are uploaded. If a local save is byte-identical to what was previously
+Local saves the server doesn't have yet, or whose content changed since the last
+sync, are uploaded. If a local save is byte-identical to what was previously
 downloaded from the server, the upload is skipped: the content is already there.
 The server timestamps stored saves; your local filenames are left untouched.
 
@@ -89,11 +89,11 @@ games that have no local save yet, so your saves come back automatically.
 
 When both the local and the server save have changed since the last sync, the item
 is flagged as a conflict. You'll be shown a conflict resolution screen where each
-item defaults to **Skip** — nothing is overwritten unless you actively choose
+item defaults to **Skip**; nothing is overwritten unless you actively choose
 **Keep Local** or **Keep Remote**.
 
 Use `Left/Right` to choose a resolution for each game, then press `Start` to apply.
-Pressing `B` cancels — unresolved conflicts are offered again on the next sync.
+Pressing `B` cancels; unresolved conflicts are offered again on the next sync.
 
 ### No matching ROM in RomM
 
@@ -170,6 +170,11 @@ To choose which emulator's save directory a platform syncs with:
 Only platforms with more than one emulator save directory are listed. Selecting the
 default entry clears the override.
 
+On muOS versions with the Pickles frontend, muOS decides per ROM folder whether Pickles or
+RetroArch runs it, and Grout follows that. A folder on Pickles syncs with Pickles' save
+directory for its core, listed as **Pickles (core)**. To use RetroArch for a folder, assign it
+a RetroArch core in muOS.
+
 > [!IMPORTANT]
 > **Kid Mode Impact:** When Kid Mode is enabled, the Settings and Game Options
 > screens are hidden, so save mappings and save slots can't be changed while it
@@ -192,6 +197,10 @@ Grout supports a wide range of save file extensions: `.srm`, `.sav`, `.dsv`, `.m
 We have this filter in place as some CFWs place the save files alongside the ROM files.
 
 If you notice that a save that is not being synced has an extension not in this list, please [create an issue on GitHub](https://github.com/rommapp/grout/issues/new?template=bug-report.md).
+
+On NextUI, a downloaded save is named the way the **Save format** setting says, whatever it was called on the server:
+`Game.gba.sav` for MinUI (the default), `Game.srm` for RetroArch, and `Game.sav` for Generic.
+MinUI has no such setting and always uses `Game.gba.sav`, so that is how saves are written there.
 
 ### Syncs can be obscured by autoload { data-toc-label="Autoload Warning" }
 

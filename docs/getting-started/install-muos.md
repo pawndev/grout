@@ -31,6 +31,18 @@ _Please help verify compatibility on other devices by reporting your results!_
 6. Exit Archive Manager.
 7. Select `Apps` on the main menu, launch Grout, and enjoy!
 
+## muOS Andromeda
+
+Andromeda changed two things Grout depends on, and Grout handles both the older and the newer layout.
+
+**ROM location.** Older muOS merges every card's `ROMS` folder into one library. Andromeda mounts each card on its own,
+so Grout looks for your ROMs on USB, then SD2, then SD1, and uses the first with a `ROMS` folder. If your library is on
+a different card, pick it under **Settings > Advanced > ROM Storage**.
+
+**Pickles saves.** Andromeda's own frontend, Pickles, keeps saves apart from RetroArch's. muOS decides per ROM folder
+whether Pickles or RetroArch runs it, and Grout syncs saves wherever that is. See
+[Save Directory Mapping](../usage/save-sync.md#save-directory-mapping).
+
 ## Update
 
 ### In-App update (Recommended)

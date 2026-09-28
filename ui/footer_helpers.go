@@ -3,14 +3,12 @@ package ui
 import (
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	icons "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
-	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
-	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 func footerItem(button, msgID, fallback string) gaba.FooterHelpItem {
 	return gaba.FooterHelpItem{
 		ButtonName: button,
-		HelpText:   i18n.Localize(&goi18n.Message{ID: msgID, Other: fallback}, nil),
+		HelpText:   localize(msgID, fallback),
 	}
 }
 
@@ -23,6 +21,11 @@ func FooterQuit() gaba.FooterHelpItem     { return footerItem("B", "button_quit"
 
 func FooterSave() gaba.FooterHelpItem {
 	return footerItem(icons.Start, "button_save", "Save")
+}
+
+// FooterApply is Start on a filters screen, which applies rather than saves.
+func FooterApply() gaba.FooterHelpItem {
+	return footerItem(icons.Start, "button_apply", "Apply")
 }
 
 func FooterCycle() gaba.FooterHelpItem {

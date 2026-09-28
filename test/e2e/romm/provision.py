@@ -160,9 +160,14 @@ def main() -> int:
         return 1
     print(f"scanned {len(platforms)} platforms", file=sys.stderr)
 
+    # Signing in to scan leaves this session with a CSRF token issued before
+    # there was a user, and RomM 5.3 binds the token to one. Basic auth with no
+    # session skips the check by design, so the writes go without cookies.
+    api = requests.Session()
+
     # One line each, so the caller can read them without parsing anything.
-    print(mint_token(session, csrf))
-    print(register_device(session, csrf))
+    print(mint_token(api, ""))
+    print(register_device(api, ""))
     return 0
 
 

@@ -296,3 +296,21 @@ func TestBuildPlan_CoverArtIsTheLargeOne(t *testing.T) {
 		t.Fatalf("cover art = %+v, want the small cover when it is all there is", plan.Art)
 	}
 }
+
+// With no version picked, the download is the first file a player would
+// launch, not whatever RomM happens to list first.
+func TestBuildPlan_DefaultSkipsNonGameFiles(t *testing.T) {
+	game := romm.Rom{
+		ID: 42, Name: "Test Game", FsName: "Test Game", FsNameNoExt: "Test Game",
+		HasNestedSingleFile: true,
+		Files: []romm.RomFile{
+			{ID: 1, FileName: "Manual.pdf", Category: "manual"},
+			{ID: 2, FileName: "Test Game (USA).nds"},
+		},
+	}
+
+	plan, _ := BuildPlan(settings.Config{}, testHost(), testPlatform(), []romm.Rom{game}, 0)
+	if len(plan.Roms) != 1 || !strings.HasSuffix(plan.Roms[0].Location, "Test Game (USA).nds") {
+		t.Fatalf("roms = %+v, want the game, not the manual", plan.Roms)
+	}
+}

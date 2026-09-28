@@ -334,6 +334,9 @@ different revisions (Rev A, Rev B). When a game has multiple versions available:
 4. Versions you've already downloaded are marked with a download icon prefix
 5. Press `X` to download the selected version
 
+Only files you can play are listed. RomM also keeps extras with a game, such as manuals, walkthroughs, soundtracks,
+patches and DLC, sorted by the folder they sit in, and those are not offered as versions.
+
 ### Game Options
 
 - **Save Slot** - Choose which save slot to sync to for this game. Appears when Save Sync is enabled (device

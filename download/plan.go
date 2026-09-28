@@ -263,7 +263,9 @@ func romItem(config settings.Config, host settings.Host, game romm.Rom, romDirec
 		return Item{}, fmt.Errorf("no file metadata; refresh the library to repopulate it")
 	}
 
-	file := game.Files[0]
+	// Unpicked, it is the first file a player would launch: RomM can list a
+	// manual or a soundtrack ahead of the game.
+	file := game.PlayableFiles()[0]
 	if selectedFileID > 0 {
 		for _, f := range game.Files {
 			if f.ID == selectedFileID {

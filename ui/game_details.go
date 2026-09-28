@@ -52,7 +52,9 @@ func (s *GameDetailsScreen) Draw(input GameDetailsInput) (GameDetailsOutput, err
 
 	// A game shipping several versions is downloaded one version at a time, so
 	// the picker takes the A button and downloading moves to X.
-	versions := input.Game.Files
+	// Only files a player would launch are versions; RomM also files manuals
+	// and the like with a game.
+	versions := input.Game.PlayableFiles()
 	picksVersion := input.Game.HasNestedSingleFile && len(versions) > 1
 
 	sections := s.sections(input, picksVersion)
@@ -164,8 +166,9 @@ func (s *GameDetailsScreen) sections(input GameDetailsInput, picksVersion bool) 
 	}
 
 	if picksVersion {
-		options := make([]gaba.DropdownOption, len(game.Files))
-		for i, file := range game.Files {
+		versions := game.PlayableFiles()
+		options := make([]gaba.DropdownOption, len(versions))
+		for i, file := range versions {
 			label := file.FileName
 			if catalog.IsFileDownloaded(*input.Config, game, file.FileName) {
 				label = constants.Download + " " + label

@@ -28,11 +28,19 @@ SCOPES = [
 ]
 
 
+def check(response: requests.Response) -> None:
+    """Fail with what RomM said, not only the status: a bare 403 says nothing."""
+    if not response.ok:
+        raise RuntimeError(
+            f"{response.request.method} {response.url}: {response.status_code} {response.text[:500]}"
+        )
+
+
 def session_with_csrf() -> tuple[requests.Session, str, dict]:
     """A session holding the CSRF cookie RomM checks every write against."""
     session = requests.Session()
     heartbeat = session.get(f"{URL}/api/heartbeat", timeout=30)
-    heartbeat.raise_for_status()
+    check(heartbeat)
     return session, session.cookies.get("romm_csrftoken", ""), heartbeat.json()
 
 
@@ -54,7 +62,7 @@ def create_first_user(session: requests.Session, csrf: str) -> None:
         headers={"X-CSRFToken": csrf},
         timeout=30,
     )
-    response.raise_for_status()
+    check(response)
 
 
 def scan_library(session: requests.Session, csrf: str) -> None:
@@ -119,7 +127,7 @@ def register_device(session: requests.Session, csrf: str) -> str:
         headers={"X-CSRFToken": csrf},
         timeout=30,
     )
-    response.raise_for_status()
+    check(response)
     return response.json()["device_id"]
 
 
@@ -131,7 +139,7 @@ def mint_token(session: requests.Session, csrf: str) -> str:
         headers={"X-CSRFToken": csrf},
         timeout=30,
     )
-    response.raise_for_status()
+    check(response)
     return response.json()["raw_token"]
 
 

@@ -141,7 +141,7 @@ func (s *BIOSDownloadScreen) fetch(input BIOSDownloadInput, chosen []bios.Requir
 	downloads := make([]gaba.Download, 0, len(chosen))
 	staged := make(map[string]bios.Requirement, len(chosen))
 	for _, requirement := range chosen {
-		location := filepath.Join(files.TempDir(), "bios_"+bios.SafeFileName(requirement.Firmware.FileName))
+		location := filepath.Join(files.TempDir(), biosStagingName(requirement))
 		downloads = append(downloads, gaba.Download{
 			URL:         input.Host.URL() + requirement.Firmware.DownloadURL,
 			Location:    location,
@@ -199,6 +199,13 @@ func (s *BIOSDownloadScreen) fetch(input BIOSDownloadInput, chosen []bios.Requir
 	}
 
 	return installed, failed
+}
+
+// biosStagingName is where a firmware file waits between download and
+// install. RomM's id keeps two files that share a name in different folders
+// from landing on each other.
+func biosStagingName(requirement bios.Requirement) string {
+	return fmt.Sprintf("bios_%d_%s", requirement.Firmware.ID, bios.SafeFileName(requirement.Firmware.FileName))
 }
 
 func (s *BIOSDownloadScreen) tell(message string) {

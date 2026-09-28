@@ -301,6 +301,7 @@ var firmwares = map[CFW]*Firmware{
 		platforms:          minui.Platforms,
 		saveDirectories:    minui.SaveDirectories,
 		keepsRomExtInSaves: true,
+		saveNaming:         minuiSaveNaming,
 		inputMapping:       minui.GetInputMappingBytes,
 		packaging:          Packaging{Asset: "Grout-MinUI.zip", LaunchScript: "Grout.pak/launch.sh", InstallDepth: 2},
 		display:            minuiDisplay,
@@ -597,6 +598,10 @@ func (f *Firmware) ArtDirectory(slot ArtSlot, romDir, platformFSSlug, platformNa
 		return ""
 	}
 }
+
+// MinUI's emulator names every save after the whole rom file plus .sav, and
+// has no setting to change it.
+func minuiSaveNaming() (keepRomExt bool, ext string) { return true, "sav" }
 
 // The A30 reports a portrait framebuffer and needs rotating for landscape.
 func spruceDisplay() DisplayQuirks {

@@ -1033,3 +1033,12 @@ func TestDownloadSaveName_OtherFirmwaresUnchanged(t *testing.T) {
 		t.Errorf("knulli: %q, want Game (USA).srm", name)
 	}
 }
+
+// MinUI's emulator always names a save after the whole rom file plus .sav,
+// with no setting to change it.
+func TestDownloadSaveName_MinUIAlwaysSav(t *testing.T) {
+	t.Setenv(cfw.EnvVar, string(cfw.MinUI))
+	if name := downloadSaveName("Game (USA).gba", "x.srm", "srm", t.TempDir()); name != "Game (USA).gba.sav" {
+		t.Errorf("minui: %q, want Game (USA).gba.sav", name)
+	}
+}

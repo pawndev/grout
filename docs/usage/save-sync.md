@@ -200,6 +200,7 @@ If you notice that a save that is not being synced has an extension not in this 
 
 On NextUI, a downloaded save is named the way the **Save format** setting says, whatever it was called on the server:
 `Game.gba.sav` for MinUI (the default), `Game.srm` for RetroArch, and `Game.sav` for Generic.
+MinUI has no such setting and always uses `Game.gba.sav`, so that is how saves are written there.
 
 ### Syncs can be obscured by autoload { data-toc-label="Autoload Warning" }
 

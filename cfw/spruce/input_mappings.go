@@ -21,7 +21,7 @@ const (
 	DeviceMiyooFlip 	Device = "MIYOOFLIP"
 	DeviceTrimui    	Device = "TRIMUI"
 	DevicePixel     	Device = "PIXEL"
-	DeviceH700NoStick	Device = "H700"
+	DeviceH700			Device = "H700"
 	DeviceUnknown   	Device = "UNKNOWN"
 )
 

@@ -16,13 +16,13 @@ var embeddedInputMappings embed.FS
 type Device string
 
 const (
-	DeviceA30       	Device = "A30"
-	DeviceMiyooMini 	Device = "MIYOOMINI"
-	DeviceMiyooFlip 	Device = "MIYOOFLIP"
-	DeviceTrimui    	Device = "TRIMUI"
-	DevicePixel     	Device = "PIXEL"
-	DeviceH700			Device = "H700"
-	DeviceUnknown   	Device = "UNKNOWN"
+	DeviceA30       Device = "A30"
+	DeviceMiyooMini Device = "MIYOOMINI"
+	DeviceMiyooFlip Device = "MIYOOFLIP"
+	DeviceTrimui    Device = "TRIMUI"
+	DevicePixel     Device = "PIXEL"
+	DeviceH700      Device = "H700"
+	DeviceUnknown   Device = "UNKNOWN"
 )
 
 // DetectDevice detects the device type when running on Spruce by checking environment variables.

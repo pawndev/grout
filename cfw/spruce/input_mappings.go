@@ -16,12 +16,13 @@ var embeddedInputMappings embed.FS
 type Device string
 
 const (
-	DeviceA30       Device = "A30"
-	DeviceMiyooMini Device = "MIYOOMINI"
-	DeviceMiyooFlip Device = "MIYOOFLIP"
-	DeviceTrimui    Device = "TRIMUI"
-	DevicePixel     Device = "PIXEL"
-	DeviceUnknown   Device = "UNKNOWN"
+	DeviceA30       	Device = "A30"
+	DeviceMiyooMini 	Device = "MIYOOMINI"
+	DeviceMiyooFlip 	Device = "MIYOOFLIP"
+	DeviceTrimui    	Device = "TRIMUI"
+	DevicePixel     	Device = "PIXEL"
+	DeviceH700NoStick	Device = "H700"
+	DeviceUnknown   	Device = "UNKNOWN"
 )
 
 // DetectDevice detects the device type when running on Spruce by checking environment variables.
@@ -40,6 +41,8 @@ func DetectDevice() Device {
 		return DeviceTrimui
 	case "PIXEL":
 		return DevicePixel
+	case "H700":
+		return DeviceH700
 	default:
 		logger.Warn("Unhandled spruce platform", "value", os.Getenv(DeviceType))
 		return DeviceUnknown
@@ -62,6 +65,8 @@ func GetInputMappingBytesForDevice(device Device) ([]byte, error) {
 		filename = "input_mappings/a30.json"
 	case DevicePixel:
 		filename = "input_mappings/gkd_pixel_2.json"
+	case DeviceH700:
+		filename = "input_mappings/h700.json"
 	default:
 		// TrimUI, Miyoo Flip, and unknown devices use standard SDL controller input
 		return nil, nil

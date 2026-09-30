@@ -31,9 +31,9 @@ case "$PLATFORM" in
     ;;
 
 ############################################################
-# Brick / SmartPro / SmartProS
+# Brick / BrickPro / SmartPro / SmartProS
 ############################################################
-    "Brick" | "SmartPro" | "SmartProS")
+    "Brick" | "SmartPro" | "SmartProS" | "BrickPro" )
         export LD_LIBRARY_PATH="$CUR_DIR/grout/lib64:$LD_LIBRARY_PATH"
         export SPRUCE_DEVICE="TRIMUI"
         ./grout64
@@ -76,6 +76,10 @@ case "$PLATFORM" in
 # Unknown
 ############################################################
     * )
-        echo "Unknown Spruce platform: '${PLATFORM:-<empty>}'" >> grout.log
+        # F it we ball
+        echo "Unhandled spruce platform: '${PLATFORM:-<empty>}'" >> grout.log
+        export LD_LIBRARY_PATH="$CUR_DIR/grout/lib64:$LD_LIBRARY_PATH"
+        export SPRUCE_DEVICE="UNKNOWN"
+        ./grout64
     ;;
 esac

@@ -41,7 +41,7 @@ func DetectDevice() Device {
 	case "PIXEL":
 		return DevicePixel
 	default:
-		logger.Warn("Unknown Spruce device type", "value", os.Getenv(DeviceType))
+		logger.Warn("Unhandled spruce platform", "value", os.Getenv(DeviceType))
 		return DeviceUnknown
 	}
 }

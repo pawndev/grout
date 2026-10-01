@@ -22,7 +22,7 @@ const (
 	DeviceTrimui    Device = "TRIMUI"
 	DevicePixel     Device = "PIXEL"
 	DeviceH700      Device = "H700"
-	DeviceUnknown   Device = "UNKNOWN"
+	DeviceGeneric   Device = "GENERIC"
 )
 
 // DetectDevice detects the device type when running on Spruce by checking environment variables.
@@ -44,8 +44,8 @@ func DetectDevice() Device {
 	case "H700":
 		return DeviceH700
 	default:
-		logger.Warn("Unhandled spruce platform", "value", os.Getenv(DeviceType))
-		return DeviceUnknown
+		logger.Warn("Unrecognized Spruce device, using generic SDL input", "device", os.Getenv(DeviceType), "platform", os.Getenv("PLATFORM"))
+		return DeviceGeneric
 	}
 }
 
@@ -68,7 +68,7 @@ func GetInputMappingBytesForDevice(device Device) ([]byte, error) {
 	case DeviceH700:
 		filename = "input_mappings/h700.json"
 	default:
-		// TrimUI, Miyoo Flip, and unknown devices use standard SDL controller input
+		// TrimUI, Miyoo Flip, and generic devices use standard SDL controller input
 		return nil, nil
 	}
 

@@ -440,7 +440,7 @@ var firmwares = map[CFW]*Firmware{
 		sidecarDirectories:    esSidecars(batocera.GetVideoDirectory, batocera.GetManualDirectory, batocera.GetBezelDirectory),
 		groutGamelist:         batocera.GetGroutGamelist,
 		platforms:             batocera.Platforms,
-		savesBesideRoms:       true,
+		saveDirectories:       batocera.SaveDirectories,
 		gamelist:              GamelistEmulationStation,
 		groutLauncherPath:     "./Grout/Grout.sh",
 		emulationStationBased: true,

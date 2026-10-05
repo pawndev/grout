@@ -11,7 +11,8 @@ import (
 var embeddedFiles embed.FS
 
 var (
-	Platforms = tables.MustLoad[string, []string](embeddedFiles, "data/platforms.json")
+	Platforms       = tables.MustLoad[string, []string](embeddedFiles, "data/platforms.json")
+	SaveDirectories = tables.MustLoad[string, []string](embeddedFiles, "data/save_directories.json")
 )
 
 func GetBasePath() string {

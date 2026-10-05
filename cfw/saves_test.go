@@ -1,6 +1,9 @@
 package cfw
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 // SaveBasename returns the on-disk basename (before the save-file extension) an emulator
 // uses for a ROM's saves, given whether the device keeps the ROM extension. minarch saves
@@ -42,6 +45,17 @@ func TestDefaultKeepsRomExt(t *testing.T) {
 	for _, c := range []CFW{MuOS, Knulli, Spruce, ROCKNIX, Onion, ArkOS, Batocera, Trimui, Allium, Koriki, Anbernic} {
 		if DefaultKeepsRomExt(c) {
 			t.Errorf("%s should default to RetroArch-style stripping", c)
+		}
+	}
+}
+
+// PPSSPP on Knulli and Batocera puts save data under psp/PSP/SAVEDATA.
+func TestFirmwares_PSPSaveDirectory(t *testing.T) {
+	for _, c := range []CFW{Knulli, Batocera} {
+		f := Lookup(c)
+		folders := f.SaveDirectories()["psp"]
+		if !slices.Contains(folders, "psp/PSP/SAVEDATA") {
+			t.Errorf("%s psp save directories = %v, want psp/PSP/SAVEDATA", c, folders)
 		}
 	}
 }

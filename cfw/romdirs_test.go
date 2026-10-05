@@ -22,6 +22,7 @@ func TestPlatformDirectories(t *testing.T) {
 		{"unknown platform falls back to its slug", MuOS, "not-a-console", nil, []string{"not-a-console"}},
 		{"binding redirects the lookup", MuOS, "gameboyadvance", map[string]string{"gameboyadvance": "gba"}, []string{"gba", "Nintendo Game Boy Advance"}},
 		{"binding for an unknown target still falls back", MuOS, "x", map[string]string{"x": "y"}, []string{"y"}},
+		{"binding key ignores case", MuOS, "Game Boy Advance", map[string]string{"game boy advance": "gba"}, []string{"gba", "Nintendo Game Boy Advance"}},
 	}
 
 	for _, tt := range tests {

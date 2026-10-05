@@ -152,3 +152,36 @@ func TestGetRomByFSLookup_SimpleSingleFileStillMatches(t *testing.T) {
 		t.Errorf("got rom ID %d, want 20552", got.ID)
 	}
 }
+
+// Issue #285: RomM keeps the folder's case in a ROM's platform_fs_slug ("Game Boy
+// Advance") but lowercases the folder names in its platform binding, which is where the
+// save scan gets its slug from ("game boy advance"). The lookup must ignore case.
+func TestGetRomByFSLookup_IgnoresSlugCase(t *testing.T) {
+	cm := newTestManager(t)
+	rom := romm.Rom{
+		ID:             16,
+		PlatformID:     2,
+		PlatformFSSlug: "Game Boy Advance",
+		Name:           "Advance Wars",
+		FsName:         "Advance Wars (USA) (Rev 1).zip",
+		FsNameNoExt:    "Advance Wars (USA) (Rev 1)",
+		Files:          []romm.RomFile{{FileName: "Advance Wars (USA) (Rev 1).zip"}},
+	}
+	if err := cm.SavePlatformGames(2, []romm.Rom{rom}); err != nil {
+		t.Fatalf("save games: %v", err)
+	}
+
+	got, err := cm.GetRomByFSLookup("game boy advance", "Advance Wars (USA) (Rev 1)")
+	if err != nil || got.ID != 16 {
+		t.Fatalf("exact basename: got (%d, %v), want (16, nil)", got.ID, err)
+	}
+	// The lenient fallback must ignore the slug's case too.
+	got, err = cm.GetRomByFSLookup("game boy advance", "advance wars (usa) (rev 1)")
+	if err != nil || got.ID != 16 {
+		t.Fatalf("lenient basename: got (%d, %v), want (16, nil)", got.ID, err)
+	}
+	got, err = cm.GetRomByNameLookup("game boy advance", "Advance Wars")
+	if err != nil || got.ID != 16 {
+		t.Fatalf("name lookup: got (%d, %v), want (16, nil)", got.ID, err)
+	}
+}

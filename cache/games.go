@@ -1148,6 +1148,8 @@ func (cm *Manager) GetDistinctTags(platformID int) ([]string, error) {
 // RomM ROM. localBasename is the on-disk filename without extension; it is matched against
 // game_basenames holds every basename a game can occupy on disk, one row per file, so a save or
 // ROM for ANY of a multi-file game's alternative versions resolves, not just Files[0] (#242).
+// fsSlug is compared case-insensitively: RomM lowercases the folder names in its platform
+// binding but keeps the folder's case in each ROM's platform_fs_slug (issue #285).
 func (cm *Manager) GetRomByFSLookup(fsSlug, localBasename string) (romm.Rom, error) {
 	if cm == nil || !cm.initialized {
 		return romm.Rom{}, ErrNotInitialized
@@ -1160,7 +1162,7 @@ func (cm *Manager) GetRomByFSLookup(fsSlug, localBasename string) (romm.Rom, err
 	err := cm.db.QueryRow(`
 		SELECT g.data_json FROM game_basenames b
 		JOIN games g ON g.id = b.game_id
-		WHERE b.platform_fs_slug = ? AND b.basename = ? LIMIT 1
+		WHERE b.platform_fs_slug = ? COLLATE NOCASE AND b.basename = ? LIMIT 1
 	`, fsSlug, localBasename).Scan(&dataJSON)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -1195,7 +1197,7 @@ func (cm *Manager) lenientFSLookup(fsSlug, localBasename string) (romm.Rom, bool
 	rows, err := cm.db.Query(`
 		SELECT b.game_id, b.basename, g.name FROM game_basenames b
 		JOIN games g ON g.id = b.game_id
-		WHERE b.platform_fs_slug = ?
+		WHERE b.platform_fs_slug = ? COLLATE NOCASE
 	`, fsSlug)
 	if err != nil {
 		return romm.Rom{}, false
@@ -1244,13 +1246,13 @@ func (cm *Manager) GetRomByNameLookup(fsSlug, name string) (romm.Rom, error) {
 
 	// Try exact match first
 	err := cm.db.QueryRow(`
-		SELECT data_json FROM games WHERE platform_fs_slug = ? AND name = ? LIMIT 1
+		SELECT data_json FROM games WHERE platform_fs_slug = ? COLLATE NOCASE AND name = ? LIMIT 1
 	`, fsSlug, name).Scan(&dataJSON)
 
 	// Fall back to normalized match (case-insensitive, punctuation-stripped)
 	if errors.Is(err, sql.ErrNoRows) {
 		rows, qErr := cm.db.Query(`
-			SELECT name, data_json FROM games WHERE platform_fs_slug = ?
+			SELECT name, data_json FROM games WHERE platform_fs_slug = ? COLLATE NOCASE
 		`, fsSlug)
 		if qErr == nil {
 			defer rows.Close()

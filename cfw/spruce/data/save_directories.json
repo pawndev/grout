@@ -126,7 +126,9 @@
     "ParaLLEl N64 Xtreme Amped Turbo",
     "ParaLLEl N64"
   ],
-  "nds": [],
+  "nds": [
+    "dsperate"
+  ],
   "nes": [
     "FCEUmm",
     "Nestopia",

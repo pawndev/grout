@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -235,10 +236,32 @@ func SetKidMode(enabled bool) {
 // LoadPlatformsBinding fetches the PLATFORMS_BINDING from the RomM server
 
 func (c Config) GetDirectoryMapping(fsSlug string) (string, bool) {
-	if mapping, ok := c.DirectoryMappings[fsSlug]; ok {
+	if mapping, ok := lookupFold(c.DirectoryMappings, fsSlug); ok {
 		return mapping.RelativePath, true
 	}
 	return "", false
+}
+
+// lookupFold reads m[key], falling back to a case-insensitive key match. RomM
+// lowercases the folder names in its platform binding but keeps their case in
+// platform and ROM fs_slugs, so the same platform reaches grout spelled both
+// ways.
+func lookupFold[V any](m map[string]V, key string) (V, bool) {
+	if v, ok := m[key]; ok {
+		return v, true
+	}
+	for k, v := range m {
+		if strings.EqualFold(k, key) {
+			return v, true
+		}
+	}
+	var zero V
+	return zero, false
+}
+
+// LookupBinding returns what a platform binding maps fsSlug to, case incensitive.
+func LookupBinding(binding map[string]string, fsSlug string) (string, bool) {
+	return lookupFold(binding, fsSlug)
 }
 
 // SlotPreferencesFileName holds the per-rom save slot choices, kept out of
@@ -338,7 +361,7 @@ func (c Config) GetShowVirtualCollections() bool { return c.ShowVirtualCollectio
 // So ResolveFSSlug("ms") returns "sms"
 func (c Config) ResolveFSSlug(fsSlug string) string {
 	if c.PlatformsBinding != nil {
-		if bound, ok := c.PlatformsBinding[fsSlug]; ok {
+		if bound, ok := LookupBinding(c.PlatformsBinding, fsSlug); ok {
 			slog.Default().Debug("Using platform binding for CFW lookup",
 				"fsSlug", fsSlug, "boundTo", bound)
 			return bound

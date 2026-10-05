@@ -19,7 +19,7 @@ import (
 // slug, so an unmapped platform still gets a sensible folder.
 func PlatformDirectories(c CFW, fsSlug string, platformsBinding map[string]string) []string {
 	slug := fsSlug
-	if bound, ok := platformsBinding[fsSlug]; ok {
+	if bound, ok := settings.LookupBinding(platformsBinding, fsSlug); ok {
 		slog.Default().Debug("Using platform binding for CFW lookup", "fsSlug", fsSlug, "boundTo", bound)
 		slug = bound
 	}

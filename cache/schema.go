@@ -39,7 +39,11 @@ func createGameBasenamesTable(db execer) error {
 	`); err != nil {
 		return err
 	}
-	_, err := db.Exec(`CREATE INDEX IF NOT EXISTS idx_game_basenames_lookup ON game_basenames(platform_fs_slug, basename)`)
+	if _, err := db.Exec(`CREATE INDEX IF NOT EXISTS idx_game_basenames_lookup ON game_basenames(platform_fs_slug, basename)`); err != nil {
+		return err
+	}
+	// Lookups compare the slug case-insensitive
+	_, err := db.Exec(`CREATE INDEX IF NOT EXISTS idx_game_basenames_lookup_nocase ON game_basenames(platform_fs_slug COLLATE NOCASE, basename)`)
 	return err
 }
 
@@ -413,6 +417,12 @@ func createTables(db *sql.DB) error {
 	}
 
 	_, err = tx.Exec(`CREATE INDEX IF NOT EXISTS idx_games_platform_fs_slug ON games(platform_fs_slug)`)
+	if err != nil {
+		return err
+	}
+
+	// Save lookups compare the slug case-insensitive
+	_, err = tx.Exec(`CREATE INDEX IF NOT EXISTS idx_games_platform_fs_slug_nocase ON games(platform_fs_slug COLLATE NOCASE, name)`)
 	if err != nil {
 		return err
 	}

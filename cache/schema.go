@@ -39,7 +39,7 @@ func createGameBasenamesTable(db execer) error {
 	`); err != nil {
 		return err
 	}
-	if _, err := db.Exec(`CREATE INDEX IF NOT EXISTS idx_game_basenames_lookup ON game_basenames(platform_fs_slug, basename)`); err != nil {
+	if _, err := db.Exec(`DROP INDEX IF EXISTS idx_game_basenames_lookup`); err != nil {
 		return err
 	}
 	// Lookups compare the slug case-insensitive

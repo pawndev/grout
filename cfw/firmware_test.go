@@ -93,7 +93,9 @@ func TestFirmwares_EmulationStationFamilyIsConsistent(t *testing.T) {
 		if es != (f.sidecarDirectories != nil) {
 			t.Errorf("%s: IsBasedOnEmulationStation=%v but sidecar directories present=%v", c, es, f.sidecarDirectories != nil)
 		}
-		if es != (f.GroutLauncherPath() != "") {
+		// RetroDECK starts grout from Steam, so its frontend has no shortcut
+		// to it.
+		if es != (f.GroutLauncherPath() != "") && c != RetroDECK {
 			t.Errorf("%s: IsBasedOnEmulationStation=%v but launcher path is %q", c, es, f.GroutLauncherPath())
 		}
 

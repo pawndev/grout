@@ -16,7 +16,6 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"time"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
@@ -63,14 +62,9 @@ func setup() SetupResult {
 }
 
 func setupInputMapping(currentCFW cfw.CFW) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return
-	}
-
-	cwdMappingPath := filepath.Join(cwd, settings.InputMappingFileName)
-	if files.FileExists(cwdMappingPath) {
-		os.Setenv("INPUT_MAPPING_PATH", cwdMappingPath)
+	mappingPath := settings.InputMappingPath()
+	if files.FileExists(mappingPath) {
+		os.Setenv("INPUT_MAPPING_PATH", mappingPath)
 		return
 	}
 

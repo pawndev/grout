@@ -37,6 +37,7 @@ theme:
 
 plugins:
   - search
+  - gh-admonitions
   - glightbox:
       skip_classes:
         - skip-lightbox
@@ -67,6 +68,8 @@ nav:
   - Quick Start:
       - getting-started/index.md
       - Allium: getting-started/install-allium.md
+      - Anbernic Stock OS: getting-started/install-anbernic.md
+      - ArkOS / dArkOS: getting-started/install-arkos.md
       - Batocera: getting-started/install-batocera.md
       - Knulli: getting-started/install-knulli.md
       - MinUI: getting-started/install-minui.md
@@ -75,16 +78,18 @@ nav:
       - Koriki: getting-started/install-koriki.md
       - Onion: getting-started/install-onion.md
       - ROCKNIX: getting-started/install-rocknix.md
-      - Spruce: getting-started/install-spruce.md
+      - spruce: getting-started/install-spruce.md
       - TrimUI: getting-started/install-trimui.md
-      - RetroDECK: getting-started/install-retrodeck.md
   - Usage:
       - User Guide: usage/guide.md
+      - Reference: usage/reference.md
       - Settings Reference: usage/settings.md
       - Save Sync: usage/save-sync.md
       - CFW Specific Info:
           - Allium: platforms/allium.md
-          - Batocera: platforms/BATOCERA.md
+          - Anbernic Stock OS: platforms/anbernic.md
+          - ArkOS / dArkOS: platforms/arkos.md
+          - Batocera: platforms/batocera.md
           - Knulli: platforms/knulli.md
           - Koriki: platforms/koriki.md
           - MinUI: platforms/minui.md
@@ -92,12 +97,12 @@ nav:
           - NextUI: platforms/nextui.md
           - Onion: platforms/onion.md
           - ROCKNIX: platforms/rocknix.md
-          - Spruce: platforms/spruce.md
+          - spruce: platforms/spruce.md
           - TrimUI: platforms/trimui.md
-          - RetroDECK: platforms/RETRODECK.md
   - Contributing:
       - contributing/index.md
       - Development Guide: contributing/development.md
+      - Unverified Platform Mappings: platforms/unverified.md
       - State Machine Reference: contributing/state-machine.md
       - Kudos: contributing/kudos.md
   - FAQ: usage/faq.md

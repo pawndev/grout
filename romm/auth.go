@@ -3,9 +3,8 @@ package romm
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
-
-	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 )
 
 type TokenExchangeRequest struct {
@@ -23,6 +22,29 @@ type CurrentUser struct {
 	Username string `json:"username"`
 }
 
+// SyncRequiredScopes are the client-token scopes save sync needs end-to-end:
+// reading/writing assets (saves) and reading/writing devices (negotiate, session
+// complete, device registration, /downloaded). A token missing these will 403 on the
+// sync endpoints.
+var SyncRequiredScopes = []string{"assets.read", "assets.write", "devices.read", "devices.write"}
+
+// MissingSyncScopes returns the SyncRequiredScopes not present in have. Advisory:
+// RomM may model scopes more broadly, so treat a non-empty result as a likely (not
+// certain) cause of sync permission failures.
+func MissingSyncScopes(have []string) []string {
+	present := make(map[string]bool, len(have))
+	for _, s := range have {
+		present[s] = true
+	}
+	var missing []string
+	for _, s := range SyncRequiredScopes {
+		if !present[s] {
+			missing = append(missing, s)
+		}
+	}
+	return missing
+}
+
 func (c *Client) ValidateConnection() error {
 	req, err := http.NewRequest("GET", c.baseURL+endpointHeartbeat, nil)
 	if err != nil {
@@ -35,52 +57,14 @@ func (c *Client) ValidateConnection() error {
 	}
 	defer resp.Body.Close()
 
-	switch {
-	case resp.StatusCode >= 200 && resp.StatusCode < 300:
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return nil
-	case resp.StatusCode >= 500:
-		logResponseDebug("ValidateConnection: server error", resp)
-		return &AuthError{
-			StatusCode: resp.StatusCode,
-			Message:    "Server error",
-			Err:        ErrServerError,
-		}
-	default:
-		logResponseDebug("ValidateConnection: unexpected status", resp)
-		return fmt.Errorf("heartbeat check failed with status: %d", resp.StatusCode)
-	}
-}
-
-func (c *Client) Login(username, password string) error {
-	req, err := http.NewRequest("POST", c.baseURL+endpointLogin, nil)
-	if err != nil {
-		return ClassifyError(fmt.Errorf("failed to create login request: %w", err))
 	}
 
-	req.SetBasicAuth(username, password)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return ClassifyError(fmt.Errorf("failed to login: %w", err))
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logResponseDebug("Login: failed", resp)
-	}
-
-	switch {
-	case resp.StatusCode >= 200 && resp.StatusCode < 300:
-		return nil
-	case resp.StatusCode == 401:
-		return &AuthError{StatusCode: 401, Message: "Invalid username or password", Err: ErrUnauthorized}
-	case resp.StatusCode == 403:
-		return &AuthError{StatusCode: 403, Message: "Access forbidden", Err: ErrForbidden}
-	case resp.StatusCode >= 500:
-		return &AuthError{StatusCode: resp.StatusCode, Message: "Server error", Err: ErrServerError}
-	default:
-		return fmt.Errorf("login failed with status: %d", resp.StatusCode)
-	}
+	// logResponseDebug consumes the body, so it is in the log rather than on
+	// the error. The status is what callers act on.
+	logResponseDebug("ValidateConnection: unexpected status", resp)
+	return statusError(resp.StatusCode, nil)
 }
 
 func ExchangeToken(baseURL string, code string, insecureSkipVerify bool) (*TokenExchangeResponse, error) {
@@ -105,7 +89,7 @@ func (c *Client) GetCurrentUser() (CurrentUser, error) {
 }
 
 func logResponseDebug(label string, resp *http.Response) {
-	logger := gaba.GetLogger()
+	logger := slog.Default()
 	body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 
 	headers := make(map[string]string)

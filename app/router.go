@@ -3,8 +3,8 @@ package main
 import (
 	"grout/cache"
 	"grout/cfw"
-	"grout/internal"
 	"grout/romm"
+	"grout/settings"
 	"grout/ui"
 	"grout/update"
 
@@ -15,7 +15,7 @@ import (
 	uatomic "go.uber.org/atomic"
 )
 
-func runWithRouter(config *internal.Config, currentCFW cfw.CFW, platforms []romm.Platform, quitOnBack bool, showCollections bool) error {
+func runWithRouter(config *settings.Config, currentCFW cfw.CFW, platforms []romm.Platform, quitOnBack bool, showCollections bool) error {
 	state := &AppState{
 		Config:    config,
 		Host:      config.Hosts[0],
@@ -228,15 +228,6 @@ func registerScreens(r *router.Router, state *AppState) {
 		return screen.Draw(input.(ui.SaveMappingInput))
 	})
 
-	r.Register(ScreenSwitchToToken, func(input any) (any, error) {
-		screen := ui.NewSwitchToTokenScreen()
-		result := screen.Execute(state.Config, state.Host)
-		if result.Success {
-			state.Host = result.Host
-		}
-		return result, nil
-	})
-
 	r.Register(ScreenToolsSettings, func(input any) (any, error) {
 		screen := ui.NewToolsSettingsScreen()
 		return screen.Draw(input.(ui.ToolsSettingsInput))
@@ -249,8 +240,7 @@ func registerScreens(r *router.Router, state *AppState) {
 
 	r.Register(ScreenInputMapping, func(input any) (any, error) {
 		screen := ui.NewInputMappingScreen()
-		screen.Execute()
-		return nil, nil
+		return screen.Execute(), nil
 	})
 
 }

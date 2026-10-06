@@ -2,22 +2,27 @@ package retrodeck
 
 import (
 	"embed"
-	"grout/internal/jsonutil"
+	"grout/tables"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
-
-	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 )
 
 //go:embed data/*.json
 var embeddedFiles embed.FS
 
 var (
-	Platforms = jsonutil.MustLoadJSONMap[string, []string](embeddedFiles, "data/platforms.json")
+	Platforms = tables.MustLoad[string, []string](embeddedFiles, "data/platforms.json")
 
-	configPathsOnce sync.Once
-	configPaths     *Paths
+	configPaths = sync.OnceValue(func() *Paths {
+		paths, err := LoadConfig()
+		if err != nil {
+			slog.Default().Error("Failed to load RetroDECK config", "error", err)
+			return nil
+		}
+		return paths
+	})
 )
 
 func GetBasePath() string {
@@ -46,15 +51,7 @@ func GetBasePath() string {
 }
 
 func GetConfigPaths() *Paths {
-	configPathsOnce.Do(func() {
-		paths, err := LoadConfig()
-		if err != nil {
-			gaba.GetLogger().Error("Failed to load RetroDECK config", "error", err)
-			return
-		}
-		configPaths = paths
-	})
-	return configPaths
+	return configPaths()
 }
 
 func GetRomDirectory() string {

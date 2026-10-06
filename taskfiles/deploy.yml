@@ -1,35 +1,63 @@
 version: '3'
 
+# Deploys push the build over what is on the device, so its config.json, cache
+# and the rest survive. The platformless config only goes on a device that has
+# none. Pass --fresh to wipe the install first:
+#
+#   task deploy:next -- --fresh
+
 tasks:
 
-  next:
-    desc: Deploy to NextUI device via ADB
+  _push:
+    internal: true
+    silent: true
+    requires:
+      vars: [SRC, PARENT, DIR]
     cmds:
-      - adb shell rm -rf /mnt/SDCARD/Tools/tg5040/Grout.pak
-      - adb push dist/Grout.pak /mnt/SDCARD/Tools/tg5040
-      - adb push config-platformless.json /mnt/SDCARD/Tools/tg5040/Grout.pak/config.json
+      # These devices take one large push per adb connection; later ones stall
+      # the USB link. A fresh server gets a fresh connection.
+      - adb kill-server >/dev/null 2>&1 || true
+      - adb start-server >/dev/null 2>&1
+      - adb wait-for-device
+      - |
+        case " {{.CLI_ARGS}} " in
+          *" --fresh "*) adb shell rm -rf "{{.PARENT}}/{{.DIR}}" ;;
+        esac
+      - adb push "{{.SRC}}" "{{.PARENT}}"
+      # adb shell drops the exit status on these devices, so ask for an answer
+      # either way. No answer means adb failed, not that the config is missing.
+      - |
+        answer=$(adb shell "if [ -f '{{.PARENT}}/{{.DIR}}/config.json' ]; then echo present; else echo absent; fi")
+        case "$answer" in
+          *present*) ;;
+          *absent*) adb push config-platformless.json "{{.PARENT}}/{{.DIR}}/config.json" ;;
+          *) echo "could not check for config.json on the device: $answer" >&2; exit 1 ;;
+        esac
+
+  next:
+    desc: Deploy to NextUI device via ADB (-- --fresh wipes config)
+    cmds:
+      - task: _push
+        vars: { SRC: dist/Grout.pak, PARENT: /mnt/SDCARD/Tools/tg5040, DIR: Grout.pak }
     silent: true
 
   muos-sd1:
-    desc: Deploy to muOS device via ADB (SD1)
+    desc: Deploy to muOS device via ADB, SD1 (-- --fresh wipes config)
     cmds:
-      - adb shell rm -rf /mnt/mmc/MUOS/application/Grout
-      - adb push dist/muOS/Grout /mnt/mmc/MUOS/application
-      - adb push config-platformless.json /mnt/mmc/MUOS/application/Grout/config.json
+      - task: _push
+        vars: { SRC: dist/muOS/Grout, PARENT: /mnt/mmc/MUOS/application, DIR: Grout }
     silent: true
 
   muos-sd2:
-    desc: Deploy to muOS device via ADB (SD2)
+    desc: Deploy to muOS device via ADB, SD2 (-- --fresh wipes config)
     cmds:
-      - adb shell rm -rf /mnt/sdcard/MUOS/application/Grout
-      - adb push dist/muOS/Grout /mnt/sdcard/MUOS/application
-      - adb push config-platformless.json /mnt/sdcard/MUOS/application/Grout/config.json
+      - task: _push
+        vars: { SRC: dist/muOS/Grout, PARENT: /mnt/sdcard/MUOS/application, DIR: Grout }
     silent: true
 
   knulli:
-    desc: Deploy to Knulli device via ADB
+    desc: Deploy to Knulli device via ADB (-- --fresh wipes config)
     cmds:
-      - adb shell rm -rf /userdata/roms/ports/Grout
-      - adb push dist/Knulli/Grout /userdata/roms/ports
-      - adb push config-platformless.json /userdata/roms/ports/Grout/config.json
+      - task: _push
+        vars: { SRC: dist/Knulli/Grout, PARENT: /userdata/roms/ports, DIR: Grout }
     silent: true

@@ -7,7 +7,7 @@ Get up and running with Grout in five steps.
 Make sure you have:
 
 - A RomM server running and accessible
-- A compatible device running [Allium][allium], [Batocera][batocera], [Knulli][knulli], [muOS][muos], [NextUI][nextui], [Onion][onion], [ROCKNIX][rocknix], [Spruce v4][spruce], or [TrimUI][trimui]
+- A compatible device running [Allium][allium], the [Anbernic stock OS][anbernic], [ArkOS][arkos]/[dArkOS][darkos], [Batocera][batocera], [Knulli][knulli], [Koriki][koriki], [MinUI][minui], [muOS][muos], [NextUI][nextui], [Onion][onion], [ROCKNIX][rocknix], [spruce v4][spruce]/[sprigUI][sprigui]/[twigUI][twigui], or [TrimUI][trimui]
 - Your device connected to Wi-Fi
 
 ---
@@ -19,15 +19,18 @@ Make sure you have:
 Choose your platform:
 
 - [Allium Installation](install-allium.md)
+- [Anbernic Stock OS Installation](install-anbernic.md)
+- [ArkOS / dArkOS Installation](install-arkos.md)
 - [Batocera Installation](install-batocera.md)
 - [Knulli Installation](install-knulli.md)
+- [Koriki Installation](install-koriki.md)
+- [MinUI Installation](install-minui.md)
 - [muOS Installation](install-muos.md)
 - [NextUI Installation](install-nextui.md)
 - [Onion Installation](install-onion.md)
 - [ROCKNIX Installation](install-rocknix.md)
-- [Spruce Installation](install-spruce.md)
+- [spruce / sprigUI / twigUI Installation](install-spruce.md)
 - [TrimUI Installation](install-trimui.md)
-- [RetroDECK Installation](install-retrodeck.md)
 
 ### Step 2: Launch and Select Language
 
@@ -37,7 +40,7 @@ When you first launch Grout, select your preferred language using `Left/Right`, 
 
 Enter your connection details and authenticate. 
 
-See the [User Guide](../usage/guide.md#server-connection) for detailed instructions.
+See the [User Guide](../usage/guide.md#authentication) for detailed instructions.
 
 ### Step 4: Map Your Platforms
 

@@ -3,38 +3,34 @@ package ui
 import (
 	"errors"
 	"fmt"
-	"grout/cache"
-	"grout/cfw"
-	"grout/internal"
-	"grout/internal/fileutil"
-	"grout/internal/stringutil"
-	"os"
-	"path/filepath"
+	"maps"
 	"slices"
 	"time"
 
+	"grout/catalog"
+	"grout/cfw"
+	"grout/files"
 	"grout/romm"
+	"grout/settings"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
 	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/constants"
-	"github.com/BrandonKowalski/gabagool/v2/pkg/gabagool/i18n"
-	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type PlatformMappingInput struct {
-	Host             romm.Host
+	Host             settings.Host
 	ApiTimeout       time.Duration
 	CFW              cfw.CFW
 	RomDirectory     string
 	AutoSelect       bool
 	HideBackButton   bool
-	ExistingMappings map[string]internal.DirectoryMapping // For return visits, use existing config
+	ExistingMappings map[string]settings.DirectoryMapping // For return visits, use existing config
 	PlatformsBinding map[string]string                    // fs_slug -> bound slug for CFW lookups
 }
 
 type PlatformMappingOutput struct {
 	Action   PlatformMappingAction
-	Mappings map[string]internal.DirectoryMapping
+	Mappings map[string]settings.DirectoryMapping
 }
 
 type PlatformMappingScreen struct{}
@@ -43,55 +39,135 @@ func NewPlatformMappingScreen() *PlatformMappingScreen {
 	return &PlatformMappingScreen{}
 }
 
+// Filter rows are read back by these keys rather than by their rendered labels,
+// which change with the language.
+const (
+	filterKeyStatus     = "status"
+	filterKeyWithGames  = "with_games"
+	filterKeyCategory   = "category"
+	filterKeyFamily     = "family"
+	filterKeyGeneration = "generation"
+)
+
+// placeholderSlug marks the row shown when no platform survives the filter. It
+// is not a platform, so it never reaches the saved mappings.
+const placeholderSlug = "no_results"
+
 func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (PlatformMappingOutput, error) {
 	logger := gaba.GetLogger()
-	output := PlatformMappingOutput{Action: PlatformMappingActionBack, Mappings: make(map[string]internal.DirectoryMapping)}
+	output := PlatformMappingOutput{
+		Action:   PlatformMappingActionBack,
+		Mappings: make(map[string]settings.DirectoryMapping),
+	}
 
-	rommPlatforms, err := s.fetchPlatforms(input)
+	platforms, err := catalog.AllPlatforms(input.Host, input.ApiTimeout)
 	if err != nil {
-		logger.Error("Error fetching RomM Platforms", "error", err)
+		logger.Error("Failed to load platforms", "error", err)
 		return output, err
 	}
 
-	romDirectories, err := s.getRomDirectories(input.RomDirectory)
+	directories, err := files.SubdirectoryNames(input.RomDirectory)
 	if err != nil {
-		logger.Error("Error fetching ROM directories", "error", err)
-		return output, err
+		logger.Error("Failed to read ROM directory", "path", input.RomDirectory, "error", err)
+		gaba.ConfirmationMessage(
+			localize("platform_mapping_directory_not_found", "ROM Directory Could Not Be Found!"),
+			[]gaba.FooterHelpItem{FooterBack()},
+			gaba.MessageOptions{},
+		)
+		return output, fmt.Errorf("reading rom directory %s: %w", input.RomDirectory, err)
 	}
 
-	mappingOptions := s.buildMappingOptions(rommPlatforms, romDirectories, input)
+	mappings := make(map[string]settings.DirectoryMapping, len(input.ExistingMappings))
+	maps.Copy(mappings, input.ExistingMappings)
 
-	footerItems := []gaba.FooterHelpItem{
-		FooterCycle(),
-		FooterSelect(),
-		FooterSave(),
-	}
-	if !input.HideBackButton {
-		footerItems = slices.Insert(footerItems, 0, FooterCancel())
-	}
-
-	result, err := gaba.OptionsList(
-		i18n.Localize(&goi18n.Message{ID: "platform_mapping_title", Other: "Rom Directory Mapping"}, nil),
-		gaba.OptionListSettings{
-			FooterHelpItems:   footerItems,
-			DisableBackButton: input.HideBackButton,
-			StatusBar:         StatusBar(),
-			ListPickerButton:  constants.VirtualButtonA,
-		},
-		mappingOptions,
-	)
-
-	if err != nil {
-		if errors.Is(err, gaba.ErrCancelled) {
-			return PlatformMappingOutput{Action: PlatformMappingActionBack}, nil
+	// On a first run the auto-detected folders are captured up front, so a
+	// platform the user never scrolled to still gets the folder grout picked
+	// for it.
+	if len(mappings) == 0 {
+		for _, platform := range platforms {
+			choices := s.choicesFor(platform, directories, mappings, input)
+			if choices.Selected >= 0 {
+				slug := platform.FSSlug
+				mappings[slug] = settings.DirectoryMapping{
+					RomMSlug:     slug,
+					RelativePath: choices.Directories[choices.Selected].RelativePath,
+				}
+			}
 		}
-		return output, err
 	}
 
-	output.Mappings = s.buildMappingsFromResult(result.Items)
+	filter := catalog.PlatformFilter{Status: catalog.StatusAll}
+	selectedIndex, visibleStartIndex := 0, 0
 
-	if err := s.createDirectories(output.Mappings, input.RomDirectory, romDirectories); err != nil {
-		logger.Error("Error creating directories", "error", err)
+	for {
+		items := s.buildItems(catalog.FilterPlatforms(platforms, filter, mappings), directories, mappings, input)
+		if len(items) == 0 {
+			items = []gaba.ItemWithOptions{noResultsItem()}
+		}
+
+		result, err := gaba.OptionsList(
+			localize("platform_mapping_title", "Rom Directory Mapping"),
+			gaba.OptionListSettings{
+				InitialSelectedIndex:  selectedIndex,
+				VisibleStartIndex:     visibleStartIndex,
+				FooterHelpItems:       s.footer(input),
+				DisableBackButton:     input.HideBackButton,
+				StatusBar:             StatusBar(),
+				ListPickerButton:      constants.VirtualButtonA,
+				SecondaryActionButton: constants.VirtualButtonY,
+			},
+			items,
+		)
+		if err != nil {
+			if errors.Is(err, gaba.ErrCancelled) {
+				return PlatformMappingOutput{Action: PlatformMappingActionBack}, nil
+			}
+			return output, err
+		}
+
+		// Read the screen back before doing anything else, so changes survive a
+		// trip through the filter menu.
+		for _, item := range result.Items {
+			slug, ok := item.Item.Metadata.(string)
+			if !ok || slug == placeholderSlug {
+				continue
+			}
+			path, _ := item.Options[item.SelectedOption].Value.(string)
+			mappings[slug] = settings.DirectoryMapping{RomMSlug: slug, RelativePath: path}
+		}
+
+		if result.Action != gaba.ListActionSecondaryTriggered {
+			break
+		}
+
+		var focused string
+		if result.Selected >= 0 && result.Selected < len(items) {
+			focused, _ = items[result.Selected].Item.Metadata.(string)
+		}
+
+		filter = s.filterMenu(platforms, filter)
+
+		// Keep the cursor on the platform the user was looking at, wherever the
+		// new filter puts it.
+		next := s.buildItems(catalog.FilterPlatforms(platforms, filter, mappings), directories, mappings, input)
+		selectedIndex = slices.IndexFunc(next, func(item gaba.ItemWithOptions) bool {
+			slug, _ := item.Item.Metadata.(string)
+			return focused != "" && slug == focused
+		})
+		if selectedIndex < 0 {
+			selectedIndex = 0
+		}
+		visibleStartIndex = max(0, selectedIndex-(result.Selected-result.VisibleStartIndex))
+	}
+
+	for slug, mapping := range mappings {
+		if mapping.RelativePath != "" {
+			output.Mappings[slug] = mapping
+		}
+	}
+
+	if err := cfw.CreateRomDirectories(output.Mappings, input.RomDirectory, directories); err != nil {
+		logger.Error("Failed to create ROM directories", "error", err)
 		return output, err
 	}
 
@@ -99,260 +175,241 @@ func (s *PlatformMappingScreen) Draw(input PlatformMappingInput) (PlatformMappin
 	return output, nil
 }
 
-func (s *PlatformMappingScreen) fetchPlatforms(input PlatformMappingInput) ([]romm.Platform, error) {
-	if cm := cache.GetCacheManager(); cm != nil {
-		if platforms, err := cm.GetPlatforms(); err == nil && len(platforms) > 0 {
-			romm.DisambiguatePlatformNames(platforms)
-			return platforms, nil
-		}
+func (s *PlatformMappingScreen) footer(input PlatformMappingInput) []gaba.FooterHelpItem {
+	items := []gaba.FooterHelpItem{FooterCycle(), FooterSelect()}
+	if !input.HideBackButton {
+		items = slices.Insert(items, 0, FooterCancel())
 	}
-
-	client := romm.NewClientFromHost(input.Host, input.ApiTimeout)
-	platforms, err := client.GetPlatforms()
-	if err != nil {
-		return nil, err
-	}
-	romm.DisambiguatePlatformNames(platforms)
-	return platforms, nil
+	return append(items,
+		gaba.FooterHelpItem{ButtonName: "Y", HelpText: localize("button_filters", "Filters")},
+		FooterSave(),
+	)
 }
 
-func (s *PlatformMappingScreen) getRomDirectories(romDir string) ([]os.DirEntry, error) {
-	entries, err := os.ReadDir(romDir)
-	if err != nil {
-		gaba.ConfirmationMessage(i18n.Localize(&goi18n.Message{ID: "platform_mapping_directory_not_found", Other: "ROM Directory Could Not Be Found!"}, nil), []gaba.FooterHelpItem{
-			FooterQuit(),
-		}, gaba.MessageOptions{})
-		gaba.GetLogger().Error("failed to read ROM directory", "error", err)
-		os.Exit(1)
-	}
-
-	return fileutil.FilterHiddenDirectories(entries), nil
+func (s *PlatformMappingScreen) choicesFor(
+	platform romm.Platform,
+	directories []string,
+	mappings map[string]settings.DirectoryMapping,
+	input PlatformMappingInput,
+) catalog.Choices {
+	return catalog.DirectoryChoicesFor(catalog.ChoiceRequest{
+		Platform:         platform,
+		CFW:              input.CFW,
+		Directories:      directories,
+		PlatformsBinding: input.PlatformsBinding,
+		Existing:         mappings,
+		AutoSelect:       input.AutoSelect,
+	})
 }
 
-func (s *PlatformMappingScreen) buildMappingOptions(
+func (s *PlatformMappingScreen) buildItems(
 	platforms []romm.Platform,
-	romDirectories []os.DirEntry,
+	directories []string,
+	mappings map[string]settings.DirectoryMapping,
 	input PlatformMappingInput,
 ) []gaba.ItemWithOptions {
-	options := make([]gaba.ItemWithOptions, 0, len(platforms))
-
+	items := make([]gaba.ItemWithOptions, 0, len(platforms))
 	for _, platform := range platforms {
-		platformOptions, selectedIndex := s.buildPlatformOptions(platform, romDirectories, input)
+		options, selected := platformOptions(s.choicesFor(platform, directories, mappings, input))
+		items = append(items, gaba.ItemWithOptions{
+			Item:           gaba.MenuItem{Text: platform.Name, Metadata: platform.FSSlug},
+			Options:        options,
+			SelectedOption: selected,
+		})
+	}
+	return items
+}
 
-		options = append(options, gaba.ItemWithOptions{
-			Item: gaba.MenuItem{
-				Text:     platform.Name,
-				Metadata: platform.FSSlug,
-			},
-			Options:        platformOptions,
-			SelectedOption: selectedIndex,
+// platformOptions renders the folders a platform can map to: Skip, then the
+// choices, then a free-text entry for a folder grout did not offer.
+func platformOptions(choices catalog.Choices) ([]gaba.Option, int) {
+	options := make([]gaba.Option, 0, len(choices.Directories)+2)
+	options = append(options, gaba.Option{
+		DisplayName: localize("common_skip", "Skip"),
+		Value:       "",
+	})
+
+	for _, choice := range choices.Directories {
+		id, fallback := "platform_mapping_path_prefix", "/{{.Name}}"
+		if choice.Create {
+			id, fallback = "platform_mapping_create", "Create '{{.Name}}'"
+		}
+		options = append(options, gaba.Option{
+			DisplayName: localizeWith(id, fallback, map[string]any{"Name": choice.Display}),
+			Value:       choice.RelativePath,
 		})
 	}
 
+	selected := 0
+	if choices.Selected >= 0 {
+		selected = choices.Selected + 1
+	}
+
+	custom := gaba.Option{
+		DisplayName: localize("platform_mapping_custom", "Custom..."),
+		Value:       "",
+		Type:        gaba.OptionTypeKeyboard,
+	}
+	if choices.Custom != "" {
+		custom.DisplayName = choices.Custom
+		custom.Value = choices.Custom
+		custom.KeyboardPrompt = choices.Custom
+		selected = len(options)
+	}
+	options = append(options, custom)
+
+	return options, selected
+}
+
+func noResultsItem() gaba.ItemWithOptions {
+	return gaba.ItemWithOptions{
+		Item: gaba.MenuItem{
+			Text:     localize("platform_mapping_no_results", "No matching platforms found. Press Y to filter."),
+			Metadata: placeholderSlug,
+		},
+		Options: []gaba.Option{{DisplayName: "", Value: ""}},
+	}
+}
+
+// filterMenu runs the filter sub-screen, returning the filter to apply.
+// Cancelling leaves the current one in place.
+func (s *PlatformMappingScreen) filterMenu(platforms []romm.Platform, current catalog.PlatformFilter) catalog.PlatformFilter {
+	statusOptions := []gaba.Option{
+		{DisplayName: localize("settings_mapping_status_all", "All"), Value: catalog.StatusAll},
+		{DisplayName: localize("settings_mapping_status_mapped", "Mapped"), Value: catalog.StatusMapped},
+		{DisplayName: localize("settings_mapping_status_unmapped", "Unmapped"), Value: catalog.StatusUnmapped},
+	}
+	gamesOptions := []gaba.Option{
+		{DisplayName: localize("common_false", "False"), Value: false},
+		{DisplayName: localize("common_true", "True"), Value: true},
+	}
+
+	// A metadata filter is shown only when RomM populated it. Category and
+	// Family need IGDB metadata and are often empty, which would leave an
+	// "All"-only picker that does nothing (#247).
+	anyValue := string(catalog.StatusAll)
+	categoryOptions := valueOptions(anyValue, catalog.Categories(platforms), func(c string) string { return c })
+	familyOptions := valueOptions(anyValue, catalog.Families(platforms), func(f string) string { return f })
+	generationOptions := valueOptions(0, catalog.Generations(platforms), func(g int) string {
+		return fmt.Sprintf("Generation %d", g)
+	})
+
+	draft := current
+	for {
+		items := []gaba.ItemWithOptions{
+			filterRow(filterKeyStatus, localize("settings_mapping_status", "Mapping Status"), statusOptions, draft.Status),
+			filterRow(filterKeyWithGames, localize("settings_only_show_platforms_with_games", "Only Platforms with Games"), gamesOptions, draft.WithGamesOnly),
+		}
+		if len(categoryOptions) > 1 {
+			items = append(items, filterRow(filterKeyCategory, localize("settings_category", "Category"), categoryOptions, draft.Category))
+		}
+		if len(familyOptions) > 1 {
+			items = append(items, filterRow(filterKeyFamily, localize("settings_family", "Family"), familyOptions, draft.Family))
+		}
+		if len(generationOptions) > 1 {
+			items = append(items, filterRow(filterKeyGeneration, localize("settings_generation", "Generation"), generationOptions, draft.Generation))
+		}
+
+		result, err := gaba.OptionsList(
+			localize("game_filters_title", "Filters"),
+			gaba.OptionListSettings{
+				FooterHelpItems: []gaba.FooterHelpItem{
+					FooterCancel(),
+					FooterCycle(),
+					{ButtonName: "X", HelpText: localize("button_reset", "Reset")},
+					FooterApply(),
+				},
+				StatusBar:        StatusBar(),
+				ListPickerButton: constants.VirtualButtonA,
+				ActionButton:     constants.VirtualButtonX,
+				UseSmallTitle:    true,
+			},
+			items,
+		)
+		if err != nil {
+			return current
+		}
+
+		// Reset redraws the menu at its defaults; nothing applies until Save.
+		if result.Action == gaba.ListActionTriggered {
+			draft = catalog.PlatformFilter{Status: catalog.StatusAll}
+			continue
+		}
+
+		return filterFrom(result.Items, draft)
+	}
+}
+
+// valueOptions builds a picker that leads with All, which stores anyValue. A
+// result of one entry means there was nothing to choose from.
+func valueOptions[T any](anyValue any, values []T, describe func(T) string) []gaba.Option {
+	options := make([]gaba.Option, 0, len(values)+1)
+	options = append(options, gaba.Option{DisplayName: localize("filter_all", "All"), Value: anyValue})
+	for _, value := range values {
+		options = append(options, gaba.Option{DisplayName: describe(value), Value: value})
+	}
 	return options
 }
 
-func (s *PlatformMappingScreen) buildPlatformOptions(
-	platform romm.Platform,
-	romDirectories []os.DirEntry,
-	input PlatformMappingInput,
-) ([]gaba.Option, int) {
-	options := []gaba.Option{{DisplayName: i18n.Localize(&goi18n.Message{ID: "common_skip", Other: "Skip"}, nil), Value: ""}}
-	selectedIndex := 0
-
-	cfwDirectories := s.getCFWDirectoriesForPlatform(platform.FSSlug, input.CFW, input.PlatformsBinding)
-
-	// Check if this is a return visit with existing mappings
-	hasExistingMappings := len(input.ExistingMappings) > 0
-	existingMapping, platformHasMapping := input.ExistingMappings[platform.FSSlug]
-
-	createOptionAdded := false
-	for _, cfwDir := range cfwDirectories {
-		dirExists := false
-		for _, romDir := range romDirectories {
-			if s.directoriesMatch(cfwDir, romDir.Name(), input.CFW) {
-				dirExists = true
-				break
-			}
-		}
-
-		if !dirExists {
-			displayName := cfwDir
-			if input.CFW == cfw.NextUI || input.CFW == cfw.MinUI {
-				displayName = stringutil.ParseTag(cfwDir)
-			}
-			options = append(options, gaba.Option{
-				DisplayName: i18n.Localize(&goi18n.Message{ID: "platform_mapping_create", Other: "Create '{{.Name}}'"}, map[string]interface{}{"Name": displayName}),
-				Value:       cfwDir,
-			})
-			createOptionAdded = true
-
-			// For return visits, select if this matches the existing mapping
-			if hasExistingMappings && platformHasMapping && cfwDir == existingMapping.RelativePath {
-				selectedIndex = len(options) - 1
-			}
-		}
-	}
-
-	for _, romDir := range romDirectories {
-		dirName := romDir.Name()
-
-		if s.isValidDirectoryForPlatform(dirName, input.CFW, cfwDirectories) {
-			displayName := dirName
-			if input.CFW == cfw.NextUI || input.CFW == cfw.MinUI {
-				displayName = stringutil.ParseTag(dirName)
-			}
-
-			options = append(options, gaba.Option{
-				DisplayName: i18n.Localize(&goi18n.Message{ID: "platform_mapping_path_prefix", Other: "/{{.Name}}"}, map[string]interface{}{"Name": displayName}),
-				Value:       dirName,
-			})
-
-			if hasExistingMappings {
-				// For return visits, only select if this platform has a mapping and it matches
-				if platformHasMapping && dirName == existingMapping.RelativePath {
-					selectedIndex = len(options) - 1
-				}
-			} else {
-				// First time: auto-detect based on directory name matching platform
-				if s.directoryMatchesPlatform(platform, romDir.Name(), input.CFW) {
-					selectedIndex = len(options) - 1
-				}
-			}
-		}
-	}
-
-	// Only auto-select create option on first run (not return visits)
-	if !hasExistingMappings && selectedIndex == 0 && createOptionAdded && input.AutoSelect {
-		selectedIndex = 1
-	}
-
-	// Check if existing mapping is a custom value (not matched by any predefined option)
-	isCustomValue := hasExistingMappings && platformHasMapping && existingMapping.RelativePath != "" && selectedIndex == 0
-	customDisplayName := i18n.Localize(&goi18n.Message{ID: "platform_mapping_custom", Other: "Custom..."}, nil)
-	customValue := ""
-
-	if isCustomValue {
-		customDisplayName = existingMapping.RelativePath
-		customValue = existingMapping.RelativePath
-	}
-
-	// Add custom input option at the end
-	options = append(options, gaba.Option{
-		DisplayName:    customDisplayName,
-		Value:          customValue,
-		Type:           gaba.OptionTypeKeyboard,
-		KeyboardPrompt: customValue, // Prepopulate keyboard with existing value
-	})
-
-	// Select custom option if it has a value
-	if isCustomValue {
-		selectedIndex = len(options) - 1
-	}
-
-	return options, selectedIndex
-}
-
-func (s *PlatformMappingScreen) directoryMatchesPlatform(
-	platform romm.Platform,
-	dirName string,
-	c cfw.CFW,
-) bool {
-	cfwFSSlug := cfw.RomMFSSlugToCFW(platform.FSSlug)
-	romFolderBase := cfw.RomFolderBase(dirName, stringutil.ParseTag)
-
-	switch c {
-	case cfw.NextUI, cfw.MinUI:
-		return stringutil.ParseTag(cfwFSSlug) == romFolderBase
-	default:
-		return cfwFSSlug == romFolderBase
+func filterRow(key, label string, options []gaba.Option, current any) gaba.ItemWithOptions {
+	return gaba.ItemWithOptions{
+		Item:           gaba.MenuItem{Text: label, Metadata: key},
+		Options:        options,
+		SelectedOption: optionIndex(options, current),
 	}
 }
 
-func (s *PlatformMappingScreen) getCFWDirectoriesForPlatform(fsSlug string, c cfw.CFW, platformsBinding map[string]string) []string {
-	// Resolve fsSlug through platform binding if available
-	effectiveSlug := fsSlug
-	if platformsBinding != nil {
-		if bound, ok := platformsBinding[fsSlug]; ok {
-			gaba.GetLogger().Debug("Using platform binding for CFW lookup",
-				"fsSlug", fsSlug, "boundTo", bound)
-			effectiveSlug = bound
+// optionIndex finds the option holding value, falling back to the first.
+func optionIndex(options []gaba.Option, value any) int {
+	for i, option := range options {
+		if option.Value == value {
+			return i
 		}
 	}
+	return 0
+}
 
-	platformMap := cfw.GetPlatformMap(c)
-	if platformMap != nil {
-		if dirs, ok := platformMap[effectiveSlug]; ok && len(dirs) > 0 {
-			return dirs
+// optionIndexOr finds the option holding value, falling back to the one
+// holding fallback.
+//
+// Screens pass the settings package's own default, so a config the defaults
+// have not reached opens on what the rest of the app will use rather than on
+// whatever happens to be listed first.
+func optionIndexOr(options []gaba.Option, value, fallback any) int {
+	for i, option := range options {
+		if option.Value == value {
+			return i
 		}
 	}
-	// Fall back to effective slug if no CFW-specific mapping exists
-	return []string{effectiveSlug}
+	return optionIndex(options, fallback)
 }
 
-func (s *PlatformMappingScreen) directoriesMatch(dir1, dir2 string, c cfw.CFW) bool {
-	if c == cfw.NextUI || c == cfw.MinUI {
-		return stringutil.ParseTag(dir1) == stringutil.ParseTag(dir2)
-	}
-	return dir1 == dir2
-}
-
-func (s *PlatformMappingScreen) isValidDirectoryForPlatform(dirName string, c cfw.CFW, cfwDirectories []string) bool {
-	for _, cfwDir := range cfwDirectories {
-		if s.directoriesMatch(cfwDir, dirName, c) {
-			return true
-		}
-	}
-	return false
-}
-
-func (s *PlatformMappingScreen) buildMappingsFromResult(items []gaba.ItemWithOptions) map[string]internal.DirectoryMapping {
-	mappings := make(map[string]internal.DirectoryMapping)
-
+func filterFrom(items []gaba.ItemWithOptions, base catalog.PlatformFilter) catalog.PlatformFilter {
+	filter := base
 	for _, item := range items {
-		rommSlug := item.Item.Metadata.(string)
-		relativePath := item.Options[item.SelectedOption].Value.(string)
-
-		if relativePath == "" {
-			continue
-		}
-
-		mappings[rommSlug] = internal.DirectoryMapping{
-			RomMSlug:     rommSlug,
-			RelativePath: relativePath,
+		value := item.Options[item.SelectedOption].Value
+		switch item.Item.Metadata {
+		case filterKeyStatus:
+			if v, ok := value.(catalog.MappingStatus); ok {
+				filter.Status = v
+			}
+		case filterKeyWithGames:
+			if v, ok := value.(bool); ok {
+				filter.WithGamesOnly = v
+			}
+		case filterKeyCategory:
+			if v, ok := value.(string); ok {
+				filter.Category = v
+			}
+		case filterKeyFamily:
+			if v, ok := value.(string); ok {
+				filter.Family = v
+			}
+		case filterKeyGeneration:
+			if v, ok := value.(int); ok {
+				filter.Generation = v
+			}
 		}
 	}
-
-	return mappings
-}
-
-func (s *PlatformMappingScreen) createDirectories(
-	mappings map[string]internal.DirectoryMapping,
-	romDirectory string,
-	existingDirs []os.DirEntry,
-) error {
-	logger := gaba.GetLogger()
-
-	existingDirMap := make(map[string]bool)
-	for _, dir := range existingDirs {
-		existingDirMap[dir.Name()] = true
-	}
-
-	for _, mapping := range mappings {
-		if existingDirMap[mapping.RelativePath] {
-			continue
-		}
-
-		fullPath := filepath.Join(romDirectory, mapping.RelativePath)
-		logger.Debug("Creating new ROM directory", "path", fullPath)
-
-		if err := os.MkdirAll(fullPath, 0755); err != nil {
-			logger.Error("Failed to create directory", "path", fullPath, "error", err)
-			return fmt.Errorf("failed to create directory %s: %w", fullPath, err)
-		}
-
-		logger.Info("Created ROM directory", "path", fullPath)
-	}
-
-	return nil
+	return filter
 }

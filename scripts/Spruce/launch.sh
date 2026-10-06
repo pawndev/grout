@@ -31,9 +31,9 @@ case "$PLATFORM" in
     ;;
 
 ############################################################
-# Brick / SmartPro / SmartProS
+# Brick / BrickPro / SmartPro / SmartProS
 ############################################################
-    "Brick" | "SmartPro" | "SmartProS")
+    "Brick" | "SmartPro" | "SmartProS" | "BrickPro" )
         export LD_LIBRARY_PATH="$CUR_DIR/grout/lib64:$LD_LIBRARY_PATH"
         export SPRUCE_DEVICE="TRIMUI"
         ./grout64
@@ -73,9 +73,31 @@ case "$PLATFORM" in
     ;;
 
 ############################################################
+# Anbernic H700
+############################################################
+    "Anbernic"* )
+        export LD_LIBRARY_PATH="$CUR_DIR/grout/lib64:$LD_LIBRARY_PATH"
+        export SPRUCE_DEVICE="H700"
+        ./grout64
+    ;;
+
+
+############################################################
 # Unknown
 ############################################################
     * )
-        echo "Unknown Spruce platform: '${PLATFORM:-<empty>}'" >> grout.log
+        case "$(uname -m)" in
+            arm*)
+                echo "Unknown 32-bit Spruce platform: '${PLATFORM:-<empty>}' ($(uname -m))" >> grout.log
+                exit 0
+            ;;
+        esac
+        echo "Unrecognized Spruce platform: '${PLATFORM:-<empty>}', trying generic 64-bit launch" >> grout.log
+        export LD_LIBRARY_PATH="$CUR_DIR/grout/lib64:$LD_LIBRARY_PATH"
+        ./grout64
+        status=$?
+        if [ "$status" -ne 0 ]; then
+            echo "grout64 exited with status $status on '${PLATFORM:-<empty>}'" >> grout.log
+        fi
     ;;
 esac

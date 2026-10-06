@@ -10,14 +10,20 @@ import (
 	"unicode"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	"golang.org/x/text/unicode/norm"
 )
 
-// normalizeForMatch strips punctuation, collapses whitespace, and lowercases
-// for fuzzy title matching (e.g., "BUST A MOVE DELUXE" matches "Bust-a-Move: Deluxe").
+// normalizeForMatch strips punctuation, collapses whitespace, lowercases, and folds
+// diacritics for fuzzy title matching (e.g. "BUST A MOVE DELUXE" matches
+// "Bust-a-Move: Deluxe", and "Pokemon" matches "Pokémon"). Accent folding works by
+// NFD-decomposing each rune and dropping combining marks, so "é" -> "e".
 func normalizeForMatch(s string) string {
 	var b strings.Builder
 	lastSpace := false
-	for _, r := range strings.ToLower(s) {
+	for _, r := range norm.NFD.String(strings.ToLower(s)) {
+		if unicode.Is(unicode.Mn, r) {
+			continue // combining mark left over from decomposing an accented letter
+		}
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			b.WriteRune(r)
 			lastSpace = false
@@ -27,6 +33,36 @@ func normalizeForMatch(s string) string {
 		}
 	}
 	return strings.TrimSpace(b.String())
+}
+
+// pickLenientMatch finds the best lenient match index for input among the parallel
+// fsNames/names slices, in precedence order: case-insensitive expected basename, then
+// normalized expected basename, then normalized rom name (title). Returns -1 if none.
+// Mirrors Argosy's tiered re-link matching so local files whose names differ from
+// RomM's only by case/punctuation/spacing still resolve.
+func pickLenientMatch(input string, fsNames, names []string) int {
+	normInput := normalizeForMatch(input)
+	ci, normFs, normName := -1, -1, -1
+	for i := range fsNames {
+		if ci < 0 && strings.EqualFold(fsNames[i], input) {
+			ci = i
+		}
+		if normInput != "" {
+			if normFs < 0 && fsNames[i] != "" && normalizeForMatch(fsNames[i]) == normInput {
+				normFs = i
+			}
+			if normName < 0 && i < len(names) && names[i] != "" && normalizeForMatch(names[i]) == normInput {
+				normName = i
+			}
+		}
+	}
+	if ci >= 0 {
+		return ci
+	}
+	if normFs >= 0 {
+		return normFs
+	}
+	return normName
 }
 
 type Type string
@@ -116,7 +152,7 @@ func boolToInt(b bool) int {
 func parseMaxPlayerCount(game romm.Rom) int {
 	pc := strings.TrimSpace(game.ScreenScraperMetadata.PlayerCount)
 	if pc != "" {
-		// Handle range like "1-4" — take the last number
+		// Handle range like "1-4": take the last number
 		if idx := strings.LastIndex(pc, "-"); idx >= 0 {
 			if n, err := strconv.Atoi(strings.TrimSpace(pc[idx+1:])); err == nil && n > 0 {
 				return n
@@ -210,6 +246,28 @@ func batchInsertJunction(tx *sql.Tx, junctionTable, fkCol, lookupTable string, g
 	return nil
 }
 
+// junctionSpec pairs a metadata junction/lookup table with one game's values for it.
+type junctionSpec struct {
+	junctionTable, fkCol, lookupTable string
+	values                            []string
+}
+
+// junctionSpecsFor returns the metadata junction rows implied by a game's cached fields.
+// Single source of truth shared by SavePlatformGames and the junction backfill migration,
+// so the two can never drift apart.
+func junctionSpecsFor(game romm.Rom) []junctionSpec {
+	return []junctionSpec{
+		{"game_genres", "genre_id", "genres", game.Metadatum.Genres},
+		{"game_franchises", "franchise_id", "franchises", anySliceToStrings(game.Metadatum.Franchises)},
+		{"game_companies", "company_id", "companies", game.Metadatum.Companies},
+		{"game_game_modes", "game_mode_id", "game_modes", game.Metadatum.GameModes},
+		{"game_age_ratings", "age_rating_id", "age_ratings", game.Metadatum.AgeRatings},
+		{"game_regions", "region_id", "regions", game.Regions},
+		{"game_languages", "language_id", "languages", game.Languages},
+		{"game_tags", "tag_id", "tags", anySliceToStrings(game.Tags)},
+	}
+}
+
 func (cm *Manager) SavePlatformGames(platformID int, games []romm.Rom) error {
 	if cm == nil || !cm.initialized {
 		return ErrNotInitialized
@@ -226,23 +284,23 @@ func (cm *Manager) SavePlatformGames(platformID int, games []romm.Rom) error {
 
 	stmt, err := tx.Prepare(`
 		INSERT OR REPLACE INTO games (
-			id, platform_id, platform_fs_slug, name, fs_name, fs_name_no_ext,
+			id, platform_id, platform_fs_slug, name, fs_name, fs_name_no_ext, expected_basename,
 			crc_hash, md5_hash, sha1_hash,
 			player_count, first_release_date, average_rating, fs_size_bytes,
 			is_identified, is_unidentified, missing_from_fs, has_manual, has_multiple_files,
 			data_json, updated_at, cached_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return newCacheError("save", "games", GetPlatformCacheKey(platformID), err)
 	}
 	defer stmt.Close()
 
-	for _, table := range junctionTables {
-		if _, err := tx.Exec("DELETE FROM "+table+" WHERE game_id IN (SELECT id FROM games WHERE platform_id = ?)", platformID); err != nil {
-			return newCacheError("save", "games", GetPlatformCacheKey(platformID), err)
-		}
+	basenameStmt, err := tx.Prepare(`INSERT OR IGNORE INTO game_basenames (game_id, platform_fs_slug, basename) VALUES (?, ?, ?)`)
+	if err != nil {
+		return newCacheError("save", "games", GetPlatformCacheKey(platformID), err)
 	}
+	defer basenameStmt.Close()
 
 	now := nowUTC()
 	cacheKey := GetPlatformCacheKey(platformID)
@@ -267,7 +325,7 @@ func (cm *Manager) SavePlatformGames(platformID int, games []romm.Rom) error {
 
 		_, err = stmt.Exec(
 			game.ID, game.PlatformID, game.PlatformFSSlug, game.Name,
-			game.FsName, game.FsNameNoExt, game.CrcHash, game.Md5Hash, game.Sha1Hash,
+			game.FsName, game.FsNameNoExt, game.CanonicalLocalBasename(), game.CrcHash, game.Md5Hash, game.Sha1Hash,
 			parseMaxPlayerCount(game), game.Metadatum.FirstReleaseDate, game.Metadatum.AverageRating,
 			game.FsSizeBytes, boolToInt(game.IsIdentified), boolToInt(game.IsUnidentified),
 			boolToInt(game.MissingFromFs), boolToInt(game.HasManual), boolToInt(game.HasMultipleFiles),
@@ -277,21 +335,26 @@ func (cm *Manager) SavePlatformGames(platformID int, games []romm.Rom) error {
 			return newCacheError("save", "games", cacheKey, err)
 		}
 
-		junctions := []struct {
-			junctionTable, fkCol, lookupTable string
-			values                            []string
-		}{
-			{"game_genres", "genre_id", "genres", game.Metadatum.Genres},
-			{"game_franchises", "franchise_id", "franchises", anySliceToStrings(game.Metadatum.Franchises)},
-			{"game_companies", "company_id", "companies", game.Metadatum.Companies},
-			{"game_game_modes", "game_mode_id", "game_modes", game.Metadatum.GameModes},
-			{"game_age_ratings", "age_rating_id", "age_ratings", game.Metadatum.AgeRatings},
-			{"game_regions", "region_id", "regions", game.Regions},
-			{"game_languages", "language_id", "languages", game.Languages},
-			{"game_tags", "tag_id", "tags", anySliceToStrings(game.Tags)},
+		// Re-index this game's on-disk basenames (issue #242) and metadata junctions.
+		// Both use a per-game replace so an incremental refresh (which hands us only the
+		// games changed upstream) rebuilds just those games' rows and leaves every other
+		// game's rows intact. A per-platform wipe here would delete the filter metadata for
+		// games not in the incremental set, emptying the Filters screen.
+		if _, err := tx.Exec("DELETE FROM game_basenames WHERE game_id = ?", game.ID); err != nil {
+			return newCacheError("save", "games", cacheKey, err)
+		}
+		for _, table := range junctionTables {
+			if _, err := tx.Exec("DELETE FROM "+table+" WHERE game_id = ?", game.ID); err != nil {
+				return newCacheError("save", "games", cacheKey, err)
+			}
+		}
+		for _, base := range game.LocalBasenames() {
+			if _, err := basenameStmt.Exec(game.ID, game.PlatformFSSlug, base); err != nil {
+				return newCacheError("save", "games", cacheKey, err)
+			}
 		}
 
-		for _, jt := range junctions {
+		for _, jt := range junctionSpecsFor(game) {
 			if megaBatches[jt.junctionTable] == nil {
 				megaBatches[jt.junctionTable] = &megaBatch{fkCol: jt.fkCol}
 			}
@@ -714,10 +777,19 @@ type GameFilter struct {
 	MinSizeBytes         int64
 	MaxSizeBytes         int64
 	NameSearch           string
+
+	// HideDownloaded overrides the Downloaded Games setting for one browse; nil
+	// follows it. The cache never queries on it.
+	HideDownloaded *bool
 }
 
 // HasActiveFilters returns true if any filter criteria are set.
 func (f GameFilter) HasActiveFilters() bool {
+	return f.HasMetadataFilters() || f.HideDownloaded != nil
+}
+
+// HasMetadataFilters reports whether any criterion the cache can query on is set.
+func (f GameFilter) HasMetadataFilters() bool {
 	return len(f.PlatformSlugs) > 0 || len(f.Genres) > 0 || len(f.Franchises) > 0 || len(f.Companies) > 0 ||
 		len(f.GameModes) > 0 || len(f.AgeRatings) > 0 || len(f.Regions) > 0 ||
 		len(f.Languages) > 0 || len(f.Tags) > 0 ||
@@ -1072,7 +1144,13 @@ func (cm *Manager) GetDistinctTags(platformID int) ([]string, error) {
 	return cm.GetDistinctValues("tags", "game_tags", "tag_id", platformID)
 }
 
-func (cm *Manager) GetRomByFSLookup(fsSlug, fsNameNoExt string) (romm.Rom, error) {
+// GetRomByFSLookup resolves a local file (a downloaded ROM or an emulator save) back to its
+// RomM ROM. localBasename is the on-disk filename without extension; it is matched against
+// game_basenames holds every basename a game can occupy on disk, one row per file, so a save or
+// ROM for ANY of a multi-file game's alternative versions resolves, not just Files[0] (#242).
+// fsSlug is compared case-insensitively: RomM lowercases the folder names in its platform
+// binding but keeps the folder's case in each ROM's platform_fs_slug (issue #285).
+func (cm *Manager) GetRomByFSLookup(fsSlug, localBasename string) (romm.Rom, error) {
 	if cm == nil || !cm.initialized {
 		return romm.Rom{}, ErrNotInitialized
 	}
@@ -1082,10 +1160,17 @@ func (cm *Manager) GetRomByFSLookup(fsSlug, fsNameNoExt string) (romm.Rom, error
 
 	var dataJSON string
 	err := cm.db.QueryRow(`
-		SELECT data_json FROM games WHERE platform_fs_slug = ? AND fs_name_no_ext = ? LIMIT 1
-	`, fsSlug, fsNameNoExt).Scan(&dataJSON)
+		SELECT g.data_json FROM game_basenames b
+		JOIN games g ON g.id = b.game_id
+		WHERE b.platform_fs_slug = ? COLLATE NOCASE AND b.basename = ? LIMIT 1
+	`, fsSlug, localBasename).Scan(&dataJSON)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			// Lenient fallback: case-insensitive / normalized match within the platform.
+			if game, ok := cm.lenientFSLookup(fsSlug, localBasename); ok {
+				cm.stats.recordHit()
+				return game, nil
+			}
 			cm.stats.recordMiss()
 			return romm.Rom{}, ErrCacheMiss
 		}
@@ -1103,6 +1188,52 @@ func (cm *Manager) GetRomByFSLookup(fsSlug, fsNameNoExt string) (romm.Rom, error
 	return game, nil
 }
 
+// lenientFSLookup resolves localBasename by case-insensitive / normalized matching against
+// every game basename on the platform (see pickLenientMatch). Caller must hold cm.mu (read
+// lock). Returns the matched ROM and true on success.
+func (cm *Manager) lenientFSLookup(fsSlug, localBasename string) (romm.Rom, bool) {
+	// One lightweight row per (game, basename), not the data_json blob; the matched game's
+	// JSON is point-queried afterward. Avoids loading hundreds of large blobs to discard.
+	rows, err := cm.db.Query(`
+		SELECT b.game_id, b.basename, g.name FROM game_basenames b
+		JOIN games g ON g.id = b.game_id
+		WHERE b.platform_fs_slug = ? COLLATE NOCASE
+	`, fsSlug)
+	if err != nil {
+		return romm.Rom{}, false
+	}
+
+	var ids []int
+	var names, fsNames []string
+	for rows.Next() {
+		var id int
+		var bn, n string
+		if rows.Scan(&id, &bn, &n) == nil {
+			ids = append(ids, id)
+			fsNames = append(fsNames, bn)
+			names = append(names, n)
+		}
+	}
+	rows.Close()
+
+	idx := pickLenientMatch(localBasename, fsNames, names)
+	if idx < 0 {
+		return romm.Rom{}, false
+	}
+
+	var dataJSON string
+	if err := cm.db.QueryRow(`SELECT data_json FROM games WHERE id = ? LIMIT 1`, ids[idx]).Scan(&dataJSON); err != nil {
+		return romm.Rom{}, false
+	}
+	var game romm.Rom
+	if err := json.Unmarshal([]byte(dataJSON), &game); err != nil {
+		return romm.Rom{}, false
+	}
+	gaba.GetLogger().Debug("Lenient ROM match",
+		"input", localBasename, "matchedBasename", fsNames[idx], "matchedName", names[idx], "fsSlug", fsSlug)
+	return game, true
+}
+
 func (cm *Manager) GetRomByNameLookup(fsSlug, name string) (romm.Rom, error) {
 	if cm == nil || !cm.initialized {
 		return romm.Rom{}, ErrNotInitialized
@@ -1115,13 +1246,13 @@ func (cm *Manager) GetRomByNameLookup(fsSlug, name string) (romm.Rom, error) {
 
 	// Try exact match first
 	err := cm.db.QueryRow(`
-		SELECT data_json FROM games WHERE platform_fs_slug = ? AND name = ? LIMIT 1
+		SELECT data_json FROM games WHERE platform_fs_slug = ? COLLATE NOCASE AND name = ? LIMIT 1
 	`, fsSlug, name).Scan(&dataJSON)
 
 	// Fall back to normalized match (case-insensitive, punctuation-stripped)
 	if errors.Is(err, sql.ErrNoRows) {
 		rows, qErr := cm.db.Query(`
-			SELECT name, data_json FROM games WHERE platform_fs_slug = ?
+			SELECT name, data_json FROM games WHERE platform_fs_slug = ? COLLATE NOCASE
 		`, fsSlug)
 		if qErr == nil {
 			defer rows.Close()

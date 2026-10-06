@@ -1,4 +1,7 @@
 [allium]: https://github.com/goweiwen/Allium
+[anbernic]: https://anbernic.com
+[arkos]: https://github.com/christianhaitian/arkos
+[darkos]: https://github.com/christianhaitian/dArkOS
 [batocera]: https://batocera.org
 [knulli]: https://knulli.org
 [koriki]: https://github.com/Rparadise-Team/Koriki
@@ -11,4 +14,3 @@
 [sprigui]: https://github.com/spruceUI/sprigUI
 [twigui]: https://github.com/spruceUI/twigUI
 [trimui]: https://github.com/trimui
-[retrodeck]: https://retrodeck.net

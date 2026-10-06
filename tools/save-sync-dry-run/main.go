@@ -1,25 +1,33 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"grout/cache"
-	"grout/internal"
 	"grout/romm"
-	"grout/sync"
+	"grout/saves"
+	"grout/settings"
 	"os"
 	"strings"
 	"time"
 )
 
-var debug bool
-
 func main() {
-	flag.BoolVar(&debug, "debug", false, "dump raw API responses for each save")
+	scenario := flag.String("scenario", "", "run an offline fix-verification scenario instead of a live dry-run "+
+		"(slot-switch, nextui-keep, nextui-retroarch, all; requires -tags dryrun)")
 	flag.Parse()
 
-	config, err := internal.LoadConfig()
+	// Offline scenario mode: exercise the fixed resolution logic with synthetic inputs, no
+	// live server / device / cache required.
+	if *scenario != "" {
+		if err := runScenario(*scenario); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	config, err := settings.LoadConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1)
@@ -36,7 +44,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := cache.InitCacheManager(host, config); err != nil {
+	if err := cache.InitCacheManager(host, *config); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to init cache: %v\n", err)
 		os.Exit(1)
 	}
@@ -48,38 +56,13 @@ func main() {
 	fmt.Printf("Device:   %s\n", host.DeviceID)
 	fmt.Println()
 
-	localSaves := sync.ScanSaves(config)
-	fmt.Printf("Local saves found: %d\n", len(localSaves))
-
-	remoteSaves, err := sync.FetchRemoteSaves(client, localSaves, host.DeviceID)
+	result, err := saves.ResolveSaveSync(client, config, host.DeviceID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to fetch remote saves: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to resolve sync: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("ROMs with remote saves: %d\n", len(remoteSaves))
-
-	if debug {
-		for romID, saves := range remoteSaves {
-			fmt.Printf("\n[DEBUG] Saves for rom_id=%d (%d saves):\n", romID, len(saves))
-			for _, s := range saves {
-				dumpJSON(s)
-			}
-		}
-	}
-
-	newSaves := sync.LocalSavesWithoutRemote(localSaves, remoteSaves)
-	var items []sync.SyncItem
-	items = append(items, sync.NewSaveUploadActions(newSaves, config)...)
-	items = append(items, sync.DetermineActions(localSaves, remoteSaves, host.DeviceID, config)...)
-
-	fmt.Println("Scanning for remote-only saves...")
-	remoteOnly, err := sync.DiscoverRemoteSaves(client, config, localSaves, host.DeviceID)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to discover remote saves: %v\n", err)
-		os.Exit(1)
-	}
-	items = append(items, remoteOnly...)
-
+	items := result.Items
+	fmt.Printf("Session ID: %d\n", result.SessionID)
 	fmt.Printf("Total sync items: %d\n\n", len(items))
 
 	if len(items) == 0 {
@@ -88,12 +71,6 @@ func main() {
 	}
 
 	printTable(items, host.DeviceID)
-}
-
-func dumpJSON(v any) {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("  ", "  ")
-	enc.Encode(v)
 }
 
 type row struct {
@@ -107,7 +84,7 @@ type row struct {
 	slot          string
 }
 
-func printTable(items []sync.SyncItem, deviceID string) {
+func printTable(items []saves.SyncItem, deviceID string) {
 	headers := row{"ACTION", "ROM", "LOCAL FILE", "LOCAL MTIME", "REMOTE ID", "REMOTE UPDATED", "CURRENT", "SLOT"}
 
 	var rows []row

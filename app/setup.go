@@ -40,6 +40,7 @@ func setup() SetupResult {
 		log.Fatalf("Cannot start: %v", err)
 	}
 
+	setupLogPath(currentCFW)
 	setupInputMapping(currentCFW)
 	initFramework(currentCFW)
 
@@ -58,6 +59,14 @@ func setup() SetupResult {
 	return SetupResult{
 		Config:    config,
 		Platforms: platforms,
+	}
+}
+
+// setupLogPath has to come before any gaba.GetLogger call: gabagool opens the
+// log file once, on first use, and never moves it afterward.
+func setupLogPath(currentCFW cfw.CFW) {
+	if logPath := cfw.Lookup(currentCFW).LogPath(); logPath != "" {
+		gaba.SetLogPath(logPath)
 	}
 }
 

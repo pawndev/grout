@@ -16,6 +16,7 @@ type Paths struct {
 	BiosPath            string `json:"bios_path"`
 	DownloadedMediaPath string `json:"downloaded_media_path"`
 	VideosPath          string `json:"videos_path"`
+	LogsPath            string `json:"logs_path"`
 }
 
 type retrodeckConfig struct {

@@ -14,7 +14,8 @@ const testConfigJSON = `{
     "bios_path": "/home/user/retrodeck/bios",
     "downloaded_media_path": "/home/user/retrodeck/ES-DE/downloaded_media",
     "videos_path": "/home/user/retrodeck/videos",
-    "states_path": "/home/user/retrodeck/states"
+    "states_path": "/home/user/retrodeck/states",
+    "logs_path": "/home/user/retrodeck/logs"
   },
   "options": {
     "cloud_saves": "false"
@@ -54,6 +55,7 @@ func TestParseConfig(t *testing.T) {
 		{"BiosPath", paths.BiosPath, "/home/user/retrodeck/bios"},
 		{"DownloadedMediaPath", paths.DownloadedMediaPath, "/home/user/retrodeck/ES-DE/downloaded_media"},
 		{"VideosPath", paths.VideosPath, "/home/user/retrodeck/videos"},
+		{"LogsPath", paths.LogsPath, "/home/user/retrodeck/logs"},
 	}
 
 	for _, tt := range tests {
@@ -109,5 +111,32 @@ func TestLoadConfig_EnvVarNotSet(t *testing.T) {
 	_, err := LoadConfig()
 	if err == nil {
 		t.Fatal("expected error when env var not set, got nil")
+	}
+}
+
+func TestGetLogPath(t *testing.T) {
+	path := writeTempConfig(t, testConfigJSON)
+	t.Setenv(configPathEnv, path)
+
+	want := "/home/user/retrodeck/logs/grout.log"
+	if got := GetLogPath(); got != want {
+		t.Errorf("GetLogPath() = %q, want %q", got, want)
+	}
+}
+
+func TestGetLogPath_NoConfig(t *testing.T) {
+	t.Setenv(configPathEnv, "")
+
+	if got := GetLogPath(); got != "" {
+		t.Errorf("GetLogPath() = %q, want empty string", got)
+	}
+}
+
+func TestGetLogPath_NoLogsPath(t *testing.T) {
+	path := writeTempConfig(t, `{"paths": {"roms_path": "/home/user/retrodeck/roms"}}`)
+	t.Setenv(configPathEnv, path)
+
+	if got := GetLogPath(); got != "" {
+		t.Errorf("GetLogPath() = %q, want empty string", got)
 	}
 }

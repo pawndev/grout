@@ -108,3 +108,17 @@ func GetGamelistPath(romDir, filename string) string {
 	system := filepath.Base(romDir)
 	return filepath.Join(GetGamelistDirectory(), system, filename)
 }
+
+const logFileName = "grout.log"
+
+// GetLogPath is grout's log file inside RetroDECK's logs_path, or "" when the
+// config does not say. It reads the config itself rather than through
+// GetConfigPaths: it runs before logging is set up, and a failure here must
+// not be cached for the paths read later.
+func GetLogPath() string {
+	paths, err := LoadConfig()
+	if err != nil || paths.LogsPath == "" {
+		return ""
+	}
+	return filepath.Join(paths.LogsPath, logFileName)
+}

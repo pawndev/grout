@@ -89,6 +89,10 @@ type Firmware struct {
 	// package. nil for firmwares that use gabagool's default.
 	inputMapping func() ([]byte, error)
 
+	// logPath, when set, is where the firmware wants grout's log file. nil, or
+	// an empty result, keeps gabagool's logs/ beside the binary.
+	logPath func() string
+
 	// packaging describes the release archive.
 	packaging Packaging
 
@@ -201,6 +205,15 @@ func (f *Firmware) InputMapping() ([]byte, error) {
 		return nil, nil
 	}
 	return f.inputMapping()
+}
+
+// LogPath returns where the firmware wants grout's log file. "" means the
+// toolkit default.
+func (f *Firmware) LogPath() string {
+	if f == nil || f.logPath == nil {
+		return ""
+	}
+	return f.logPath()
 }
 
 // GamelistFormat is how a firmware expects game metadata to be recorded.
@@ -471,6 +484,7 @@ var firmwares = map[CFW]*Firmware{
 		gamelist:              GamelistEmulationStation,
 		gamelistPath:          retrodeck.GetGamelistPath,
 		emulationStationBased: true,
+		logPath:               retrodeck.GetLogPath,
 		packaging:             Packaging{Asset: "Grout-RetroDECK.zip", LaunchScript: "Grout.sh", InstallDepth: 2},
 	},
 }

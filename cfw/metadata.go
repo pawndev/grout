@@ -61,3 +61,33 @@ func FillGamesMetadata(entries []gamelist.RomGameEntry) {
 	case GamelistNone:
 	}
 }
+
+// HasGamesMetadata reports whether the firmware reads game metadata grout can
+// write.
+func HasGamesMetadata() bool {
+	return ActiveFirmware().Gamelist() != GamelistNone
+}
+
+// RefreshGamesMetadata rewrites the metadata of games already on the device.
+//
+// Unlike FillGamesMetadata it keeps what the frontend recorded about each game
+// in a gamelist, such as play count or favourites, and only replaces what
+// grout writes. muOS keeps grout's text in files of its own, which are simply
+// rewritten.
+func RefreshGamesMetadata(entries []gamelist.RomGameEntry) error {
+	switch ActiveFirmware().Gamelist() {
+	case GamelistEmulationStation:
+		err := gamelist.RefreshRomGamesInGamelist(entries, gamelist.GameListFileName)
+		scheduleESRestart()
+		return err
+
+	case GamelistMiyoo:
+		return gamelist.RefreshRomGamesInGamelist(entries, gamelist.MiyooGameListFileName)
+
+	case GamelistMuOSText:
+		for _, entry := range entries {
+			muos.AddGameDescription(entry)
+		}
+	}
+	return nil
+}

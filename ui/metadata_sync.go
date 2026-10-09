@@ -45,7 +45,7 @@ func (s *MetadataSyncScreen) draw(input MetadataSyncInput) {
 		return
 	}
 
-	found := s.scan(input, platforms)
+	found, paths := s.scan(input, platforms)
 	if len(found) == 0 {
 		s.tell(localize("metadata_sync_no_games", "No downloaded games found."))
 		return
@@ -56,15 +56,17 @@ func (s *MetadataSyncScreen) draw(input MetadataSyncInput) {
 		return
 	}
 
-	s.refresh(input, chosen)
+	s.refresh(input, chosen, paths)
 }
 
-// scan finds the downloaded games of each platform, showing progress since it
-// reads every platform's library and looks for each game on the card.
-func (s *MetadataSyncScreen) scan(input MetadataSyncInput, platforms []romm.Platform) []platformRoms {
+// scan finds the downloaded games of each platform, and the file holding each
+// one keyed by game id, showing progress since it reads every platform's
+// library and looks for each game on the card.
+func (s *MetadataSyncScreen) scan(input MetadataSyncInput, platforms []romm.Platform) ([]platformRoms, map[int]string) {
 	logger := gaba.GetLogger()
 
 	var found []platformRoms
+	paths := make(map[int]string)
 	for i, platform := range platforms {
 		// ProcessMessage runs the closure on the calling goroutine, so
 		// appending from inside is safe
@@ -80,8 +82,9 @@ func (s *MetadataSyncScreen) scan(input MetadataSyncInput, platforms []romm.Plat
 
 				downloaded := make([]romm.Rom, 0, len(games))
 				for _, game := range games {
-					if catalog.IsDownloaded(input.Config, game) {
+					if path := catalog.LocalRomPath(input.Config, game); path != "" {
 						downloaded = append(downloaded, game)
+						paths[game.ID] = path
 					}
 				}
 				if len(downloaded) > 0 {
@@ -91,13 +94,17 @@ func (s *MetadataSyncScreen) scan(input MetadataSyncInput, platforms []romm.Plat
 			},
 		)
 	}
-	return found
+	return found, paths
 }
 
-func (s *MetadataSyncScreen) refresh(input MetadataSyncInput, chosen []platformRoms) {
+func (s *MetadataSyncScreen) refresh(input MetadataSyncInput, chosen []platformRoms, paths map[int]string) {
 	batches := make([]download.PlatformGames, 0, len(chosen))
 	for _, entry := range chosen {
-		batches = append(batches, download.PlatformGames{Platform: entry.platform, Games: entry.roms})
+		games := make([]download.LocalGame, 0, len(entry.roms))
+		for _, rom := range entry.roms {
+			games = append(games, download.LocalGame{Rom: rom, Path: paths[rom.ID]})
+		}
+		batches = append(batches, download.PlatformGames{Platform: entry.platform, Games: games})
 	}
 
 	updated, err := gaba.ProcessMessage(

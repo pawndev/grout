@@ -1,7 +1,6 @@
 package download
 
 import (
-	"grout/catalog"
 	"grout/cfw"
 	"grout/files"
 	"grout/gamelist"
@@ -11,17 +10,27 @@ import (
 	"grout/textmatch"
 )
 
+// LocalGame is a game already on the device and the file that holds it.
+//
+// The caller finds the file: knowing what is downloaded takes the library
+// cache, which this package must not depend on.
+type LocalGame struct {
+	Rom  romm.Rom
+	Path string
+}
+
 // MetadataEntries rebuilds the metadata entries of the games already on the
-// device, from what the server knows about them now.
+// device, from what the server knows about them now. Games without a local
+// file are left out.
 // Artwork is pointed at only where its file is present, so a refresh never
 // leaves an entry naming art that was not downloaded.
-func MetadataEntries(config settings.Config, platform romm.Platform, games []romm.Rom) []gamelist.RomGameEntry {
+func MetadataEntries(config settings.Config, platform romm.Platform, games []LocalGame) []gamelist.RomGameEntry {
 	activeCFW := cfw.GetCFW()
 	isESBased := activeCFW.IsBasedOnEmulationStation()
 
 	entries := make([]gamelist.RomGameEntry, 0, len(games))
-	for _, game := range games {
-		path := catalog.LocalRomPath(config, game)
+	for _, local := range games {
+		game, path := local.Rom, local.Path
 		if path == "" {
 			continue
 		}
@@ -41,10 +50,10 @@ func MetadataEntries(config settings.Config, platform romm.Platform, games []rom
 	return entries
 }
 
-// PlatformGames is a platform and some of its games.
+// PlatformGames is a platform and some of its games on the device.
 type PlatformGames struct {
 	Platform romm.Platform
-	Games    []romm.Rom
+	Games    []LocalGame
 }
 
 // RefreshMetadata rewrites the metadata of the games already on the device and

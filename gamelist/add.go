@@ -39,7 +39,14 @@ func (e RomGameEntry) FileName() string {
 }
 
 func (gl *GameList) AddRomGame(entry RomGameEntry) {
-	element := gl.AddOrUpdateRomEntry(entry.FileName(), romMetadata(entry.Game))
+	metadata := romMetadata(entry.Game)
+	// A fresh download has nothing better to show, so an unknown player count
+	// reads as single player.
+	if _, known := metadata[PlayersElement]; !known {
+		metadata[PlayersElement] = "1"
+	}
+
+	element := gl.AddOrUpdateRomEntry(entry.FileName(), metadata)
 	setScraperID(element, entry.Game)
 }
 
@@ -103,9 +110,10 @@ func romMetadata(game library.Game) map[string]string {
 		}
 	}
 
-	if game.MaxPlayers > 1 {
+	switch {
+	case game.MaxPlayers > 1:
 		gameMetadata[PlayersElement] = fmt.Sprintf("1-%d", game.MaxPlayers)
-	} else {
+	case game.HasMaxPlayers():
 		gameMetadata[PlayersElement] = "1"
 	}
 

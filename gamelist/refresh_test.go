@@ -164,3 +164,38 @@ func TestRefreshRomGamesInGamelist_LeavesOtherEntriesAlone(t *testing.T) {
 		t.Error("expected the other game's play count to survive")
 	}
 }
+
+// An unknown player count must not pass for a single-player game and replace
+// the count already recorded.
+func TestRefreshRomGame_UnknownPlayersKeepsExisting(t *testing.T) {
+	gl := parsed(t, `<gameList><game><path>./Sonic.gba</path><players>1-4</players></game></gameList>`)
+
+	gl.RefreshRomGame(entry(rom("Sonic", "Sonic.gba"), "/roms/gba"))
+
+	if got, _ := childText(onlyGame(t, gl), PlayersElement); got != "1-4" {
+		t.Errorf("<players> = %q, want %q kept", got, "1-4")
+	}
+}
+
+// A known count still replaces what is there.
+func TestRefreshRomGame_KnownPlayersReplaces(t *testing.T) {
+	gl := parsed(t, `<gameList><game><path>./Sonic.gba</path><players>1-4</players></game></gameList>`)
+
+	r := rom("Sonic", "Sonic.gba")
+	r.MaxPlayers = 1
+	gl.RefreshRomGame(entry(r, "/roms/gba"))
+
+	if got, _ := childText(onlyGame(t, gl), PlayersElement); got != "1" {
+		t.Errorf("<players> = %q, want %q", got, "1")
+	}
+}
+
+// A fresh download keeps writing a single player when the count is unknown.
+func TestAddRomGame_UnknownPlayersDefaultsToOne(t *testing.T) {
+	gl := New()
+	gl.AddRomGame(entry(rom("Sonic", "Sonic.gba"), "/roms/gba"))
+
+	if got, _ := childText(onlyGame(t, gl), PlayersElement); got != "1" {
+		t.Errorf("<players> = %q, want %q", got, "1")
+	}
+}

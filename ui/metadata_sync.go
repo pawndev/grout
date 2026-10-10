@@ -9,6 +9,7 @@ import (
 	"grout/settings"
 
 	gaba "github.com/BrandonKowalski/gabagool/v2/pkg/gabagool"
+	uatomic "go.uber.org/atomic"
 )
 
 type MetadataSyncInput struct {
@@ -45,9 +46,15 @@ func (s *MetadataSyncScreen) draw(input MetadataSyncInput) {
 		return
 	}
 
-	found, paths := s.scan(input, platforms)
+	found, paths, failed := s.scan(input, platforms)
+	if len(failed) > 0 {
+		s.tell(fmt.Sprintf(localize("metadata_sync_refresh_failed", "Could not get the latest metadata for %d platforms from RomM.\nThey were skipped."), len(failed)))
+	}
 	if len(found) == 0 {
-		s.tell(localize("metadata_sync_no_games", "No downloaded games found."))
+		// A run where every platform failed has already said so.
+		if len(failed) == 0 {
+			s.tell(localize("metadata_sync_no_games", "No downloaded games found."))
+		}
 		return
 	}
 
@@ -62,21 +69,31 @@ func (s *MetadataSyncScreen) draw(input MetadataSyncInput) {
 // scan finds the downloaded games of each platform, and the file holding each
 // one keyed by game id, showing progress since it reads every platform's
 // library and looks for each game on the card.
-func (s *MetadataSyncScreen) scan(input MetadataSyncInput, platforms []romm.Platform) ([]platformRoms, map[int]string) {
+//
+// Each platform is first brought up to date from the server: the cache only
+// catches up at startup, and writing what it held then would undo the point of
+// the run. A platform that cannot be refreshed is skipped rather than written
+// from possibly stale data, and its name is returned in failed.
+func (s *MetadataSyncScreen) scan(input MetadataSyncInput, platforms []romm.Platform) (found []platformRoms, paths map[int]string, failed []string) {
 	logger := gaba.GetLogger()
 
-	var found []platformRoms
-	paths := make(map[int]string)
+	paths = make(map[int]string)
 	for i, platform := range platforms {
+		progress := uatomic.NewFloat64(0)
 		// ProcessMessage runs the closure on the calling goroutine, so
 		// appending from inside is safe
 		gaba.ProcessMessage(
 			fmt.Sprintf(localize("artwork_sync_scanning", "Scanning platform %d/%d: %s..."), i+1, len(platforms), platform.Name),
-			gaba.ProcessMessageOptions{ShowThemeBackground: true},
+			gaba.ProcessMessageOptions{
+				ShowThemeBackground: true,
+				ShowProgressBar:     true,
+				Progress:            progress,
+			},
 			func() (any, error) {
-				games, err := catalog.Games(catalog.GameSource{Platform: platform})
+				games, err := catalog.RefreshGames(catalog.GameSource{Platform: platform}, progress)
 				if err != nil {
-					logger.Error("Failed to read platform games", "platform", platform.Name, "error", err)
+					logger.Error("Failed to refresh platform games, skipping it", "platform", platform.Name, "error", err)
+					failed = append(failed, platform.Name)
 					return nil, nil
 				}
 
@@ -94,7 +111,7 @@ func (s *MetadataSyncScreen) scan(input MetadataSyncInput, platforms []romm.Plat
 			},
 		)
 	}
-	return found, paths
+	return found, paths, failed
 }
 
 func (s *MetadataSyncScreen) refresh(input MetadataSyncInput, chosen []platformRoms, paths map[int]string) {

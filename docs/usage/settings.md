@@ -211,7 +211,9 @@ Rewrites the metadata of the games already on your device (name, description, ra
 players, regions, languages and artwork paths) from what your RomM server currently knows. Useful when a download was
 cut short before the metadata was written, or when the metadata was updated on the server.
 
-Grout scans your mapped platforms for downloaded games and lets you pick the platforms to update. Only the fields Grout
+Grout first fetches the latest changes from RomM for each mapped platform, then scans them for downloaded games and lets
+you pick the platforms to update. A platform that can't be refreshed from the server is skipped, and Grout tells you
+how many were. Only the fields Grout
 writes are replaced: what your frontend records on its own, such as play count, play time, last played or favourites,
 is kept. A field your server has no value for leaves the existing one alone, and artwork paths are only set when the
 file is on your device. A downloaded game missing from the game list gets a new entry.

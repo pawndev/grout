@@ -167,39 +167,42 @@ func RefreshRomGamesInGamelist(entries []RomGameEntry, gamelistFilename FileName
 	return applyToGamelists(entries, gamelistFilename, (*GameList).RefreshRomGame)
 }
 
-// applyToGamelists loads the gamelist of each platform the entries belong to
-// once, applies apply to every entry, then saves each file.
+// applyToGamelists loads each gamelist file the entries belong to once,
+// applies apply to every entry, then saves each file.
 //
-// A platform whose file cannot be loaded or saved does not stop the others. It
-// returns how many entries landed in a saved file, with every failure joined.
+// Entries are grouped by file rather than by platform: several platforms can
+// share a ROM directory, such as nes and famicom, and loading the file once per
+// platform would have the last save discard the others' entries.
+//
+// A file that cannot be loaded or saved does not stop the others. It returns
+// how many entries landed in a saved file, with every failure joined.
 func applyToGamelists(entries []RomGameEntry, gamelistFilename FileName, apply func(*GameList, RomGameEntry)) (int, error) {
 	logger := slog.Default()
 
 	gamelists := make(map[string]*GameListEntry)
-	// Platforms whose file could not be loaded, so it is tried only once.
+	// Files that could not be loaded, so each is tried only once.
 	skipped := make(map[string]bool)
 	var errs []error
 
 	for _, game := range entries {
-		slug := game.Platform.FSSlug
-		if skipped[slug] {
+		gamelistPath := filepath.Join(game.RomDirectory, string(gamelistFilename))
+		if skipped[gamelistPath] {
 			continue
 		}
 
-		glEntry, exists := gamelists[slug]
+		glEntry, exists := gamelists[gamelistPath]
 		if !exists {
-			gamelistPath := fmt.Sprintf("%s/%s", game.RomDirectory, gamelistFilename)
 			gl, err := loadGamelist(gamelistPath)
 			if err != nil {
 				// Saving over a file that could not be read would wipe every
 				// entry in it.
-				logger.Error("Unable to load gamelist file, skipping platform", "error", err, "path", gamelistPath)
+				logger.Error("Unable to load gamelist file, skipping its entries", "error", err, "path", gamelistPath)
 				errs = append(errs, err)
-				skipped[slug] = true
+				skipped[gamelistPath] = true
 				continue
 			}
 			glEntry = &GameListEntry{Path: gamelistPath, GL: gl}
-			gamelists[slug] = glEntry
+			gamelists[gamelistPath] = glEntry
 		}
 
 		apply(glEntry.GL, game)

@@ -292,3 +292,66 @@ func TestRefreshRomGamesInGamelist_SaveFailureDoesNotStopOthers(t *testing.T) {
 		t.Errorf("good gamelist not written: %v", statErr)
 	}
 }
+
+// sharedDirGamelist writes a gamelist with one game the frontend has played,
+// in a ROM directory that nes and famicom both use.
+func sharedDirGamelist(t *testing.T) (dir, path string) {
+	t.Helper()
+	dir = t.TempDir()
+	path = filepath.Join(dir, string(GameListFileName))
+	if err := os.WriteFile(path, []byte(`<gameList><game><path>./Kept.nes</path><name>Kept</name><playcount>7</playcount></game></gameList>`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	return dir, path
+}
+
+// readGamelist parses the gamelist at path.
+func readGamelist(t *testing.T, path string) *GameList {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return parsed(t, string(data))
+}
+
+// Several platforms can share a ROM directory, and so a gamelist. Loading it
+// once per platform would have the last save discard the others' entries.
+func TestRefreshRomGamesInGamelist_PlatformsSharingADirectory(t *testing.T) {
+	dir, path := sharedDirGamelist(t)
+
+	written, err := RefreshRomGamesInGamelist([]RomGameEntry{
+		platformEntry("Mario", "nes", dir),
+		platformEntry("Zelda", "famicom", dir),
+	}, GameListFileName)
+	if err != nil {
+		t.Fatalf("refresh: %v", err)
+	}
+	if written != 2 {
+		t.Errorf("written = %d, want 2", written)
+	}
+
+	gl := readGamelist(t, path)
+	if got := gameElements(t, gl); len(got) != 3 || got[0] != "Kept" || got[1] != "Mario" || got[2] != "Zelda" {
+		t.Errorf("entries = %v, want [Kept Mario Zelda]", got)
+	}
+	if !gl.Contains("playcount", "7") {
+		t.Error("expected the existing play count to survive")
+	}
+}
+
+// The download path writes through the same function.
+func TestAddRomGamesToGamelist_PlatformsSharingADirectory(t *testing.T) {
+	dir, path := sharedDirGamelist(t)
+
+	if err := AddRomGamesToGamelist([]RomGameEntry{
+		platformEntry("Mario", "nes", dir),
+		platformEntry("Zelda", "famicom", dir),
+	}, GameListFileName); err != nil {
+		t.Fatalf("add: %v", err)
+	}
+
+	if got := gameElements(t, readGamelist(t, path)); len(got) != 3 {
+		t.Errorf("entries = %v, want Kept, Mario and Zelda", got)
+	}
+}

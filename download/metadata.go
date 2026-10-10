@@ -56,21 +56,32 @@ type PlatformGames struct {
 	Games    []LocalGame
 }
 
-// RefreshMetadata rewrites the metadata of the games already on the device and
-// returns how many games it covered. What the firmware recorded about each
-// game is kept
-func RefreshMetadata(config settings.Config, batches []PlatformGames) (int, error) {
+// MetadataResult is how a metadata refresh went.
+type MetadataResult struct {
+	// Updated games had their metadata written.
+	Updated int
+	// Failed games were on the device but could not be written.
+	Failed int
+}
+
+// RefreshMetadata rewrites the metadata of the games already on the device.
+// What the frontend recorded about each game, such as play count or
+// favourites, is kept.
+//
+// The result counts only what was actually written. A failure is returned
+// alongside it rather than instead of it, since the rest of the run may have
+// landed.
+func RefreshMetadata(config settings.Config, batches []PlatformGames) (MetadataResult, error) {
 	var entries []gamelist.RomGameEntry
 	for _, batch := range batches {
 		entries = append(entries, MetadataEntries(config, batch.Platform, batch.Games)...)
 	}
 	if len(entries) == 0 {
-		return 0, nil
+		return MetadataResult{}, nil
 	}
-	if err := cfw.RefreshGamesMetadata(entries); err != nil {
-		return 0, err
-	}
-	return len(entries), nil
+
+	written, err := cfw.RefreshGamesMetadata(entries)
+	return MetadataResult{Updated: written, Failed: len(entries) - written}, err
 }
 
 // presentArt records the art of a game whose file is on the device, wherever

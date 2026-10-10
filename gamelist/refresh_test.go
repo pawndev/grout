@@ -1,6 +1,7 @@
 package gamelist
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -148,8 +149,12 @@ func TestRefreshRomGamesInGamelist_LeavesOtherEntriesAlone(t *testing.T) {
 	}
 
 	r := rom("Sonic the Hedgehog", "Sonic.gba")
-	if err := RefreshRomGamesInGamelist([]RomGameEntry{entry(r, romDir)}, GameListFileName); err != nil {
+	written, err := RefreshRomGamesInGamelist([]RomGameEntry{entry(r, romDir)}, GameListFileName)
+	if err != nil {
 		t.Fatalf("refresh: %v", err)
+	}
+	if written != 1 {
+		t.Errorf("written = %d, want 1", written)
 	}
 
 	data, err := os.ReadFile(path)
@@ -197,5 +202,93 @@ func TestAddRomGame_UnknownPlayersDefaultsToOne(t *testing.T) {
 
 	if got, _ := childText(onlyGame(t, gl), PlayersElement); got != "1" {
 		t.Errorf("<players> = %q, want %q", got, "1")
+	}
+}
+
+// platformEntry builds an entry for a rom of the given platform in romDir.
+func platformEntry(name, slug, romDir string) RomGameEntry {
+	e := entry(rom(name, name+".gba"), romDir)
+	e.Platform.FSSlug = slug
+	return e
+}
+
+// A platform whose gamelist cannot be parsed must not count as updated, must
+// not be overwritten, and must not stop the other platforms.
+func TestRefreshRomGamesInGamelist_CountsOnlyWrittenEntries(t *testing.T) {
+	goodDir, badDir := t.TempDir(), t.TempDir()
+	broken := []byte(`<gameList><game><path>./Kept.gba</path>`)
+	badPath := filepath.Join(badDir, string(GameListFileName))
+	if err := os.WriteFile(badPath, broken, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	written, err := RefreshRomGamesInGamelist([]RomGameEntry{
+		platformEntry("Sonic", "gba", goodDir),
+		platformEntry("Tetris", "gb", badDir),
+		platformEntry("Zelda", "gb", badDir),
+	}, GameListFileName)
+
+	if err == nil {
+		t.Error("expected an error for the unparseable gamelist")
+	}
+	if written != 1 {
+		t.Errorf("written = %d, want only the good platform's entry", written)
+	}
+
+	if got, _ := os.ReadFile(badPath); string(got) != string(broken) {
+		t.Errorf("unparseable gamelist was rewritten: %q", got)
+	}
+	data, readErr := os.ReadFile(filepath.Join(goodDir, string(GameListFileName)))
+	if readErr != nil {
+		t.Fatalf("good gamelist not written: %v", readErr)
+	}
+	if got := gameElements(t, parsed(t, string(data))); len(got) != 1 || got[0] != "Sonic" {
+		t.Errorf("good gamelist entries = %v, want [Sonic]", got)
+	}
+}
+
+// A file that cannot be loaded is tried once, not once per game of the
+// platform.
+func TestRefreshRomGamesInGamelist_ReportsBrokenPlatformOnce(t *testing.T) {
+	badDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(badDir, string(GameListFileName)), []byte(`<gameList>`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := RefreshRomGamesInGamelist([]RomGameEntry{
+		platformEntry("Tetris", "gb", badDir),
+		platformEntry("Zelda", "gb", badDir),
+		platformEntry("Kirby", "gb", badDir),
+	}, GameListFileName)
+
+	var joined interface{ Unwrap() []error }
+	if !errors.As(err, &joined) {
+		t.Fatalf("expected joined errors, got %v", err)
+	}
+	if n := len(joined.Unwrap()); n != 1 {
+		t.Errorf("got %d errors, want the broken file reported once", n)
+	}
+}
+
+// A gamelist that cannot be saved does not stop the other platforms from
+// being saved, and its entries are not counted.
+func TestRefreshRomGamesInGamelist_SaveFailureDoesNotStopOthers(t *testing.T) {
+	goodDir := t.TempDir()
+	// A rom directory that does not exist cannot take a gamelist.
+	missingDir := filepath.Join(t.TempDir(), "missing")
+
+	written, err := RefreshRomGamesInGamelist([]RomGameEntry{
+		platformEntry("Tetris", "gb", missingDir),
+		platformEntry("Sonic", "gba", goodDir),
+	}, GameListFileName)
+
+	if err == nil {
+		t.Error("expected an error for the unsavable gamelist")
+	}
+	if written != 1 {
+		t.Errorf("written = %d, want 1", written)
+	}
+	if _, statErr := os.Stat(filepath.Join(goodDir, string(GameListFileName))); statErr != nil {
+		t.Errorf("good gamelist not written: %v", statErr)
 	}
 }

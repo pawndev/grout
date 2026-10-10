@@ -1,6 +1,7 @@
 package gamelist
 
 import (
+	"errors"
 	"fmt"
 	"grout/files"
 	"log/slog"
@@ -17,6 +18,8 @@ import (
 type GameListEntry struct {
 	GL   *GameList
 	Path string
+	// count is how many entries were applied to GL.
+	count int
 }
 
 // RomGameEntry is one game to write into a gamelist. It carries library.Game
@@ -153,54 +156,86 @@ func setScraperID(element *etree.Element, game library.Game) {
 
 // AddRomGamesToGamelist adds or updates the entries of freshly downloaded games.
 func AddRomGamesToGamelist(entries []RomGameEntry, gamelistFilename FileName) error {
-	return applyToGamelists(entries, gamelistFilename, (*GameList).AddRomGame)
+	_, err := applyToGamelists(entries, gamelistFilename, (*GameList).AddRomGame)
+	return err
 }
 
 // RefreshRomGamesInGamelist brings the entries of games already on the device
 // in line with the server, keeping what the frontend recorded about them. See
-// RefreshRomGame.
-func RefreshRomGamesInGamelist(entries []RomGameEntry, gamelistFilename FileName) error {
+// RefreshRomGame. It returns how many entries were written.
+func RefreshRomGamesInGamelist(entries []RomGameEntry, gamelistFilename FileName) (int, error) {
 	return applyToGamelists(entries, gamelistFilename, (*GameList).RefreshRomGame)
 }
 
 // applyToGamelists loads the gamelist of each platform the entries belong to
-// once, applies to apply to every entry, then saves each file.
-func applyToGamelists(entries []RomGameEntry, gamelistFilename FileName, apply func(*GameList, RomGameEntry)) error {
-	gamelists := make(map[string]GameListEntry)
+// once, applies apply to every entry, then saves each file.
+//
+// A platform whose file cannot be loaded or saved does not stop the others. It
+// returns how many entries landed in a saved file, with every failure joined.
+func applyToGamelists(entries []RomGameEntry, gamelistFilename FileName, apply func(*GameList, RomGameEntry)) (int, error) {
+	logger := slog.Default()
+
+	gamelists := make(map[string]*GameListEntry)
+	// Platforms whose file could not be loaded, so it is tried only once.
+	skipped := make(map[string]bool)
+	var errs []error
+
 	for _, game := range entries {
-		glEntry, exists := gamelists[game.Platform.FSSlug]
+		slug := game.Platform.FSSlug
+		if skipped[slug] {
+			continue
+		}
+
+		glEntry, exists := gamelists[slug]
 		if !exists {
-			gl := New()
 			gamelistPath := fmt.Sprintf("%s/%s", game.RomDirectory, gamelistFilename)
-			if files.FileExists(gamelistPath) {
-				data, err := os.ReadFile(gamelistPath)
-				if err != nil {
-					// Saving over a file that could not be read would wipe
-					// every entry in it.
-					slog.Default().Error("Error reading gamelist file, skipping platform", "error", err, "path", gamelistPath)
-					continue
-				}
-				if len(data) > 0 {
-					if err := gl.Parse(data); err != nil {
-						slog.Default().Error("gamelist not found or can't be parsed, skipping platform", "path", gamelistPath, "error", err)
-						continue
-					}
-				}
+			gl, err := loadGamelist(gamelistPath)
+			if err != nil {
+				// Saving over a file that could not be read would wipe every
+				// entry in it.
+				logger.Error("Unable to load gamelist file, skipping platform", "error", err, "path", gamelistPath)
+				errs = append(errs, err)
+				skipped[slug] = true
+				continue
 			}
-			glEntry = GameListEntry{Path: gamelistPath, GL: gl}
-			gamelists[game.Platform.FSSlug] = glEntry
+			glEntry = &GameListEntry{Path: gamelistPath, GL: gl}
+			gamelists[slug] = glEntry
 		}
 
 		apply(glEntry.GL, game)
+		glEntry.count++
 	}
 
+	written := 0
 	for _, glEntry := range gamelists {
 		if err := glEntry.GL.Save(glEntry.Path); err != nil {
-			slog.Default().Error("Unable to save gamelist file", "error", err, "path", glEntry.Path)
-			return err
+			logger.Error("Unable to save gamelist file", "error", err, "path", glEntry.Path)
+			errs = append(errs, fmt.Errorf("saving %s: %w", glEntry.Path, err))
+			continue
 		}
-		slog.Default().Debug("Successfully saved gamelist file", "path", glEntry.Path)
+		logger.Debug("Successfully saved gamelist file", "path", glEntry.Path)
+		written += glEntry.count
 	}
 
-	return nil
+	return written, errors.Join(errs...)
+}
+
+// loadGamelist reads the gamelist at path, or starts an empty one when there is
+// no file yet.
+func loadGamelist(path string) (*GameList, error) {
+	gl := New()
+	if !files.FileExists(path) {
+		return gl, nil
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %w", path, err)
+	}
+	if len(data) > 0 {
+		if err := gl.Parse(data); err != nil {
+			return nil, fmt.Errorf("parsing %s: %w", path, err)
+		}
+	}
+	return gl, nil
 }

@@ -107,21 +107,26 @@ func (s *MetadataSyncScreen) refresh(input MetadataSyncInput, chosen []platformR
 		batches = append(batches, download.PlatformGames{Platform: entry.platform, Games: games})
 	}
 
-	updated, err := gaba.ProcessMessage(
+	result, err := gaba.ProcessMessage(
 		localize("metadata_sync_updating", "Updating metadata..."),
 		gaba.ProcessMessageOptions{ShowThemeBackground: true},
-		func() (int, error) {
+		func() (download.MetadataResult, error) {
 			return download.RefreshMetadata(input.Config, batches)
 		},
 	)
 	if err != nil {
 		gaba.GetLogger().Error("Metadata update failed", "error", err)
-		s.tell(localize("metadata_sync_failed", "Could not update the metadata.\nCheck the logs for more info."))
-		return
 	}
+	gaba.GetLogger().Info("Metadata update complete", "updated", result.Updated, "failed", result.Failed)
 
-	gaba.GetLogger().Info("Metadata update complete", "games", updated)
-	s.tell(fmt.Sprintf(localize("metadata_sync_complete", "Updated metadata for %d games."), updated))
+	switch {
+	case result.Updated == 0 && err != nil:
+		s.tell(localize("metadata_sync_failed", "Could not update the metadata.\nCheck the logs for more info."))
+	case result.Failed > 0:
+		s.tell(fmt.Sprintf(localize("metadata_sync_partial", "Updated metadata for %d games, %d failed.\nCheck the logs for more info."), result.Updated, result.Failed))
+	default:
+		s.tell(fmt.Sprintf(localize("metadata_sync_complete", "Updated metadata for %d games."), result.Updated))
+	}
 }
 
 func (s *MetadataSyncScreen) tell(message string) {

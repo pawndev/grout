@@ -355,3 +355,61 @@ func TestAddRomGamesToGamelist_PlatformsSharingADirectory(t *testing.T) {
 		t.Errorf("entries = %v, want Kept, Mario and Zelda", got)
 	}
 }
+
+// Entries are looked up through an index of the file. An entry created during
+// a refresh must be found by the next lookup rather than added twice.
+func TestRefreshRomGame_FindsEntryItCreated(t *testing.T) {
+	gl := parsed(t, `<gameList><game><path>./Other.gba</path><name>Other</name></game></gameList>`)
+	gl.RefreshRomGame(entry(rom("Other", "Other.gba"), "/roms/gba"))
+
+	r := rom("Sonic", "Sonic.gba")
+	gl.RefreshRomGame(entry(r, "/roms/gba"))
+	r.Summary = "Updated"
+	gl.RefreshRomGame(entry(r, "/roms/gba"))
+
+	if got := gameElements(t, gl); len(got) != 2 {
+		t.Fatalf("entries = %v, want Other and Sonic once each", got)
+	}
+	if !gl.Contains(DescElement, "Updated") {
+		t.Error("expected the second refresh to update the entry the first created")
+	}
+}
+
+// A download can move an entry to a new <path>. It must then be found under
+// its new file name only.
+func TestAddRomGame_PathChangeMovesEntryInIndex(t *testing.T) {
+	gl := parsed(t, `<gameList><game><path>./Final Fantasy VII.cue</path><name>FF7</name></game></gameList>`)
+	if gl.GetGameElementByFileName("Final Fantasy VII.cue") == nil {
+		t.Fatal("expected the existing entry to be found")
+	}
+
+	r := rom("Final Fantasy VII", "Final Fantasy VII.cue")
+	e := entry(r, "/roms/psx")
+	e.Game.Path = "/roms/psx/Final Fantasy VII.m3u"
+	gl.AddRomGame(e)
+
+	if gl.GetGameElementByFileName("Final Fantasy VII.m3u") == nil {
+		t.Error("expected the entry under its new file name")
+	}
+	if gl.GetGameElementByFileName("Final Fantasy VII.cue") != nil {
+		t.Error("expected the old file name to no longer match")
+	}
+}
+
+// Parsing replaces the document, and with it what the index points to.
+func TestGameList_ParseResetsIndex(t *testing.T) {
+	gl := parsed(t, `<gameList><game><path>./Sonic.gba</path></game></gameList>`)
+	if gl.GetGameElementByFileName("Sonic.gba") == nil {
+		t.Fatal("expected Sonic to be found")
+	}
+
+	if err := gl.Parse([]byte(`<gameList><game><path>./Tetris.gb</path></game></gameList>`)); err != nil {
+		t.Fatal(err)
+	}
+	if gl.GetGameElementByFileName("Sonic.gba") != nil {
+		t.Error("expected Sonic to be gone after parsing another file")
+	}
+	if gl.GetGameElementByFileName("Tetris.gb") == nil {
+		t.Error("expected Tetris to be found")
+	}
+}

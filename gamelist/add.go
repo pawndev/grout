@@ -68,7 +68,7 @@ func (gl *GameList) RefreshRomGame(entry RomGameEntry) {
 		}
 	}
 
-	game := gl.findGame(byAnyFileName(entry.FileName(), filepath.Base(entry.Game.Path)))
+	game := gl.gameByAnyFileName(entry.FileName(), filepath.Base(entry.Game.Path))
 	if game == nil {
 		setScraperID(gl.AddGameEntry(metadata), entry.Game)
 		return
@@ -76,7 +76,7 @@ func (gl *GameList) RefreshRomGame(entry RomGameEntry) {
 
 	delete(metadata, PathElement)
 	for element, value := range metadata {
-		setChild(game, element, value)
+		gl.setChild(game, element, value)
 	}
 	setScraperID(game, entry.Game)
 }

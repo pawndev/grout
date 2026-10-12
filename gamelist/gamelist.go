@@ -44,6 +44,9 @@ const (
 
 type GameList struct {
 	document *etree.Document
+	// byFileName indexes the entries by rom file name, so refreshing a whole
+	// library is not one scan of the file per game. Built on first lookup.
+	byFileName map[string]*etree.Element
 }
 
 func New() *GameList {
@@ -66,6 +69,7 @@ func (gl *GameList) Parse(b []byte) error {
 	}
 
 	gl.document = document
+	gl.byFileName = nil
 	return nil
 }
 
@@ -95,47 +99,76 @@ func (gl *GameList) findGame(match gameMatcher) *etree.Element {
 
 func byName(name string) gameMatcher {
 	return func(game *etree.Element) bool {
-		nameElement := game.FindElement(NameElement)
+		nameElement := game.SelectElement(NameElement)
 		return nameElement != nil && nameElement.Text() == name
 	}
 }
 
-// byFileName matches an entry on the rom's file name from <path>, the stable
-// identity of a rom entry. <name> is a display string and changes with regions,
-// locale and settings.
+// fileNameOf is the rom's file name from <path>, the stable identity of a rom
+// entry. <name> is a display string and changes with regions, locale and
+// settings.
 //
-// Base names are compared so grout adopts entries written by EmulationStation,
+// The base name is kept so grout adopts entries written by EmulationStation,
 // which stores "./Game.gba" where grout stores an absolute path.
-func byFileName(fileName string) gameMatcher {
-	return func(game *etree.Element) bool {
-		pathElement := game.FindElement(PathElement)
-		if pathElement == nil {
-			return false
+func fileNameOf(game *etree.Element) string {
+	pathElement := game.SelectElement(PathElement)
+	if pathElement == nil {
+		return ""
+	}
+	return filepath.Base(strings.TrimSpace(pathElement.Text()))
+}
+
+func validFileName(fileName string) bool {
+	return fileName != "" && fileName != "."
+}
+
+// fileNameIndex returns the entries keyed by rom file name, building it from
+// the document on first use.
+func (gl *GameList) fileNameIndex() map[string]*etree.Element {
+	if gl.byFileName != nil {
+		return gl.byFileName
+	}
+	gl.byFileName = make(map[string]*etree.Element)
+	if root := gl.root(); root != nil {
+		for _, game := range root.SelectElements(GameElement) {
+			gl.index(game)
 		}
-		return filepath.Base(strings.TrimSpace(pathElement.Text())) == fileName
+	}
+	return gl.byFileName
+}
+
+// index records game under its rom file name. Should several entries share
+// it, the first one in the file is kept, as a scan of the file would find.
+func (gl *GameList) index(game *etree.Element) {
+	if gl.byFileName == nil {
+		// Not built yet: it will be from the document, game included.
+		return
+	}
+	fileName := fileNameOf(game)
+	if !validFileName(fileName) {
+		return
+	}
+	if _, taken := gl.byFileName[fileName]; !taken {
+		gl.byFileName[fileName] = game
 	}
 }
 
-// byAnyFileName matches an entry whose rom file name is any of fileNames.
+// gameByAnyFileName returns the entry whose rom file name is the first of
+// fileNames found.
 //
 // A game's file name on the server is not always the one on the device.
 // A multi-disc game is launched through its playlist, and a rom with several
 // versions is stored under the one that was picked.
-func byAnyFileName(fileNames ...string) gameMatcher {
-	matchers := make([]gameMatcher, 0, len(fileNames))
+func (gl *GameList) gameByAnyFileName(fileNames ...string) *etree.Element {
 	for _, fileName := range fileNames {
-		if fileName != "" && fileName != "." {
-			matchers = append(matchers, byFileName(fileName))
+		if !validFileName(fileName) {
+			continue
+		}
+		if game := gl.fileNameIndex()[fileName]; game != nil {
+			return game
 		}
 	}
-	return func(game *etree.Element) bool {
-		for _, match := range matchers {
-			if match(game) {
-				return true
-			}
-		}
-		return false
-	}
+	return nil
 }
 
 func (gl *GameList) Contains(element, value string) bool {
@@ -150,10 +183,7 @@ func (gl *GameList) GetGameElementByName(name string) *etree.Element {
 }
 
 func (gl *GameList) GetGameElementByFileName(fileName string) *etree.Element {
-	if fileName == "" {
-		return nil
-	}
-	return gl.findGame(byFileName(fileName))
+	return gl.gameByAnyFileName(fileName)
 }
 
 func (gl *GameList) GameContainsElements(name string, elements []string) bool {
@@ -187,26 +217,34 @@ func (gl *GameList) AddGameEntry(info map[string]string) *etree.Element {
 	for key, value := range info {
 		newGame.CreateElement(key).SetText(value)
 	}
+	gl.index(newGame)
 	return newGame
 }
 
-// upsert updates the entry matched by match, creating it if absent. Returns the
-// element so callers can set attributes, which requires it to exist.
-func (gl *GameList) upsert(match gameMatcher, info map[string]string) *etree.Element {
-	game := gl.findGame(match)
+// upsert updates game with info, creating the entry when game is nil. Returns
+// the element so callers can set attributes, which requires it to exist.
+func (gl *GameList) upsert(game *etree.Element, info map[string]string) *etree.Element {
 	if game == nil {
 		return gl.AddGameEntry(info)
 	}
 
 	for key, value := range info {
-		setChild(game, key, value)
+		gl.setChild(game, key, value)
 	}
 	return game
 }
 
 // setChild sets the text of game's child element, creating it if absent.
-func setChild(game *etree.Element, element, value string) {
-	if child := game.FindElement(element); child != nil {
+// A new <path> moves the entry to its new file name in the index.
+func (gl *GameList) setChild(game *etree.Element, element, value string) {
+	if element == PathElement && gl.byFileName != nil {
+		if old := fileNameOf(game); gl.byFileName[old] == game {
+			delete(gl.byFileName, old)
+		}
+		defer gl.index(game)
+	}
+
+	if child := game.SelectElement(element); child != nil {
 		child.SetText(value)
 	} else {
 		game.CreateElement(element).SetText(value)
@@ -216,12 +254,12 @@ func setChild(game *etree.Element, element, value string) {
 // AddOrUpdateEntry upserts an entry keyed by <name>, for non-rom entries such
 // as the Grout launcher shortcut. Rom entries must use AddOrUpdateRomEntry.
 func (gl *GameList) AddOrUpdateEntry(name string, info map[string]string) *etree.Element {
-	return gl.upsert(byName(name), info)
+	return gl.upsert(gl.findGame(byName(name)), info)
 }
 
 func (gl *GameList) AddOrUpdateRomEntry(fileName string, info map[string]string) *etree.Element {
 	if fileName == "" {
 		return gl.AddGameEntry(info)
 	}
-	return gl.upsert(byFileName(fileName), info)
+	return gl.upsert(gl.gameByAnyFileName(fileName), info)
 }

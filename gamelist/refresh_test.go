@@ -355,3 +355,24 @@ func TestAddRomGamesToGamelist_PlatformsSharingADirectory(t *testing.T) {
 		t.Errorf("entries = %v, want Kept, Mario and Zelda", got)
 	}
 }
+
+// Entries are looked up through an index built once per batch. An entry created
+// during the batch must be found by the next lookup rather than added twice.
+func TestRefreshRomGames_FindsEntryItCreated(t *testing.T) {
+	gl := parsed(t, `<gameList><game><path>./Other.gba</path><name>Other</name></game></gameList>`)
+	r := rom("Sonic", "Sonic.gba")
+	updated := r
+	updated.Summary = "Updated"
+	gl.RefreshRomGames([]RomGameEntry{
+		entry(rom("Other", "Other.gba"), "/roms/gba"),
+		entry(r, "/roms/gba"),
+		entry(updated, "/roms/gba"),
+	})
+
+	if got := gameElements(t, gl); len(got) != 2 {
+		t.Fatalf("entries = %v, want Other and Sonic once each", got)
+	}
+	if !gl.Contains(DescElement, "Updated") {
+		t.Error("expected the second refresh to update the entry the first created")
+	}
+}

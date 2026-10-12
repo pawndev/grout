@@ -15,13 +15,6 @@ import (
 	"github.com/beevik/etree"
 )
 
-type GameListEntry struct {
-	GL   *GameList
-	Path string
-	// count is how many entries were applied to GL.
-	count int
-}
-
 // RomGameEntry is one game to write into a gamelist. It carries library.Game
 // rather than the wire type so this package performs no text transformation:
 // the display name arrives rendered, and identity is the file name.
@@ -53,14 +46,30 @@ func (gl *GameList) AddRomGame(entry RomGameEntry) {
 	setScraperID(element, entry.Game)
 }
 
-// RefreshRomGame rewrites the metadata grout manages on a rom's entry, creating
-// the entry when there is none.
+// RefreshRomGames rewrites the metadata grout manages on each game's entry,
+// creating the entries that are missing.
 //
 // Only the elements grout writes are touched: what the firmware records on its
 // own, such as play count, play time or favourites, is left as it is.
 // Values the server has nothing for are skipped rather than blanking what
 // a scraper may have filled in.
+//
+// The file is indexed once for the whole batch, so refreshing a library is not
+// one scan of the file per game. A refresh never moves an entry to another
+// <path>, so the index only has to learn about the entries it creates.
+func (gl *GameList) RefreshRomGames(entries []RomGameEntry) {
+	games := gl.gamesByFileName()
+	for _, entry := range entries {
+		gl.refreshRomGame(games, entry)
+	}
+}
+
+// RefreshRomGame refreshes a single game. See RefreshRomGames.
 func (gl *GameList) RefreshRomGame(entry RomGameEntry) {
+	gl.RefreshRomGames([]RomGameEntry{entry})
+}
+
+func (gl *GameList) refreshRomGame(games map[string]*etree.Element, entry RomGameEntry) {
 	metadata := romMetadata(entry.Game)
 	for element, value := range metadata {
 		if value == "" {
@@ -68,9 +77,23 @@ func (gl *GameList) RefreshRomGame(entry RomGameEntry) {
 		}
 	}
 
-	game := gl.findGame(byAnyFileName(entry.FileName(), filepath.Base(entry.Game.Path)))
+	// A game's file name on the server is not always the one on the device.
+	// A multi-disc game is launched through its playlist, and a rom with
+	// several versions is stored under the one that was picked.
+	game := games[entry.FileName()]
 	if game == nil {
-		setScraperID(gl.AddGameEntry(metadata), entry.Game)
+		game = games[filepath.Base(entry.Game.Path)]
+	}
+	if game == nil {
+		game = gl.AddGameEntry(metadata)
+		if game == nil {
+			return
+		}
+		// A later entry for the same rom must update this one, not add another.
+		if fileName := fileNameOf(game); validFileName(fileName) {
+			games[fileName] = game
+		}
+		setScraperID(game, entry.Game)
 		return
 	}
 
@@ -156,19 +179,23 @@ func setScraperID(element *etree.Element, game library.Game) {
 
 // AddRomGamesToGamelist adds or updates the entries of freshly downloaded games.
 func AddRomGamesToGamelist(entries []RomGameEntry, gamelistFilename FileName) error {
-	_, err := applyToGamelists(entries, gamelistFilename, (*GameList).AddRomGame)
+	_, err := applyToGamelists(entries, gamelistFilename, func(gl *GameList, entries []RomGameEntry) {
+		for _, entry := range entries {
+			gl.AddRomGame(entry)
+		}
+	})
 	return err
 }
 
 // RefreshRomGamesInGamelist brings the entries of games already on the device
 // in line with the server, keeping what the frontend recorded about them. See
-// RefreshRomGame. It returns how many entries were written.
+// RefreshRomGames. It returns how many entries were written.
 func RefreshRomGamesInGamelist(entries []RomGameEntry, gamelistFilename FileName) (int, error) {
-	return applyToGamelists(entries, gamelistFilename, (*GameList).RefreshRomGame)
+	return applyToGamelists(entries, gamelistFilename, (*GameList).RefreshRomGames)
 }
 
-// applyToGamelists loads each gamelist file the entries belong to once,
-// applies apply to every entry, then saves each file.
+// applyToGamelists groups the entries by the gamelist file they belong to, then
+// loads each file once, applies apply to its entries and saves it.
 //
 // Entries are grouped by file rather than by platform: several platforms can
 // share a ROM directory, such as nes and famicom, and loading the file once per
@@ -176,48 +203,41 @@ func RefreshRomGamesInGamelist(entries []RomGameEntry, gamelistFilename FileName
 //
 // A file that cannot be loaded or saved does not stop the others. It returns
 // how many entries landed in a saved file, with every failure joined.
-func applyToGamelists(entries []RomGameEntry, gamelistFilename FileName, apply func(*GameList, RomGameEntry)) (int, error) {
+func applyToGamelists(entries []RomGameEntry, gamelistFilename FileName, apply func(*GameList, []RomGameEntry)) (int, error) {
 	logger := slog.Default()
 
-	gamelists := make(map[string]*GameListEntry)
-	// Files that could not be loaded, so each is tried only once.
-	skipped := make(map[string]bool)
-	var errs []error
-
+	// Files in the order they are first met, so runs are reproducible.
+	var paths []string
+	byPath := make(map[string][]RomGameEntry)
 	for _, game := range entries {
 		gamelistPath := filepath.Join(game.RomDirectory, string(gamelistFilename))
-		if skipped[gamelistPath] {
-			continue
+		if _, seen := byPath[gamelistPath]; !seen {
+			paths = append(paths, gamelistPath)
 		}
-
-		glEntry, exists := gamelists[gamelistPath]
-		if !exists {
-			gl, err := loadGamelist(gamelistPath)
-			if err != nil {
-				// Saving over a file that could not be read would wipe every
-				// entry in it.
-				logger.Error("Unable to load gamelist file, skipping its entries", "error", err, "path", gamelistPath)
-				errs = append(errs, err)
-				skipped[gamelistPath] = true
-				continue
-			}
-			glEntry = &GameListEntry{Path: gamelistPath, GL: gl}
-			gamelists[gamelistPath] = glEntry
-		}
-
-		apply(glEntry.GL, game)
-		glEntry.count++
+		byPath[gamelistPath] = append(byPath[gamelistPath], game)
 	}
 
 	written := 0
-	for _, glEntry := range gamelists {
-		if err := glEntry.GL.Save(glEntry.Path); err != nil {
-			logger.Error("Unable to save gamelist file", "error", err, "path", glEntry.Path)
-			errs = append(errs, fmt.Errorf("saving %s: %w", glEntry.Path, err))
+	var errs []error
+	for _, gamelistPath := range paths {
+		gl, err := loadGamelist(gamelistPath)
+		if err != nil {
+			// Saving over a file that could not be read would wipe every
+			// entry in it.
+			logger.Error("Unable to load gamelist file, skipping its entries", "error", err, "path", gamelistPath)
+			errs = append(errs, err)
 			continue
 		}
-		logger.Debug("Successfully saved gamelist file", "path", glEntry.Path)
-		written += glEntry.count
+
+		apply(gl, byPath[gamelistPath])
+
+		if err := gl.Save(gamelistPath); err != nil {
+			logger.Error("Unable to save gamelist file", "error", err, "path", gamelistPath)
+			errs = append(errs, fmt.Errorf("saving %s: %w", gamelistPath, err))
+			continue
+		}
+		logger.Debug("Successfully saved gamelist file", "path", gamelistPath)
+		written += len(byPath[gamelistPath])
 	}
 
 	return written, errors.Join(errs...)

@@ -172,6 +172,24 @@ func (s *session) press(keys ...string) {
 	}
 }
 
+// awaitLibrary waits for a paired card to reach its platform list.
+//
+// "Starting Grout" is logged before the list is up. A fresh card first builds
+// its cache behind a progress screen that reads buttons and drops them, and
+// which stays up a moment after the work is done. That screen holds still
+// long enough for awaitStill to let a press through, so the first press was
+// lost and every one after it landed a screen early.
+//
+// The progress screen lingers for less than awaitStill's settle, so once the
+// cache is built the wait sees it go rather than mistaking it for still.
+func (s *session) awaitLibrary() {
+	s.t.Helper()
+
+	s.awaitLog("Starting Grout")
+	s.awaitLog("Cache population completed")
+	s.awaitStill()
+}
+
 // logEntry is one line of grout's structured log.
 type logEntry struct {
 	Level  string `json:"level"`
